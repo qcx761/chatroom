@@ -1,5 +1,4 @@
-#ifndef THREADPOOL_HPP
-#define THREADPOOL_HPP
+#pragma once
 
 #include <vector>
 #include <queue>
@@ -49,4 +48,3 @@ auto threadpool::enqueue(F&& f, Args&&... args) -> std::future<std::invoke_resul
     return res;
 }
 
-#endif // THREADPOOL_HPP
