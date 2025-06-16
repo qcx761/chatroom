@@ -1,0 +1,32 @@
+chat-system/
+├── CMakeLists.txt
+├── src/
+│   ├── main.cpp
+│   ├── server/
+│   │   ├── server.cpp
+│   │   ├── server.h
+│   ├── net/
+│   │   ├── epoll_wrapper.cpp
+│   │   ├── epoll_wrapper.h
+│   ├── handler/
+│   │   ├── login_handler.cpp
+│   │   ├── login_handler.h
+│   │   ├── message_handler.cpp
+│   │   ├── message_handler.h
+│   ├── model/
+│   │   ├── user_model.cpp
+│   │   ├── user_model.h
+│   ├── db/
+│   │   ├── redis_client.cpp
+│   │   ├── redis_client.h
+│   ├── common/
+│   │   ├── utils.h
+│   │   ├── logger.cpp
+│   │   ├── logger.h
+├── include/
+│   └── json.hpp          # nlohmann/json
+├── third_party/
+│   └── redis/            # hiredis
+└── test/
+    ├── test_login.cpp
+    └── CMakeLists.txt
