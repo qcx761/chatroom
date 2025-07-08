@@ -24,7 +24,4 @@ private:
 #define LOG_INFO(logger, msg)  (logger).log(Logger::Level::INFO,  (msg))
 #define LOG_DEBUG(logger, msg) (logger).log(Logger::Level::DEBUG, (msg))
 
-// 全局 logger 对象声明
-extern Logger logger;
-
 #endif // LOGGER_HPP

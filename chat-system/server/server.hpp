@@ -11,6 +11,14 @@
 #include <cstring>
 #include <ifaddrs.h>
 #include <netinet/in.h>
+#include<sstream>
+
+#include "../threadpool/threadpool.hpp"
+#include "../log/logger.hpp"
+
+
+#define MAX_EVENTS 10
+#define thread_count 10
 
 class Server
 {
@@ -24,6 +32,10 @@ private:
 int listen_fd;
 int port;
 int epfd;
+threadpool thread_pool;
+Logger logger;
+
+static void set_nonblocking(int fd);
 
 
 };

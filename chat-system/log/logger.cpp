@@ -4,7 +4,6 @@
 #include <ctime>
 #include <mutex>
 
-// 日志实现类
 class Logger::Impl {
 public:
     Impl(Level level, const std::string& filename)
@@ -70,8 +69,6 @@ private:
     }
 };
 
-// Logger 成员函数实现
-
 Logger::Logger(Level level, const std::string& filename)
     : pImpl(new Impl(level, filename)) {}
 
@@ -86,6 +83,3 @@ void Logger::log(Level level, const std::string& msg) {
 void Logger::setLevel(Level level) {
     pImpl->setLevel(level);
 }
-
-// 定义全局 logger 对象，默认 DEBUG 级别，写到 chat.log
-Logger logger(Logger::Level::DEBUG, "chat.log");
