@@ -1,4 +1,4 @@
 {
-  "logLevel": "DEBUG",
-  "logFileName": "mylog.txt"
+  "log_level": "DEBUG",
+  "log_file": "chat.log"
 }

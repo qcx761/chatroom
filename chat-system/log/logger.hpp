@@ -1,27 +1,30 @@
-#ifndef SIMPLELOGGER_H
-#define SIMPLELOGGER_H
+#ifndef LOGGER_HPP
+#define LOGGER_HPP
 
 #include <string>
 
-class SimpleLogger {
+class Logger {
 public:
     enum class Level { ERROR, WARN, INFO, DEBUG };
 
-    SimpleLogger(Level level = Level::INFO, const std::string& filename = "");
-    ~SimpleLogger();
+    Logger(Level level = Level::INFO, const std::string& filename = "");
+    ~Logger();
 
     void log(Level level, const std::string& msg);
     void setLevel(Level level);
 
 private:
     class Impl;
-    Impl* pImpl;  // Pimpl 习惯写法，防止实现暴露（可选）
+    Impl* pImpl;
 };
 
-// 方便调用的宏
-#define LOG_ERROR(logger, msg) (logger).log(SimpleLogger::Level::ERROR, (msg))
-#define LOG_WARN(logger, msg)  (logger).log(SimpleLogger::Level::WARN,  (msg))
-#define LOG_INFO(logger, msg)  (logger).log(SimpleLogger::Level::INFO,  (msg))
-#define LOG_DEBUG(logger, msg) (logger).log(SimpleLogger::Level::DEBUG, (msg))
+// 日志宏方便调用
+#define LOG_ERROR(logger, msg) (logger).log(Logger::Level::ERROR, (msg))
+#define LOG_WARN(logger, msg)  (logger).log(Logger::Level::WARN,  (msg))
+#define LOG_INFO(logger, msg)  (logger).log(Logger::Level::INFO,  (msg))
+#define LOG_DEBUG(logger, msg) (logger).log(Logger::Level::DEBUG, (msg))
 
-#endif // SIMPLELOGGER_H
+// 全局 logger 对象声明
+extern Logger logger;
+
+#endif // LOGGER_HPP

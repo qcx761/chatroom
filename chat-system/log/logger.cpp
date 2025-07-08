@@ -1,88 +1,91 @@
 #include "logger.hpp"
-#include <iostream>
 #include <fstream>
-#include <mutex>
-#include <chrono>
+#include <iostream>
 #include <ctime>
+#include <mutex>
 
-class SimpleLogger::Impl {
+// 日志实现类
+class Logger::Impl {
 public:
     Impl(Level level, const std::string& filename)
-        : logLevel(level)
+        : m_level(level), m_filename(filename) 
     {
-        if (!filename.empty()) {
-            fileStream.open(filename, std::ios::app);
-            if (!fileStream.is_open()) {
-                std::cerr << "无法打开日志文件：" << filename << std::endl;
+        if (!m_filename.empty()) {
+            m_file.open(m_filename, std::ios::app);
+            if (!m_file.is_open()) {
+                std::cerr << "无法打开日志文件：" << m_filename << std::endl;
             }
         }
     }
 
     ~Impl() {
-        if (fileStream.is_open()) {
-            fileStream.close();
+        if (m_file.is_open()) {
+            m_file.close();
         }
     }
 
     void log(Level level, const std::string& msg) {
-        if (level > logLevel) return;
+        if (level > m_level) return;
 
-        std::lock_guard<std::mutex> lock(mtx);
+        std::lock_guard<std::mutex> lock(m_mutex);
 
-        std::string logLine = "[" + currentTime() + "] " + levelToString(level) + ": " + msg;
+        std::string levelStr = levelToString(level);
+        std::string timeStr = currentDateTime();
 
-        std::cout << logLine << std::endl;
+        std::string logMsg = "[" + timeStr + "] [" + levelStr + "] " + msg + "\n";
 
-        if (fileStream.is_open()) {
-            fileStream << logLine << std::endl;
+        if (m_file.is_open()) {
+            m_file << logMsg;
+            m_file.flush();
+        } else {
+            std::cerr << logMsg;
         }
     }
 
     void setLevel(Level level) {
-        logLevel = level;
+        m_level = level;
     }
 
 private:
-    Level logLevel;
-    std::mutex mtx;
-    std::ofstream fileStream;
+    Level m_level;
+    std::string m_filename;
+    std::ofstream m_file;
+    std::mutex m_mutex;
 
-    std::string currentTime() {
-        auto now = std::chrono::system_clock::now();
-        std::time_t t = std::chrono::system_clock::to_time_t(now);
+    std::string currentDateTime() {
+        std::time_t now = std::time(nullptr);
         char buf[20];
-#ifdef _WIN32
-        ctime_s(buf, sizeof(buf), &t);
-#else
-        std::strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", std::localtime(&t));
-#endif
-        return std::string(buf);
+        std::strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", std::localtime(&now));
+        return buf;
     }
 
     std::string levelToString(Level level) {
         switch(level) {
             case Level::ERROR: return "ERROR";
-            case Level::WARN:  return "WARN ";
-            case Level::INFO:  return "INFO ";
+            case Level::WARN:  return "WARN";
+            case Level::INFO:  return "INFO";
             case Level::DEBUG: return "DEBUG";
-            default: return "UNK";
+            default: return "UNKNOWN";
         }
     }
 };
 
-// SimpleLogger 构造、析构、调用转发
-SimpleLogger::SimpleLogger(Level level, const std::string& filename)
-    : pImpl(new Impl(level, filename))
-{}
+// Logger 成员函数实现
 
-SimpleLogger::~SimpleLogger() {
+Logger::Logger(Level level, const std::string& filename)
+    : pImpl(new Impl(level, filename)) {}
+
+Logger::~Logger() {
     delete pImpl;
 }
 
-void SimpleLogger::log(Level level, const std::string& msg) {
+void Logger::log(Level level, const std::string& msg) {
     pImpl->log(level, msg);
 }
 
-void SimpleLogger::setLevel(Level level) {
+void Logger::setLevel(Level level) {
     pImpl->setLevel(level);
 }
+
+// 定义全局 logger 对象，默认 DEBUG 级别，写到 chat.log
+Logger logger(Logger::Level::DEBUG, "chat.log");
