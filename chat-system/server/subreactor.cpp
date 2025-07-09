@@ -76,6 +76,14 @@ void SubReactor::run() {
                         connections[fd]->updateHeartbeat();
                         
 
+
+
+
+                        // 函数的处理
+
+
+
+                        
                         
 
         // thread_pool->enqueue([conn = connections[fd], data = std::string(buf,len)] {
@@ -100,7 +108,7 @@ void SubReactor::heartbeatCheck() {
                 it->second->closeConn();
                 delete it->second;
                 it = connections.erase(it);
-            } else ++it;
+            } else {++it;}
         }
     }
 }

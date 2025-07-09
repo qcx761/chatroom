@@ -3,9 +3,11 @@
 #include <atomic>
 #include <unistd.h>
 
+//每一个客户端连接的处理类
+
 class Connection {
 public:
-    explicit Connection(int fd,threadpool* pool) : fd(fd), alive(true) {
+    Connection(int fd,threadpool* pool) : fd(fd), alive(true) {
         updateHeartbeat();
     }
 
@@ -13,15 +15,18 @@ public:
         last_heartbeat = std::chrono::steady_clock::now();
     }
 
-    bool isAlive() const {
+    bool isAlive(){
         auto now = std::chrono::steady_clock::now();
         return std::chrono::duration_cast<std::chrono::seconds>(now - last_heartbeat).count() < 30;
     }
 
-    int getFd() const { return fd; }
+   
 
 
     void closeConn() { if (fd >= 0) close(fd); alive = false; }
+
+
+     int getFd() const { return fd; }
 
 
     bool isActive() const { return alive; }
@@ -30,8 +35,13 @@ public:
     
 
 
+// 函数的处理
+
+
+
 
 // 区分模块？？
+
 
 
 
