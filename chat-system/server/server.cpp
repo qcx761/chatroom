@@ -58,8 +58,8 @@ Server::Server(int port, int sub_count) : thread_pool(thread_count), logger(Logg
         close(epfd);
         exit(1);
     }
-    
-// 创建 sub_count 个 SubReactor 对象（也就是从 Reactor 线程或者事件循环实例），并将它们的指针依次存入 workers 容器（std::vector<SubReactor*>）
+
+    // 创建 sub_count 个 SubReactor 对象（也就是从 Reactor 线程或者事件循环实例），并将它们的指针依次存入 workers 容器（std::vector<SubReactor*>）
     for (int i = 0; i < sub_count; ++i)
         workers.push_back(new SubReactor());
 
@@ -119,31 +119,29 @@ Server::Server(int port, int sub_count) : thread_pool(thread_count), logger(Logg
                 workers[idx]->addClient(client_fd);
                 idx = (idx + 1) % sub_count;
 
+                //     epoll_event client_ev{};
+                //     client_ev.events = EPOLLIN | EPOLLET | EPOLLRDHUP | EPOLLERR;
+                //     client_ev.data.fd = client_fd;
 
+                //     if (epoll_ctl(epfd, EPOLL_CTL_ADD, client_fd, &client_ev) == -1)
+                //     {
+                //         LOG_ERROR(logger, "epoll_ctl ADD client_fd failed");
+                //         close(client_fd);
+                //     }
 
+                //     std::ostringstream oss;
+                //     oss << "New control connection accepted: fd=" << client_fd;
 
-            //     epoll_event client_ev{};
-            //     client_ev.events = EPOLLIN | EPOLLET | EPOLLRDHUP | EPOLLERR;
-            //     client_ev.data.fd = client_fd;
-
-            //     if (epoll_ctl(epfd, EPOLL_CTL_ADD, client_fd, &client_ev) == -1)
-            //     {
-            //         LOG_ERROR(logger, "epoll_ctl ADD client_fd failed");
-            //         close(client_fd);
-            //     }
-
-            //     std::ostringstream oss;
-            //     oss << "New control connection accepted: fd=" << client_fd;
-
-            //     LOG_INFO(logger, oss.str());
-            // }
-            // else if (evs & EPOLLOUT)
-            // {
-            //     // 执行客户端的要求
-            // }
-            // else
-            // {
-            // }
+                //     LOG_INFO(logger, oss.str());
+                // }
+                // else if (evs & EPOLLOUT)
+                // {
+                //     // 执行客户端的要求
+                // }
+                // else
+                // {
+                // }
+            }
         }
     }
 }
