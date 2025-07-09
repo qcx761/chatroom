@@ -11,33 +11,26 @@
 #include <cstring>
 #include <ifaddrs.h>
 #include <netinet/in.h>
-#include<sstream>
+#include <sstream>
 
 #include "../threadpool/threadpool.hpp"
 #include "../log/logger.hpp"
 #include "subreactor.hpp"
 
-
 class Server
 {
 
 public:
-    Server(int port,int sub_count = 10);
+    Server(int port, int sub_count = 10);
     ~Server();
 
 private:
-    
-int listen_fd;
-int epfd;
-threadpool thread_pool;
-std::vector<SubReactor*> workers;
+    int listen_fd;
+    int epfd;
+    threadpool thread_pool;
+    std::vector<SubReactor *> workers;
 
-
-
-Logger logger;
-
-
-
+    Logger logger;
 };
 
 #endif

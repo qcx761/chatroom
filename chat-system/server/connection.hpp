@@ -5,7 +5,7 @@
 
 class Connection {
 public:
-    explicit Connection(int fd) : fd(fd), alive(true) {
+    explicit Connection(int fd,threadpool* pool) : fd(fd), alive(true) {
         updateHeartbeat();
     }
 
@@ -19,10 +19,17 @@ public:
     }
 
     int getFd() const { return fd; }
+
+
     void closeConn() { if (fd >= 0) close(fd); alive = false; }
+
+
     bool isActive() const { return alive; }
 
 private:
+
+    threadpool *thread_pool;
+
     int fd;
     std::atomic<bool> alive;
     std::chrono::steady_clock::time_point last_heartbeat;
