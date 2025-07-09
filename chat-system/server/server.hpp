@@ -18,14 +18,11 @@
 #include "subreactor.hpp"
 
 
-
-
-
 class Server
 {
 
 public:
-    Server(int port,int sub_count = 4);
+    Server(int port,int sub_count = 10);
     ~Server();
 
 private:
@@ -33,11 +30,16 @@ private:
 int listen_fd;
 int epfd;
 threadpool thread_pool;
+std::vector<SubReactor*> workers;
+
+
+
 Logger logger;
 
-// static void set_nonblocking(int fd);
 
 
 };
 
 #endif
+
+// 日志怎么处理？？？？？？？？？？？？？？
