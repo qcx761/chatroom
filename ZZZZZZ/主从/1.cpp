@@ -2,15 +2,10 @@
 // #include "../log/logger.hpp"
 // #include "../threadpool/threadpool.hpp"
 
-
-
 using namespace std;
 
-#define MAX_EVENTS 10
-#define thread_count 10
-
 // 记录等级为 DEBUG 及以上的所有日志”写入 client.log 文件中
-Server::Server(int port,int sub_count) :thread_pool(thread_count),logger(Logger::Level::DEBUG, "server.log")
+Server::Server(int Port) : port(Port) ,thread_pool(thread_count),logger(Logger::Level::DEBUG, "server.log")
 {
     listen_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (listen_fd < 0)
@@ -25,7 +20,7 @@ Server::Server(int port,int sub_count) :thread_pool(thread_count),logger(Logger:
     socklen_t addr_len = sizeof(addr);
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    addr.sin_port = htons(port);
+    addr.sin_port = htons(Port);
 
     if (bind(listen_fd, (sockaddr *)&addr, addr_len) < 0)
     {
@@ -34,7 +29,7 @@ Server::Server(int port,int sub_count) :thread_pool(thread_count),logger(Logger:
         exit(1);
     }
 
-    if (listen(listen_fd,10) < 0)
+    if (listen(listen_fd, 10) < 0)
     {
         LOG_ERROR(logger, "listen failed");
 
@@ -150,3 +145,8 @@ Server::~Server()
     close(epfd);
     close(listen_fd);
 }
+
+
+
+
+

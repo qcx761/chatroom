@@ -15,17 +15,16 @@
 
 #include "../threadpool/threadpool.hpp"
 #include "../log/logger.hpp"
-#include "subreactor.hpp"
 
 
-
-
+#define MAX_EVENTS 10
+#define thread_count 10
 
 class Server
 {
 
 public:
-    Server(int port,int sub_count = 4);
+    Server(int port);
     ~Server();
 
 private:
@@ -35,9 +34,11 @@ int epfd;
 threadpool thread_pool;
 Logger logger;
 
-// static void set_nonblocking(int fd);
+static void set_nonblocking(int fd);
 
 
 };
+
+
 
 #endif
