@@ -74,9 +74,16 @@ void SubReactor::run() {
                     std::lock_guard<std::mutex> lock(conn_mtx);
                     if (connections.count(fd)) {
                         connections[fd]->updateHeartbeat();
-                        // 这里可以改成你真正的业务处理函数，而不是简单回显
+                        
 
-                        write(fd, buf, len); // echo示范
+                        
+
+        // thread_pool->enqueue([conn = connections[fd], data = std::string(buf,len)] {
+                        // conn->handleMessage(data.c_str(), data.size());});
+
+
+
+                       // 先将命令储存到缓冲区后在调用线程池
                     }
                 }
             }

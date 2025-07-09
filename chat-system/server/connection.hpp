@@ -26,6 +26,22 @@ public:
 
     bool isActive() const { return alive; }
 
+    //void Connection::handleMessage(const char* data, size_t len) {
+    
+
+
+
+// 区分模块？？
+
+
+
+
+
+
+
+
+//}
+
 private:
 
     threadpool *thread_pool;
