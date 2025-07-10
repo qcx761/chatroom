@@ -54,7 +54,7 @@ Client::~Client()
 }
 
 
-void Client::run(){
+void epoll_thread_func(){
     epoll_event events[1024];
     while(1){
             int n = epoll_wait(epfd, events, 1024, -1);
@@ -73,12 +73,6 @@ void Client::run(){
                 break;
             }
             if(fd==sock){
-
-
-
-
-
-
                 char buf[1024] = {0};
                 int n = recv(sock, buf, sizeof(buf), 0);
                 if (n > 0) {
@@ -91,11 +85,10 @@ void Client::run(){
 
 
 
+
                 // 处理服务端发送过来的信息
+
                 // 只处理 recv 和 sem_post()，不做任何 cin
-
-
-
 
 
 
@@ -114,34 +107,31 @@ void Client::run(){
 
 }
 
+}
+
+void user_thread_func() {
+    main_menu_ui(sockfd);
+}
 
 
 
 
+void client::run(){
 
+    
+    // 启动 epoll 网络线程
+    thread net_thread(epoll_thread_func);
 
+    // 启动用户输入线程
+    thread input_thread(user_thread_func);
 
+    // 等待线程结束
+    input_thread.join();
+    running = false;
+    close(sockfd);
+    net_thread.join();
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    // main_menu_ui(sock);
-
-
-
-
-
+    sem_destroy(&sem);
 
 
 

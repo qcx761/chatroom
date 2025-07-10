@@ -30,6 +30,14 @@ class Client
 
 public:
     Client(std::string ip, int port);
+
+
+    void epoll_thread_func();
+    void user_thread_func();
+
+
+
+
     ~Client();
     void run();
 
