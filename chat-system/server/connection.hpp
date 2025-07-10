@@ -7,29 +7,22 @@
 
 class Connection {
 public:
-    Connection(int fd,threadpool* pool) : fd(fd), alive(true) {
-        updateHeartbeat();
-    }
+    Connection(int fd,threadpool* pool);
 
-    void updateHeartbeat() {
-        last_heartbeat = std::chrono::steady_clock::now();
-    }
+    void updateHeartbeat();
 
-    bool isAlive(){
-        auto now = std::chrono::steady_clock::now();
-        return std::chrono::duration_cast<std::chrono::seconds>(now - last_heartbeat).count() < 30;
-    }
+    bool isAlive();
 
    
 
 
-    void closeConn() { if (fd >= 0) close(fd); alive = false; }
+    void closeConn();
 
 
-     int getFd() const { return fd; }
+     int getFd();
 
 
-    bool isActive() const { return alive; }
+    bool isActive();
 
     //void Connection::handleMessage(const char* data, size_t len) {
     
