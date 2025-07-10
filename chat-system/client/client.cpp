@@ -118,7 +118,7 @@ void user_thread_func() {
 
 void client::run(){
 
-    
+
     // 启动 epoll 网络线程
     thread net_thread(epoll_thread_func);
 
@@ -131,7 +131,7 @@ void client::run(){
     close(sockfd);
     net_thread.join();
 
-    sem_destroy(&sem);
+    // sem_destroy(&sem);
 
 
 
