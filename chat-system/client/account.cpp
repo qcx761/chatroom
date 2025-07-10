@@ -28,14 +28,21 @@ void main_menu_ui(int sock) {
         switch (n) {
         case 1:
             log_in(sock);
+
+            //waiting();
+
             break;
         case 2:
             sign_up(sock);
+
+            //waiting();
+
             break;
         case 3:
             exit(0);
         default:
             std::cout << "无效数字" << std::endl;
+            
             waiting();
             break;
         }
@@ -43,10 +50,15 @@ void main_menu_ui(int sock) {
 }
 
 
-void log_in(sock){
+void log_in(int sock){
     cout<<"111"<<endl;
+    //直接刷新了怎么停留
+
+
+
+
 }
 
-void sign_up(sock){
+void sign_up(int sock){
 cout<<"222"<<endl;
 }

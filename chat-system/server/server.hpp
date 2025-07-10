@@ -12,10 +12,11 @@
 #include <ifaddrs.h>
 #include <netinet/in.h>
 #include <sstream>
+#include "subreactor.hpp"
+
 
 #include "../threadpool/threadpool.hpp"
 #include "../log/logger.hpp"
-#include "subreactor.hpp"
 
 class Server
 {

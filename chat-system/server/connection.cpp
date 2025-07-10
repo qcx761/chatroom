@@ -1,27 +1,29 @@
-#include"connection.hpp"
+#include "connection.hpp"
+#include <chrono>
+#include <unistd.h> // close()
 
+Connection::Connection(int fd, threadpool* pool) : fd(fd), alive(true), thread_pool(pool) {
+    updateHeartbeat();
+}
 
+void Connection::updateHeartbeat() {
+    last_heartbeat = std::chrono::steady_clock::now();
+}
 
-    Connection(int fd,threadpool* pool) : fd(fd), alive(true) {
-        updateHeartbeat();
-    }
+bool Connection::isAlive() const {
+    auto now = std::chrono::steady_clock::now();
+    return std::chrono::duration_cast<std::chrono::seconds>(now - last_heartbeat).count() < 30;
+}
 
-    void updateHeartbeat() {
-        last_heartbeat = std::chrono::steady_clock::now();
-    }
+void Connection::closeConn() {
+    if (fd >= 0) close(fd);
+    alive = false;
+}
 
-    bool isAlive(){
-        auto now = std::chrono::steady_clock::now();
-        return std::chrono::duration_cast<std::chrono::seconds>(now - last_heartbeat).count() < 30;
-    }
+int Connection::getFd() const {
+    return fd;
+}
 
-   
-
-
-    void closeConn() { if (fd >= 0) close(fd); alive = false; }
-
-
-    int getFd() const { return fd; }
-
-
-    bool isActive() const { return alive; }
+bool Connection::isActive() const {
+    return alive.load();  // atomic 读要用load()
+}

@@ -3,37 +3,28 @@
 #include <atomic>
 #include <unistd.h>
 
-//每一个客户端连接的处理类
+#include "../threadpool/threadpool.hpp"
+#include "../log/logger.hpp"
 
+// 每一个客户端连接的处理类
 class Connection {
 public:
-    Connection(int fd,threadpool* pool);
+    Connection(int fd, threadpool* pool);
 
     void updateHeartbeat();
 
-    bool isAlive();
-
-   
-
+    bool isAlive() const;
 
     void closeConn();
 
+    int getFd() const;
 
-     int getFd();
-
-
-    bool isActive();
-
-    //void Connection::handleMessage(const char* data, size_t len) {
-    
-
-
-// 函数的处理
+    bool isActive() const;
 
 
 
 
-// 区分模块？？
+    // 接口实现，怎么读取
 
 
 
@@ -41,14 +32,14 @@ public:
 
 
 
-
-
-//}
+        // void Connection::handleMessage(const char* data, size_t len) {
+    // 函数的处理
+    // 区分模块？？
+    // }
+    // ...
 
 private:
-
-    threadpool *thread_pool;
-
+    threadpool* thread_pool;
     int fd;
     std::atomic<bool> alive;
     std::chrono::steady_clock::time_point last_heartbeat;

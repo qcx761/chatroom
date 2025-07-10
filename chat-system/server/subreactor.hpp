@@ -5,6 +5,8 @@
 #include <atomic>
 #include <sys/epoll.h>
 #include "connection.hpp"
+
+#include "../log/logger.hpp"
 #include "../threadpool/threadpool.hpp"
 
 class SubReactor {
