@@ -78,7 +78,7 @@ void Client::run(){
 
 
 
-// 处理交互
+
                 char buf[1024] = {0};
                 int n = recv(sock, buf, sizeof(buf), 0);
                 if (n > 0) {
@@ -86,6 +86,13 @@ void Client::run(){
                 } else if (n == 0) {
                     cout << "服务器断开连接\n";
                     exit(0);
+                }
+
+
+
+
+                // 处理服务端发送过来的信息
+                // 只处理 recv 和 sem_post()，不做任何 cin
 
 
 
@@ -98,17 +105,14 @@ void Client::run(){
 
 
 
-
-
-
-            }else{
-                break;
-            }
+        }else{
+            // 唯一监听的没有触发
+            break;
         }
 
     }
 
-
+}
 
 
 
