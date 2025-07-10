@@ -275,6 +275,7 @@ CMakeFiles/client.dir/client.cpp.o: \
  /usr/include/c++/13/bits/stl_tempbuf.h \
  /home/kong/plan/chartroom/chat-system/client/menu.hpp \
  /home/kong/plan/chartroom/chat-system/client/account.hpp \
+ /usr/include/semaphore.h /usr/include/x86_64-linux-gnu/bits/semaphore.h \
  /usr/include/nlohmann/json.hpp /usr/include/c++/13/algorithm \
  /usr/include/c++/13/pstl/glue_algorithm_defs.h \
  /usr/include/c++/13/pstl/execution_defs.h /usr/include/c++/13/iterator \
