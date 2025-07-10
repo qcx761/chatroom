@@ -7,5 +7,7 @@ int main(int argc, char* argv[]) {
     
     Client client(argv[1], port);
 
+    client.run();
+
     return 0;
 }

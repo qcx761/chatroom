@@ -18,13 +18,13 @@ void waiting();
 void main_menu_ui(int sock);
 void log_in(int sock);
 void sign_up(int sock);
-void send_json(int sock,json j);
-
-
-
-
-
-
-
-
 string get_password(const string& prompt);
+
+
+
+
+
+
+
+
+void send_json(int sock,json j);

@@ -23,12 +23,122 @@ Client::Client(std::string ip, int port) : logger(Logger::Level::DEBUG, "client.
         exit(1);
     }
 
-    
-    main_menu_ui(sock);
-    
+
+    int flags=fcntl(sock, F_GETFL) ;
+    if (flags == -1) {
+        LOG_ERROR(logger, "fcntl F_GETFL failed");
+
+        exit(1);
+    }
+    if (fcntl(sock, F_SETFL, flags | O_NONBLOCK) == -1) {
+        LOG_ERROR(logger, "fcntl F_SETFL failed");
+
+        exit(1);
+    }
+    epfd = epoll_create1(0);
+        if (epfd == -1) {
+        LOG_ERROR(logger, "epoll_create1 failed");
+        exit(1);
+    }
+    epoll_event ev{};
+    ev.data.fd = sock;
+    ev.events = EPOLLIN | EPOLLET;
+    epoll_ctl(epfd, EPOLL_CTL_ADD, sock, &ev);
+
+
 }
 
 Client::~Client()
 {
     close(sock);
+}
+
+
+void Client::run(){
+    epoll_event events[1024];
+    while(1){
+            int n = epoll_wait(epfd, events, 1024, -1);
+            if (n == -1) {
+                if (errno == EINTR) {
+                    continue;
+                }
+        LOG_ERROR(logger, "epoll_wait failed");
+
+                break;
+            }
+        for(int i=0;i<n;i++){
+            int fd=events[i].data.fd;
+            uint32_t evs = events[i].events;
+            if ((evs & EPOLLERR) || (evs & EPOLLHUP) || (evs & EPOLLRDHUP)) {
+                break;
+            }
+            if(fd==sock){
+
+
+
+
+
+// 处理交互
+                char buf[1024] = {0};
+                int n = recv(sock, buf, sizeof(buf), 0);
+                if (n > 0) {
+                    handle_server_message(string(buf, n));
+                } else if (n == 0) {
+                    cout << "服务器断开连接\n";
+                    exit(0);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            }else{
+                break;
+            }
+        }
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // main_menu_ui(sock);
+
+
+
+
+
+
+
+
 }

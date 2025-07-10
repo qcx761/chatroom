@@ -1,3 +1,0 @@
-thread_pool.enqueue([this, fd, command, filename]() {
-    handle_data_connection(fd, command, filename);
-});

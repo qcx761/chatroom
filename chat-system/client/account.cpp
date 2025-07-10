@@ -37,21 +37,9 @@ string get_password(const string& prompt) {
 
 void main_menu_ui(int sock) {
 
-
-
-
-
     sem_init(&sem, 0, 0);  // 初始化信号量
 
-
-
-
-
-
-
-
-
-
+    
     int n;
     while (1) {
         system("clear"); // 清屏
@@ -149,3 +137,12 @@ void send_json(int sock, json j) {
 
 
 }
+
+
+
+
+
+
+// 记得释放信号量
+// sem_post(&sem);
+//sem_destroy(sem_t *sem);

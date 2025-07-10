@@ -17,6 +17,10 @@
 #include <termios.h>
 #include <openssl/evp.h>
 #include <openssl/sha.h>
+#include <fcntl.h>        
+#include <sys/epoll.h>     
+#include <unistd.h>        
+
 
 #include "../log/logger.hpp"
 #include "../threadpool/threadpool.hpp"
@@ -27,8 +31,10 @@ class Client
 public:
     Client(std::string ip, int port);
     ~Client();
+    void run();
 
 private:
+    int epfd;
     int sock;
     Logger logger;
 };

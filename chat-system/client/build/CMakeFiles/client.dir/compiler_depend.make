@@ -601,12 +601,14 @@ CMakeFiles/client.dir/client.cpp.o: /home/kong/plan/chartroom/chat-system/client
   /usr/include/ctype.h \
   /usr/include/endian.h \
   /usr/include/errno.h \
+  /usr/include/fcntl.h \
   /usr/include/features-time64.h \
   /usr/include/features.h \
   /usr/include/libintl.h \
   /usr/include/limits.h \
   /usr/include/linux/close_range.h \
   /usr/include/linux/errno.h \
+  /usr/include/linux/falloc.h \
   /usr/include/linux/limits.h \
   /usr/include/linux/posix_types.h \
   /usr/include/linux/stddef.h \
@@ -749,7 +751,10 @@ CMakeFiles/client.dir/client.cpp.o: /home/kong/plan/chartroom/chat-system/client
   /usr/include/x86_64-linux-gnu/bits/endian.h \
   /usr/include/x86_64-linux-gnu/bits/endianness.h \
   /usr/include/x86_64-linux-gnu/bits/environments.h \
+  /usr/include/x86_64-linux-gnu/bits/epoll.h \
   /usr/include/x86_64-linux-gnu/bits/errno.h \
+  /usr/include/x86_64-linux-gnu/bits/fcntl-linux.h \
+  /usr/include/x86_64-linux-gnu/bits/fcntl.h \
   /usr/include/x86_64-linux-gnu/bits/floatn-common.h \
   /usr/include/x86_64-linux-gnu/bits/floatn.h \
   /usr/include/x86_64-linux-gnu/bits/flt-eval-method.h \
@@ -781,6 +786,7 @@ CMakeFiles/client.dir/client.cpp.o: /home/kong/plan/chartroom/chat-system/client
   /usr/include/x86_64-linux-gnu/bits/sockaddr.h \
   /usr/include/x86_64-linux-gnu/bits/socket.h \
   /usr/include/x86_64-linux-gnu/bits/socket_type.h \
+  /usr/include/x86_64-linux-gnu/bits/stat.h \
   /usr/include/x86_64-linux-gnu/bits/stdint-intn.h \
   /usr/include/x86_64-linux-gnu/bits/stdint-least.h \
   /usr/include/x86_64-linux-gnu/bits/stdint-uintn.h \
@@ -788,6 +794,7 @@ CMakeFiles/client.dir/client.cpp.o: /home/kong/plan/chartroom/chat-system/client
   /usr/include/x86_64-linux-gnu/bits/stdlib-float.h \
   /usr/include/x86_64-linux-gnu/bits/struct_mutex.h \
   /usr/include/x86_64-linux-gnu/bits/struct_rwlock.h \
+  /usr/include/x86_64-linux-gnu/bits/struct_stat.h \
   /usr/include/x86_64-linux-gnu/bits/termios-baud.h \
   /usr/include/x86_64-linux-gnu/bits/termios-c_cc.h \
   /usr/include/x86_64-linux-gnu/bits/termios-c_cflag.h \
@@ -858,6 +865,7 @@ CMakeFiles/client.dir/client.cpp.o: /home/kong/plan/chartroom/chat-system/client
   /usr/include/x86_64-linux-gnu/openssl/configuration.h \
   /usr/include/x86_64-linux-gnu/openssl/opensslconf.h \
   /usr/include/x86_64-linux-gnu/sys/cdefs.h \
+  /usr/include/x86_64-linux-gnu/sys/epoll.h \
   /usr/include/x86_64-linux-gnu/sys/select.h \
   /usr/include/x86_64-linux-gnu/sys/single_threaded.h \
   /usr/include/x86_64-linux-gnu/sys/socket.h \
@@ -1451,11 +1459,13 @@ CMakeFiles/client.dir/main.cpp.o: /home/kong/plan/chartroom/chat-system/client/m
   /usr/include/ctype.h \
   /usr/include/endian.h \
   /usr/include/errno.h \
+  /usr/include/fcntl.h \
   /usr/include/features-time64.h \
   /usr/include/features.h \
   /usr/include/limits.h \
   /usr/include/linux/close_range.h \
   /usr/include/linux/errno.h \
+  /usr/include/linux/falloc.h \
   /usr/include/linux/limits.h \
   /usr/include/linux/posix_types.h \
   /usr/include/linux/stddef.h \
@@ -1551,7 +1561,10 @@ CMakeFiles/client.dir/main.cpp.o: /home/kong/plan/chartroom/chat-system/client/m
   /usr/include/x86_64-linux-gnu/bits/endian.h \
   /usr/include/x86_64-linux-gnu/bits/endianness.h \
   /usr/include/x86_64-linux-gnu/bits/environments.h \
+  /usr/include/x86_64-linux-gnu/bits/epoll.h \
   /usr/include/x86_64-linux-gnu/bits/errno.h \
+  /usr/include/x86_64-linux-gnu/bits/fcntl-linux.h \
+  /usr/include/x86_64-linux-gnu/bits/fcntl.h \
   /usr/include/x86_64-linux-gnu/bits/floatn-common.h \
   /usr/include/x86_64-linux-gnu/bits/floatn.h \
   /usr/include/x86_64-linux-gnu/bits/getopt_core.h \
@@ -1573,6 +1586,7 @@ CMakeFiles/client.dir/main.cpp.o: /home/kong/plan/chartroom/chat-system/client/m
   /usr/include/x86_64-linux-gnu/bits/sockaddr.h \
   /usr/include/x86_64-linux-gnu/bits/socket.h \
   /usr/include/x86_64-linux-gnu/bits/socket_type.h \
+  /usr/include/x86_64-linux-gnu/bits/stat.h \
   /usr/include/x86_64-linux-gnu/bits/stdint-intn.h \
   /usr/include/x86_64-linux-gnu/bits/stdint-least.h \
   /usr/include/x86_64-linux-gnu/bits/stdint-uintn.h \
@@ -1580,6 +1594,7 @@ CMakeFiles/client.dir/main.cpp.o: /home/kong/plan/chartroom/chat-system/client/m
   /usr/include/x86_64-linux-gnu/bits/stdlib-float.h \
   /usr/include/x86_64-linux-gnu/bits/struct_mutex.h \
   /usr/include/x86_64-linux-gnu/bits/struct_rwlock.h \
+  /usr/include/x86_64-linux-gnu/bits/struct_stat.h \
   /usr/include/x86_64-linux-gnu/bits/termios-baud.h \
   /usr/include/x86_64-linux-gnu/bits/termios-c_cc.h \
   /usr/include/x86_64-linux-gnu/bits/termios-c_cflag.h \
@@ -1648,6 +1663,7 @@ CMakeFiles/client.dir/main.cpp.o: /home/kong/plan/chartroom/chat-system/client/m
   /usr/include/x86_64-linux-gnu/openssl/configuration.h \
   /usr/include/x86_64-linux-gnu/openssl/opensslconf.h \
   /usr/include/x86_64-linux-gnu/sys/cdefs.h \
+  /usr/include/x86_64-linux-gnu/sys/epoll.h \
   /usr/include/x86_64-linux-gnu/sys/select.h \
   /usr/include/x86_64-linux-gnu/sys/single_threaded.h \
   /usr/include/x86_64-linux-gnu/sys/socket.h \
@@ -1860,9 +1876,13 @@ CMakeFiles/client.dir/menu.cpp.o: /home/kong/plan/chartroom/chat-system/client/m
 
 /usr/include/x86_64-linux-gnu/bits/types/struct_osockaddr.h:
 
+/usr/include/x86_64-linux-gnu/bits/struct_stat.h:
+
 /usr/include/x86_64-linux-gnu/bits/sockaddr.h:
 
 /usr/include/x86_64-linux-gnu/bits/local_lim.h:
+
+/usr/include/x86_64-linux-gnu/bits/fcntl-linux.h:
 
 /usr/include/x86_64-linux-gnu/asm/bitsperlong.h:
 
@@ -1875,6 +1895,8 @@ CMakeFiles/client.dir/menu.cpp.o: /home/kong/plan/chartroom/chat-system/client/m
 /usr/include/openssl/sslerr_legacy.h:
 
 /usr/include/openssl/sslerr.h:
+
+/usr/include/x86_64-linux-gnu/bits/stat.h:
 
 /usr/include/openssl/ssl3.h:
 
@@ -1931,6 +1953,8 @@ CMakeFiles/client.dir/menu.cpp.o: /home/kong/plan/chartroom/chat-system/client/m
 /usr/include/openssl/async.h:
 
 /usr/include/openssl/asn1err.h:
+
+/usr/include/x86_64-linux-gnu/bits/fcntl.h:
 
 /usr/include/openssl/asn1.h:
 
@@ -2103,6 +2127,8 @@ CMakeFiles/client.dir/menu.cpp.o: /home/kong/plan/chartroom/chat-system/client/m
 /usr/include/x86_64-linux-gnu/bits/pthread_stack_min-dynamic.h:
 
 /usr/include/x86_64-linux-gnu/bits/in.h:
+
+/usr/include/linux/falloc.h:
 
 /usr/include/x86_64-linux-gnu/bits/mathcalls-narrow.h:
 
@@ -2366,6 +2392,8 @@ CMakeFiles/client.dir/menu.cpp.o: /home/kong/plan/chartroom/chat-system/client/m
 
 /usr/include/c++/13/bits/specfun.h:
 
+/usr/include/x86_64-linux-gnu/sys/epoll.h:
+
 /usr/include/x86_64-linux-gnu/bits/termios-tcflow.h:
 
 /usr/include/c++/13/bits/basic_string.h:
@@ -2373,6 +2401,8 @@ CMakeFiles/client.dir/menu.cpp.o: /home/kong/plan/chartroom/chat-system/client/m
 /usr/include/c++/13/tr1/poly_laguerre.tcc:
 
 /usr/include/libintl.h:
+
+/usr/include/x86_64-linux-gnu/bits/epoll.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/time_t.h:
 
@@ -2757,6 +2787,8 @@ CMakeFiles/client.dir/menu.cpp.o: /home/kong/plan/chartroom/chat-system/client/m
 /usr/include/x86_64-linux-gnu/bits/atomic_wide_counter.h:
 
 /usr/include/nlohmann/detail/input/position_t.hpp:
+
+/usr/include/fcntl.h:
 
 /usr/include/c++/13/version:
 
