@@ -1,4 +1,6 @@
 #include "client.hpp"
+#include"menu.hpp"
+#include"account.hpp"
 using namespace std;
 
 Client::Client(std::string ip, int port) : logger(Logger::Level::DEBUG, "client.log")
@@ -20,6 +22,10 @@ Client::Client(std::string ip, int port) : logger(Logger::Level::DEBUG, "client.
         LOG_ERROR(logger, "connect failed");
         exit(1);
     }
+
+    
+    main_menu_ui(sock);
+    
 }
 
 Client::~Client()

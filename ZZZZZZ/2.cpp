@@ -1,161 +1,300 @@
-bool init() {
-        server_fd = socket(AF_INET, SOCK_STREAM, 0);
-        if (server_fd < 0) { 
-            perror("socket failed");
-            return false;
-        }
 
-        int opt = 1;
-        setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+std::string current_UID = "";
+sem_t semaphore; // 定义信号量
 
-        sockaddr_in addr{};
-        socklen_t addr_len = sizeof(addr);
-        addr.sin_family = AF_INET;
-        addr.sin_addr.s_addr = htonl(INADDR_ANY);
-        addr.sin_port = htons(control_port);
+void main_menu_UI(int connecting_sockfd) {
+    //屏蔽ctrl+c等
+    signal(SIGINT, SIG_IGN);
+    signal(SIGTERM, SIG_IGN);
+    signal(SIGTSTP, SIG_IGN);
 
-        if (bind(server_fd, (sockaddr*)&addr, addr_len) < 0) {
-            perror("bind failed");
-            close(server_fd);
-            return false;
-        }
+    //屏蔽ctrl+d
+    struct termios tty;
 
-        if (listen(server_fd, 10) < 0) {
-            perror("listen failed");
-            close(server_fd);
-            return false;
-        }
-
-        epfd = epoll_create1(0);
-        if (epfd == -1) {
-            perror("epoll_create1 failed");
-            close(server_fd);
-            return false;
-        }
-
-        epoll_event ev{};
-        ev.events = EPOLLIN | EPOLLET;
-        ev.data.fd = server_fd;
-        if (epoll_ctl(epfd, EPOLL_CTL_ADD, server_fd, &ev) == -1) {
-            perror("epoll_ctl ADD server_fd failed");
-            close(server_fd);
-            close(epfd);
-            return false;
-        }
-
-        is_running = true;
-        return true;
+    // 获取当前终端属性
+    if (tcgetattr(STDIN_FILENO, &tty) < 0) {
+        perror("tcgetattr");
+        return;
     }
 
-    void run() {
-        epoll_event events[MAX_EVENTS];
-        while (is_running) {
-            int n = epoll_wait(epfd, events, MAX_EVENTS, -1);
-            if (n == -1) {
-                if (errno == EINTR) {
+    // 关闭EOF处理
+    tty.c_cc[VEOF] = 0;
+
+    // 应用新的终端属性
+    if (tcsetattr(STDIN_FILENO, TCSANOW, &tty) < 0) {
+        perror("tcsetattr");
+    }
+
+    //初始化信号量
+    sem_init(&semaphore, 0, 0);
+
+    int n;
+    while (1) {
+        system("clear");
+        std::cout << "欢迎进入聊天室！" << std::endl;
+        std::cout << "1. 登录" << std::endl;
+        std::cout << "2. 注册" << std::endl;
+        std::cout << "3. 找回密码" << std::endl;
+        std::cout << "4. 退出" << std::endl;
+        std::cout << "请输入：";
+
+        // 读取用户输入
+        if (!(std::cin >> n)) {
+            std::cin.clear(); // 清除错误标志
+            std::cout << "无效的输入，请输入一个数字！" << std::endl;
+            waiting_for_input();
+            continue; // 重新显示菜单
+        }
+
+        switch (n) {
+            case 1:
+                log_in_UI(connecting_sockfd);
+                // LogInfo("2.current_UID = {}", current_UID);
+                if(current_UID != "") {
+                    waiting_for_input();
+                    home_UI(connecting_sockfd, current_UID);
                     continue;
                 }
-                perror("epoll_wait");
                 break;
-            }
-            for (int i = 0; i < n; i++) {
-                int fd = events[i].data.fd;
-                uint32_t evs = events[i].events;
-
-                if ((evs & EPOLLERR) || (evs & EPOLLHUP) || (evs & EPOLLRDHUP)) {
-                    close_connection(fd);
-                    continue;
-                }
-
-                if (fd == server_fd) { // 客户端连接
-                    sockaddr_in client_addr{};
-                    socklen_t client_len = sizeof(client_addr);
-                    int client_fd = accept(server_fd, (sockaddr*)&client_addr, &client_len);
-
-                    if (client_fd == -1) {
-                        if (errno == EAGAIN || errno == EWOULDBLOCK) {
-                            perror("accept");
-                            break;
-                        }
-                    }
-
-                    set_nonblocking(client_fd);
-                    epoll_event client_ev{};
-                    client_ev.events = EPOLLIN | EPOLLET | EPOLLRDHUP | EPOLLERR;
-                    client_ev.data.fd = client_fd;
-
-                    if (epoll_ctl(epfd, EPOLL_CTL_ADD, client_fd, &client_ev) == -1) {
-                        perror("epoll_ctl ADD client_fd failed");
-                        close(client_fd);
-                    }
-
-                    cout << "New control connection accepted: fd=" << client_fd << endl;
-                } else {
-                    int port = get_socket_local_port(fd);
-
-                    if (port == CONTROL_PORT) { // 控制连接
-                        cout << "控制连接进入" << endl;
-                        handle_control_fd(fd);
-                    } else { // 数据连接
-                        cout << "数据连接进入" << endl;
-
-                        // 从数据连接获取控制连接fd
-                        int control_fd = group.get_control_from_data(fd); // 能不能获得控制fd，不能就是数据监听fd
-                        if (control_fd == -1) {
-                            // 可能是PASV模式的监听套接字
-                            control_fd = group.get_control_from_listen(fd); // 数据监听fd获取控制fd
-                            if (control_fd != -1) {
-                                // 有新的数据连接到来
-                                sockaddr_in client_addr{};
-                                socklen_t client_len = sizeof(client_addr);
-                                int data_fd = accept(fd, (sockaddr*)&client_addr, &client_len);
-                                if (data_fd == -1) {
-                                    perror("accept data connection failed");
-                                    continue;
-                                }
-
-                                set_nonblocking(data_fd);
-                                epoll_event data_ev{};
-                                data_ev.events = EPOLLIN | EPOLLOUT | EPOLLET | EPOLLRDHUP | EPOLLERR;
-                                data_ev.data.fd = data_fd;
-
-                                if (epoll_ctl(epfd, EPOLL_CTL_ADD, data_fd, &data_ev) == -1) {
-                                    perror("epoll_ctl ADD data_fd failed");
-                                    close(data_fd);
-                                    continue;
-                                }
-
-                                // 关联数据连接和控制连接
-                                group.bind_data_to_control(data_fd, control_fd);
-                                cout << "New data connection accepted for control fd: " << control_fd << ", data fd: " << data_fd << endl;
-
-                                // 不要在这里关闭监听套接字，因为数据传输可能还没有开始
-                                // group.unbind_control_from_listen(fd);
-                                // close(fd);
-
-                                // 要保留监听套接字，数据传输可能还没有开始
-                                // 监听套接字的清理应该在数据传输完成后进行
-                            } else {
-                                cerr << "No control connection associated with data fd: " << fd << endl;
-                                close_connection(fd);
-                            }
-                        } else {
-                            // 正常的数据连接处理
-                            cout << "处理数据连接中...." << endl;
-                            int command = group.get_command_type(control_fd);
-                            string filename = group.get_filename(control_fd);
-
-                            thread_pool.enqueue([this, fd, command, filename]() {
-                                handle_data_connection(fd, command, filename);
-                            });
-
-                            // 删除控制连接和数据链接的映射
-                            group.unbind_control_from_data(fd);
-
-                            epoll_ctl(epfd, EPOLL_CTL_DEL, fd, nullptr); // 结束数据连接
-                        }
-                    }
-                }
-            }
+            case 2:
+                sign_up_UI(connecting_sockfd);
+                break;
+            case 3:
+                retrieve_password(connecting_sockfd);
+                break;
+            case 4:
+                exit(0);
+            default:
+                std::cout << "请正确输入选项！" << std::endl;
+                break;
         }
+        waiting_for_input();
     }
+}
+
+void log_in_UI(int connecting_sockfd) {
+    system("clear");
+    std::cout << "登录" << std::endl;
+
+    json j;
+    j["type"] = "log_in";
+    std::string username, password;
+
+    std::cout << "请输入你的用户名：";
+    std::cin >> username;
+    j["username"] = username;
+
+    struct termios oldt, newt;
+
+    // 获取当前终端设置
+    tcgetattr(STDIN_FILENO, &oldt);
+    newt = oldt;
+
+    // 关闭回显
+    newt.c_lflag &= ~(ECHO);
+    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+
+    std::cout << "请输入你的密码：";
+    std::cin >> password;
+    j["password"] = password;
+
+    std::cout << std::endl;
+
+    // 恢复终端设置
+    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+
+    send_json(connecting_sockfd, j);
+    sem_wait(&semaphore); // 等待信号量
+}
+
+void sign_up_UI(int connecting_sockfd) {
+    system("clear");
+    std::cout << "注册" << std::endl;
+
+    json j;
+    j["type"] = "sign_up";
+    std::string username, password, security_question, security_answer;
+
+    std::cout << "请输入你的用户名：";
+    std::cin >> username;
+    j["username"] = username;
+
+    std::cout << "请输入你的密码：";
+    std::cin >> password;
+    j["password"] = password;
+
+    std::cout << "请输入你的密保问题：";
+    std::cin.ignore();
+    std::getline(std::cin, security_question);
+    j["security_question"] = security_question;
+
+    std::cout << "请输入你的密保答案：";
+    std::getline(std::cin, security_answer);
+    j["security_answer"] = security_answer;
+
+    send_json(connecting_sockfd, j);
+    sem_wait(&semaphore); // 等待信号量
+}
+
+void retrieve_password(int connecting_sockfd) {
+    system("clear");
+    std::cout << "找回密码" << std::endl;
+
+    json j;
+    j["type"] = "retrieve_password";
+    std::string username;
+
+    std::cout << "请输入你的用户名：";
+    std::cin.ignore(); // 清理输入流，以防止之前输入的换行符干扰
+    std::cin >> username;
+    j["username"] = username;
+
+    send_json(connecting_sockfd, j);
+    sem_wait(&semaphore); // 等待信号量
+
+    json j2;
+    j2["type"] = "retrieve_password_confirm_answer";
+    std::string security_answer;
+    
+    j2["username"] = username;
+
+    std::cout << "请输入你的密保答案：";
+    std::cin >> security_answer;
+    j2["security_answer"] = security_answer;
+
+    send_json(connecting_sockfd, j2);
+    sem_wait(&semaphore); // 等待信号量
+}
+
+void change_usename_UI(int connecting_sockfd, std::string UID) {
+    system("clear");
+    std::cout << "更改用户名" << std::endl;
+
+    json j;
+    j["type"] = "change_usename";
+    std::string new_username;
+
+    j["UID"] = UID;
+
+    std::cout << "请输入你的新用户名：";
+    std::cin >> new_username;
+    j["new_username"] = new_username;
+
+    send_json(connecting_sockfd, j);
+
+    sem_wait(&semaphore); // 等待信号量
+    waiting_for_input();
+}
+
+void change_password_UI(int connecting_sockfd, std::string UID) {
+    system("clear");
+    std::cout << "更改密码" << std::endl;
+
+    json j;
+    j["type"] = "change_password";
+    std::string old_password, new_password;
+
+    j["UID"] = UID;
+
+    std::cout << "请输入你的旧密码：";
+    std::cin >> old_password;
+    j["old_password"] = old_password;
+
+    std::cout << "请输入你的新密码：";
+    std::cin >> new_password;
+    j["new_password"] = new_password;
+
+    send_json(connecting_sockfd, j);
+
+    sem_wait(&semaphore); // 等待信号量
+    waiting_for_input();
+}
+
+void change_security_question_UI(int connecting_sockfd, std::string UID) {
+    system("clear");
+    std::cout << "更改密保问题" << std::endl;
+
+    json j;
+    j["type"] = "change_security_question";
+    std::string password, new_security_question, new_security_answer;
+
+    j["UID"] = UID;
+
+    std::cout << "请输入你的密码：";
+    std::cin >> password;
+    j["password"] = password;
+
+    std::cout << "请输入你的新密保问题：";
+    std::cin >> new_security_question;
+    j["new_security_question"] = new_security_question;
+
+    // LogInfo("new_security_question = {}", (j["new_security_question"]));
+    
+    std::cout << "请输入你的新密保答案：";
+    std::cin >> new_security_answer;
+    j["new_security_answer"] = new_security_answer;
+
+    // LogInfo("new_security_answer = {}", (j["new_security_answer"]));
+
+    send_json(connecting_sockfd, j);
+
+    sem_wait(&semaphore); // 等待信号量
+    waiting_for_input();
+}
+
+void log_out_UI(int connecting_sockfd, std::string UID) {
+    
+    system("clear");
+    std::cout << "注销帐号" << std::endl;
+
+    json j;
+    j["type"] = "log_out";
+    std::string password, confirm_password;
+
+    j["UID"] = UID;
+
+    std::cout << "请输入你的密码：";
+    std::cin >> password;
+    j["password"] = password;
+
+    std::cout << "请确认你的密码：";
+    std::cin >> confirm_password;
+    j["confirm_password"] = confirm_password;
+
+    if(j["password"] != j["confirm_password"]) {
+        std::cout << "两次密码不一致" << std::endl;
+        waiting_for_input();
+        return;
+    }
+
+    send_json(connecting_sockfd, j);
+
+    sem_wait(&semaphore); // 等待信号量
+    waiting_for_input();
+}#pragma once
+
+#include "SendJson.h"
+#include "Home_UI.h"
+#include <iostream>
+#include <string>
+#include <unistd.h> //文件操作
+#include <nlohmann/json.hpp> //JSON库
+#include <semaphore.h> //信号量库
+#include <termios.h> //回显库
+#include <csignal>
+#include <cstring>
+
+using json = nlohmann::json;
+
+extern sem_t semaphore;//声明信号量
+
+extern std::string current_UID;  // 声明全局变量
+
+void main_menu_UI(int connecting_sockfd);
+void log_in_UI(int connecting_sockfd);
+void sign_up_UI(int connecting_sockfd);
+void retrieve_password(int connecting_sockfd);
+void change_usename_UI(int connecting_sockfd, std::string UID);
+void change_password_UI(int connecting_sockfd, std::string UID);
+void change_security_question_UI(int connecting_sockfd, std::string UID);
+void log_out_UI(int connecting_sockfd, std::string UID);

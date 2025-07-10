@@ -1,5 +1,5 @@
-#ifndef MESSAGE_HPP
-#define MESSAGE_HPP
+#pragma once
+
 
 #include <sys/epoll.h>
 #include <sys/socket.h>
@@ -33,6 +33,5 @@ private:
     Logger logger;
 };
 
-#endif
 
 // 日志怎么处理？？？？？？？？？？？？？？
