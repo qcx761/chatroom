@@ -27,4 +27,4 @@ string get_password(const string& prompt);
 
 
 
-void send_json(int sock,json j);
+// void send_json(int sock,json j);

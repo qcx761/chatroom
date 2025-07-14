@@ -97,24 +97,10 @@ CMakeFiles/server.dir/server.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/server.dir/server.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/kong/plan/chartroom/chat-system/server/server.cpp -o CMakeFiles/server.dir/server.cpp.s
 
-CMakeFiles/server.dir/connection.cpp.o: CMakeFiles/server.dir/flags.make
-CMakeFiles/server.dir/connection.cpp.o: /home/kong/plan/chartroom/chat-system/server/connection.cpp
-CMakeFiles/server.dir/connection.cpp.o: CMakeFiles/server.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/kong/plan/chartroom/chat-system/server/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/server.dir/connection.cpp.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/server.dir/connection.cpp.o -MF CMakeFiles/server.dir/connection.cpp.o.d -o CMakeFiles/server.dir/connection.cpp.o -c /home/kong/plan/chartroom/chat-system/server/connection.cpp
-
-CMakeFiles/server.dir/connection.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/server.dir/connection.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/kong/plan/chartroom/chat-system/server/connection.cpp > CMakeFiles/server.dir/connection.cpp.i
-
-CMakeFiles/server.dir/connection.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/server.dir/connection.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/kong/plan/chartroom/chat-system/server/connection.cpp -o CMakeFiles/server.dir/connection.cpp.s
-
 CMakeFiles/server.dir/subreactor.cpp.o: CMakeFiles/server.dir/flags.make
 CMakeFiles/server.dir/subreactor.cpp.o: /home/kong/plan/chartroom/chat-system/server/subreactor.cpp
 CMakeFiles/server.dir/subreactor.cpp.o: CMakeFiles/server.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/kong/plan/chartroom/chat-system/server/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/server.dir/subreactor.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/kong/plan/chartroom/chat-system/server/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/server.dir/subreactor.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/server.dir/subreactor.cpp.o -MF CMakeFiles/server.dir/subreactor.cpp.o.d -o CMakeFiles/server.dir/subreactor.cpp.o -c /home/kong/plan/chartroom/chat-system/server/subreactor.cpp
 
 CMakeFiles/server.dir/subreactor.cpp.i: cmake_force
@@ -125,10 +111,38 @@ CMakeFiles/server.dir/subreactor.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/server.dir/subreactor.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/kong/plan/chartroom/chat-system/server/subreactor.cpp -o CMakeFiles/server.dir/subreactor.cpp.s
 
+CMakeFiles/server.dir/json.cpp.o: CMakeFiles/server.dir/flags.make
+CMakeFiles/server.dir/json.cpp.o: /home/kong/plan/chartroom/chat-system/server/json.cpp
+CMakeFiles/server.dir/json.cpp.o: CMakeFiles/server.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/kong/plan/chartroom/chat-system/server/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/server.dir/json.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/server.dir/json.cpp.o -MF CMakeFiles/server.dir/json.cpp.o.d -o CMakeFiles/server.dir/json.cpp.o -c /home/kong/plan/chartroom/chat-system/server/json.cpp
+
+CMakeFiles/server.dir/json.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/server.dir/json.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/kong/plan/chartroom/chat-system/server/json.cpp > CMakeFiles/server.dir/json.cpp.i
+
+CMakeFiles/server.dir/json.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/server.dir/json.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/kong/plan/chartroom/chat-system/server/json.cpp -o CMakeFiles/server.dir/json.cpp.s
+
+CMakeFiles/server.dir/msg.cpp.o: CMakeFiles/server.dir/flags.make
+CMakeFiles/server.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/server/msg.cpp
+CMakeFiles/server.dir/msg.cpp.o: CMakeFiles/server.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/kong/plan/chartroom/chat-system/server/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/server.dir/msg.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/server.dir/msg.cpp.o -MF CMakeFiles/server.dir/msg.cpp.o.d -o CMakeFiles/server.dir/msg.cpp.o -c /home/kong/plan/chartroom/chat-system/server/msg.cpp
+
+CMakeFiles/server.dir/msg.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/server.dir/msg.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/kong/plan/chartroom/chat-system/server/msg.cpp > CMakeFiles/server.dir/msg.cpp.i
+
+CMakeFiles/server.dir/msg.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/server.dir/msg.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/kong/plan/chartroom/chat-system/server/msg.cpp -o CMakeFiles/server.dir/msg.cpp.s
+
 CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.o: CMakeFiles/server.dir/flags.make
 CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.o: /home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp
 CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.o: CMakeFiles/server.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/kong/plan/chartroom/chat-system/server/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/kong/plan/chartroom/chat-system/server/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.o -MF CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.o.d -o CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.o -c /home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp
 
 CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.i: cmake_force
@@ -142,7 +156,7 @@ CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/threadpool/threadpool
 CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/log/logger.cpp.o: CMakeFiles/server.dir/flags.make
 CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/log/logger.cpp.o: /home/kong/plan/chartroom/chat-system/log/logger.cpp
 CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/log/logger.cpp.o: CMakeFiles/server.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/kong/plan/chartroom/chat-system/server/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/log/logger.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/kong/plan/chartroom/chat-system/server/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/log/logger.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/log/logger.cpp.o -MF CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/log/logger.cpp.o.d -o CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/log/logger.cpp.o -c /home/kong/plan/chartroom/chat-system/log/logger.cpp
 
 CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/log/logger.cpp.i: cmake_force
@@ -157,8 +171,9 @@ CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/log/logger.cpp.s: cma
 server_OBJECTS = \
 "CMakeFiles/server.dir/main.cpp.o" \
 "CMakeFiles/server.dir/server.cpp.o" \
-"CMakeFiles/server.dir/connection.cpp.o" \
 "CMakeFiles/server.dir/subreactor.cpp.o" \
+"CMakeFiles/server.dir/json.cpp.o" \
+"CMakeFiles/server.dir/msg.cpp.o" \
 "CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.o" \
 "CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/log/logger.cpp.o"
 
@@ -167,13 +182,14 @@ server_EXTERNAL_OBJECTS =
 
 server: CMakeFiles/server.dir/main.cpp.o
 server: CMakeFiles/server.dir/server.cpp.o
-server: CMakeFiles/server.dir/connection.cpp.o
 server: CMakeFiles/server.dir/subreactor.cpp.o
+server: CMakeFiles/server.dir/json.cpp.o
+server: CMakeFiles/server.dir/msg.cpp.o
 server: CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.o
 server: CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/log/logger.cpp.o
 server: CMakeFiles/server.dir/build.make
 server: CMakeFiles/server.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/kong/plan/chartroom/chat-system/server/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Linking CXX executable server"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/kong/plan/chartroom/chat-system/server/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Linking CXX executable server"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/server.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

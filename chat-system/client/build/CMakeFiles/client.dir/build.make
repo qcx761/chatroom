@@ -125,10 +125,38 @@ CMakeFiles/client.dir/account.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/client.dir/account.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/kong/plan/chartroom/chat-system/client/account.cpp -o CMakeFiles/client.dir/account.cpp.s
 
+CMakeFiles/client.dir/json.cpp.o: CMakeFiles/client.dir/flags.make
+CMakeFiles/client.dir/json.cpp.o: /home/kong/plan/chartroom/chat-system/client/json.cpp
+CMakeFiles/client.dir/json.cpp.o: CMakeFiles/client.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/kong/plan/chartroom/chat-system/client/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/client.dir/json.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/client.dir/json.cpp.o -MF CMakeFiles/client.dir/json.cpp.o.d -o CMakeFiles/client.dir/json.cpp.o -c /home/kong/plan/chartroom/chat-system/client/json.cpp
+
+CMakeFiles/client.dir/json.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/client.dir/json.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/kong/plan/chartroom/chat-system/client/json.cpp > CMakeFiles/client.dir/json.cpp.i
+
+CMakeFiles/client.dir/json.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/client.dir/json.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/kong/plan/chartroom/chat-system/client/json.cpp -o CMakeFiles/client.dir/json.cpp.s
+
+CMakeFiles/client.dir/msg.cpp.o: CMakeFiles/client.dir/flags.make
+CMakeFiles/client.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/client/msg.cpp
+CMakeFiles/client.dir/msg.cpp.o: CMakeFiles/client.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/kong/plan/chartroom/chat-system/client/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/client.dir/msg.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/client.dir/msg.cpp.o -MF CMakeFiles/client.dir/msg.cpp.o.d -o CMakeFiles/client.dir/msg.cpp.o -c /home/kong/plan/chartroom/chat-system/client/msg.cpp
+
+CMakeFiles/client.dir/msg.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/client.dir/msg.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/kong/plan/chartroom/chat-system/client/msg.cpp > CMakeFiles/client.dir/msg.cpp.i
+
+CMakeFiles/client.dir/msg.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/client.dir/msg.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/kong/plan/chartroom/chat-system/client/msg.cpp -o CMakeFiles/client.dir/msg.cpp.s
+
 CMakeFiles/client.dir/home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.o: CMakeFiles/client.dir/flags.make
 CMakeFiles/client.dir/home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.o: /home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp
 CMakeFiles/client.dir/home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.o: CMakeFiles/client.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/kong/plan/chartroom/chat-system/client/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/client.dir/home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/kong/plan/chartroom/chat-system/client/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/client.dir/home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/client.dir/home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.o -MF CMakeFiles/client.dir/home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.o.d -o CMakeFiles/client.dir/home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.o -c /home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp
 
 CMakeFiles/client.dir/home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.i: cmake_force
@@ -142,7 +170,7 @@ CMakeFiles/client.dir/home/kong/plan/chartroom/chat-system/threadpool/threadpool
 CMakeFiles/client.dir/home/kong/plan/chartroom/chat-system/log/logger.cpp.o: CMakeFiles/client.dir/flags.make
 CMakeFiles/client.dir/home/kong/plan/chartroom/chat-system/log/logger.cpp.o: /home/kong/plan/chartroom/chat-system/log/logger.cpp
 CMakeFiles/client.dir/home/kong/plan/chartroom/chat-system/log/logger.cpp.o: CMakeFiles/client.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/kong/plan/chartroom/chat-system/client/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/client.dir/home/kong/plan/chartroom/chat-system/log/logger.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/kong/plan/chartroom/chat-system/client/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object CMakeFiles/client.dir/home/kong/plan/chartroom/chat-system/log/logger.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/client.dir/home/kong/plan/chartroom/chat-system/log/logger.cpp.o -MF CMakeFiles/client.dir/home/kong/plan/chartroom/chat-system/log/logger.cpp.o.d -o CMakeFiles/client.dir/home/kong/plan/chartroom/chat-system/log/logger.cpp.o -c /home/kong/plan/chartroom/chat-system/log/logger.cpp
 
 CMakeFiles/client.dir/home/kong/plan/chartroom/chat-system/log/logger.cpp.i: cmake_force
@@ -159,6 +187,8 @@ client_OBJECTS = \
 "CMakeFiles/client.dir/client.cpp.o" \
 "CMakeFiles/client.dir/menu.cpp.o" \
 "CMakeFiles/client.dir/account.cpp.o" \
+"CMakeFiles/client.dir/json.cpp.o" \
+"CMakeFiles/client.dir/msg.cpp.o" \
 "CMakeFiles/client.dir/home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.o" \
 "CMakeFiles/client.dir/home/kong/plan/chartroom/chat-system/log/logger.cpp.o"
 
@@ -169,11 +199,13 @@ client: CMakeFiles/client.dir/main.cpp.o
 client: CMakeFiles/client.dir/client.cpp.o
 client: CMakeFiles/client.dir/menu.cpp.o
 client: CMakeFiles/client.dir/account.cpp.o
+client: CMakeFiles/client.dir/json.cpp.o
+client: CMakeFiles/client.dir/msg.cpp.o
 client: CMakeFiles/client.dir/home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.o
 client: CMakeFiles/client.dir/home/kong/plan/chartroom/chat-system/log/logger.cpp.o
 client: CMakeFiles/client.dir/build.make
 client: CMakeFiles/client.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/kong/plan/chartroom/chat-system/client/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Linking CXX executable client"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/kong/plan/chartroom/chat-system/client/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Linking CXX executable client"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/client.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

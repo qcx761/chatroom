@@ -1,0 +1,35 @@
+{
+  "type": "log_in",
+  "username": "alice",
+  "password": "123456"
+}
+
+
+{
+  "type": "log_in_result",
+  "status": "success",
+  "UID": "user_001",
+  "message": "登录成功，欢迎你 alice！"
+}
+
+
+{
+  "type": "log_in_result",
+  "status": "fail",
+  "message": "用户名或密码错误"
+}
+
+
+json response;
+receive_json(sockfd, response);
+
+if (response["type"] == "log_in_result") {
+    if (response["status"] == "success") {
+        current_UID = response["UID"];
+        std::cout << response["message"] << std::endl;
+        sem_post(&semaphore);  // 通知登录函数继续
+    } else {
+        std::cout << "登录失败: " << response["message"] << std::endl;
+        sem_post(&semaphore);
+    }
+}

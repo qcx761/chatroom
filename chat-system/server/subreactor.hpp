@@ -4,10 +4,18 @@
 #include <mutex>
 #include <atomic>
 #include <sys/epoll.h>
-#include "connection.hpp"
+#include <fcntl.h>
+#include <unistd.h>
+#include <cstring>
+#include <iostream>
+#include <nlohmann/json.hpp>
+
 
 #include "../log/logger.hpp"
 #include "../threadpool/threadpool.hpp"
+
+using json = nlohmann::json;
+
 
 class SubReactor {
 public:
@@ -28,5 +36,6 @@ private:
     std::thread heartbeat_thread;
     std::atomic<bool> running; // 原子
     std::mutex conn_mtx;
-    std::unordered_map<int, Connection*> connections;
+    std::unordered_map<int, std::chrono::steady_clock::time_point> heartbeats;
+    void closeAndRemove(int fd);
 };

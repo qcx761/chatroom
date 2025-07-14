@@ -1,8 +1,6 @@
 #include "subreactor.hpp"
-#include <fcntl.h>
-#include <unistd.h>
-#include <cstring>
-#include <iostream>
+#include"json.hpp"
+#include"msg.hpp"
 
 using namespace std;
 
@@ -14,14 +12,14 @@ SubReactor::SubReactor(threadpool* pool) :thread_pool(pool){
 }
 
 SubReactor::~SubReactor() {
-    running = false;
+    // running = false;
     if (event_thread.joinable()) {event_thread.join();}
     if (heartbeat_thread.joinable()){ heartbeat_thread.join();}
     close(epfd);
-    for (auto& [fd, conn] : connections) {
-        conn->closeConn();
-        delete conn;
+    for (auto& [fd, _] : heartbeats) {
+        close(fd);
     }
+    heartbeats.clear();
 }
 
 void SubReactor::addClient(int client_fd) {
@@ -34,66 +32,134 @@ void SubReactor::addClient(int client_fd) {
 
     std::lock_guard<std::mutex> lock(conn_mtx);
     epoll_ctl(epfd, EPOLL_CTL_ADD, client_fd, &ev);
-    connections[client_fd] = new Connection(client_fd,thread_pool);
+    heartbeats[client_fd] = std::chrono::steady_clock::now();
+
 }
+
+
+void SubReactor::closeAndRemove(int fd) {
+    epoll_ctl(epfd, EPOLL_CTL_DEL, fd, nullptr);
+    close(fd);
+    heartbeats.erase(fd);
+}
+
+
+
+
 
 void SubReactor::run() {
     epoll_event events[1024];
     while (running) {
-        int n = epoll_wait(epfd, events, 10, 1000);
+        int n = epoll_wait(epfd, events, 1024, 1000);
         for (int i = 0; i < n; ++i) {
             int fd = events[i].data.fd;
-            while (true) {
-                char buf[1024];
-                ssize_t len = read(fd, buf, sizeof(buf));
-                if (len == -1) {
-                    if (errno == EAGAIN || errno == EWOULDBLOCK) {
-                        // 读完所有当前数据，退出循环等待下一次事件
-                        break;
-                    } else {
-                        // 发生错误，关闭连接并清理
-                        std::lock_guard<std::mutex> lock(conn_mtx);
-                        if (connections.count(fd)) {
-                            connections[fd]->closeConn();
-                            delete connections[fd];
-                            connections.erase(fd);
-                        }
-                        break;
-                    }
-                } else if (len == 0) {
-                    // 对端关闭连接，清理资源
-                    std::lock_guard<std::mutex> lock(conn_mtx);
-                    if (connections.count(fd)) {
-                        connections[fd]->closeConn();
-                        delete connections[fd];
-                        connections.erase(fd);
-                    }
-                    break;
-                } else {
-                    // 正常读取到数据，处理
-                    std::lock_guard<std::mutex> lock(conn_mtx);
-                    if (connections.count(fd)) {
-                        connections[fd]->updateHeartbeat();
-                        
+            json request;
+            int ret=receive_json(fd,request);
+
+            if(ret!=0){
+                std::lock_guard<std::mutex> lock(conn_mtx);
+                if (heartbeats.count(fd)) {closeAndRemove(fd);}
+                continue;
+            }
+
+            // 更新心跳
+            {
+                std::lock_guard<std::mutex> lock(conn_mtx);
+                heartbeats[fd] = std::chrono::steady_clock::now();
+            }
+
+            std::string type=request.value("type","");
+
+            if(type=="log_in"){
+                thread_pool->enqueue([fd, request]() {
+                    log_in_msg(fd,request);
+                });
+                continue;
+            }else if(type=="sign_up"){
+                thread_pool->enqueue([fd, request]() {
+                    sign_up_msg(fd,request);
+                });
+                continue;
+            }
+            
+            // 校验 token
+            std::string token = request.value("token", "");
+            std::string username;
+            if (token.empty() || !verify_token(token, username)) {
+                json resp;
+                resp["type"] = type;
+                resp["status"] = "error";
+                resp["msg"] = "Invalid or expired token.";
+                send_json(fd, resp);
+                continue;
+            }
+            
+            
+            if(type==""){
 
 
 
 
-                        // 函数的处理
 
 
 
-                        
-                        
 
-        // thread_pool->enqueue([conn = connections[fd], data = std::string(buf,len)] {
-                        // conn->handleMessage(data.c_str(), data.size());});
+
+            }else if(type==""){
 
 
 
-                       // 先将命令储存到缓冲区后在调用线程池
-                    }
-                }
+
+
+                
+
+
+
+            }else if(type==""){
+
+
+
+
+
+                
+
+
+
+            }else if(type==""){
+
+
+
+
+
+                
+
+
+
+            }else if(type==""){
+
+
+
+
+
+                
+
+
+
+            }else if(type==""){
+
+
+
+
+
+                
+
+
+
+            }else{
+                // 处理错误逻辑
+                thread_pool->enqueue([fd, request]() {
+                    error_msg(fd,request);
+                });
             }
         }
     }
@@ -102,13 +168,17 @@ void SubReactor::run() {
 void SubReactor::heartbeatCheck() {
     while (running) {
         std::this_thread::sleep_for(std::chrono::seconds(5));
+        auto now = std::chrono::steady_clock::now();
         std::lock_guard<std::mutex> lock(conn_mtx);
-        for (auto it = connections.begin(); it != connections.end(); ) {
-            if (!it->second->isAlive()) {
-                it->second->closeConn();
-                delete it->second;
-                it = connections.erase(it);
-            } else {++it;}
+        for (auto it = heartbeats.begin(); it != heartbeats.end(); ) {
+            if (std::chrono::duration_cast<std::chrono::seconds>(now - it->second).count() > 10) {
+                std::cout << "客户端超时断开: fd = " << it->first << "\n";
+                close(it->first);
+                epoll_ctl(epfd, EPOLL_CTL_DEL, it->first, nullptr);
+                it = heartbeats.erase(it);
+            } else {
+                ++it;
+            }
         }
     }
 }

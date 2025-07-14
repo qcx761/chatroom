@@ -1,4 +1,5 @@
 #include "account.hpp"
+#include "json.hpp"
 
 
 sem_t sem; // 定义信号量
@@ -39,7 +40,7 @@ void main_menu_ui(int sock) {
 
     sem_init(&sem, 0, 0);  // 初始化信号量
 
-    
+
     int n;
     while (1) {
         system("clear"); // 清屏
@@ -92,7 +93,21 @@ void log_in(int sock) {
     j["password"] = password;
     send_json(sock, j);
 
+
+
+
+
+
+
+
     sem_wait(&sem); // 等待信号量
+
+
+
+
+
+
+
 }
 
 void sign_up(int sock) {
@@ -124,12 +139,11 @@ void sign_up(int sock) {
     j["password"] = password_old;
     send_json(sock, j);
 
+
+
+
+
     sem_wait(&sem); // 等待信号量
-}
-
-void send_json(int sock, json j) {
-
-
 
 
 
@@ -137,8 +151,6 @@ void send_json(int sock, json j) {
 
 
 }
-
-
 
 
 

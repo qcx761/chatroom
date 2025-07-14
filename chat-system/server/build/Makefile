@@ -129,30 +129,6 @@ server/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/build
 .PHONY : server/fast
 
-connection.o: connection.cpp.o
-.PHONY : connection.o
-
-# target to build an object file
-connection.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/connection.cpp.o
-.PHONY : connection.cpp.o
-
-connection.i: connection.cpp.i
-.PHONY : connection.i
-
-# target to preprocess a source file
-connection.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/connection.cpp.i
-.PHONY : connection.cpp.i
-
-connection.s: connection.cpp.s
-.PHONY : connection.s
-
-# target to generate assembly for a file
-connection.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/connection.cpp.s
-.PHONY : connection.cpp.s
-
 home/kong/plan/chartroom/chat-system/log/logger.o: home/kong/plan/chartroom/chat-system/log/logger.cpp.o
 .PHONY : home/kong/plan/chartroom/chat-system/log/logger.o
 
@@ -201,6 +177,30 @@ home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.s
 .PHONY : home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.s
 
+json.o: json.cpp.o
+.PHONY : json.o
+
+# target to build an object file
+json.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/json.cpp.o
+.PHONY : json.cpp.o
+
+json.i: json.cpp.i
+.PHONY : json.i
+
+# target to preprocess a source file
+json.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/json.cpp.i
+.PHONY : json.cpp.i
+
+json.s: json.cpp.s
+.PHONY : json.s
+
+# target to generate assembly for a file
+json.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/json.cpp.s
+.PHONY : json.cpp.s
+
 main.o: main.cpp.o
 .PHONY : main.o
 
@@ -224,6 +224,30 @@ main.s: main.cpp.s
 main.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/main.cpp.s
 .PHONY : main.cpp.s
+
+msg.o: msg.cpp.o
+.PHONY : msg.o
+
+# target to build an object file
+msg.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/msg.cpp.o
+.PHONY : msg.cpp.o
+
+msg.i: msg.cpp.i
+.PHONY : msg.i
+
+# target to preprocess a source file
+msg.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/msg.cpp.i
+.PHONY : msg.cpp.i
+
+msg.s: msg.cpp.s
+.PHONY : msg.s
+
+# target to generate assembly for a file
+msg.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/msg.cpp.s
+.PHONY : msg.cpp.s
 
 server.o: server.cpp.o
 .PHONY : server.o
@@ -282,18 +306,21 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... server"
-	@echo "... connection.o"
-	@echo "... connection.i"
-	@echo "... connection.s"
 	@echo "... home/kong/plan/chartroom/chat-system/log/logger.o"
 	@echo "... home/kong/plan/chartroom/chat-system/log/logger.i"
 	@echo "... home/kong/plan/chartroom/chat-system/log/logger.s"
 	@echo "... home/kong/plan/chartroom/chat-system/threadpool/threadpool.o"
 	@echo "... home/kong/plan/chartroom/chat-system/threadpool/threadpool.i"
 	@echo "... home/kong/plan/chartroom/chat-system/threadpool/threadpool.s"
+	@echo "... json.o"
+	@echo "... json.i"
+	@echo "... json.s"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"
+	@echo "... msg.o"
+	@echo "... msg.i"
+	@echo "... msg.s"
 	@echo "... server.o"
 	@echo "... server.i"
 	@echo "... server.s"

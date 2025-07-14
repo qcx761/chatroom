@@ -1,9 +1,10 @@
 #include "client.hpp"
 #include"menu.hpp"
+#include"json.hpp"
 #include"account.hpp"
 using namespace std;
 
-Client::Client(std::string ip, int port) : logger(Logger::Level::DEBUG, "client.log")
+Client::Client(std::string ip, int port) :thread_pool(10), logger(Logger::Level::DEBUG, "client.log")
 {
     sock = socket(AF_INET, SOCK_STREAM, 0);
     if (sock < 0)
@@ -50,89 +51,166 @@ Client::Client(std::string ip, int port) : logger(Logger::Level::DEBUG, "client.
 
 Client::~Client()
 {
-    close(sock);
+    stop();
+    if (sock != -1) close(sock);
+    if (epfd != -1) close(epfd);
+
+    //sem_destroy(&sem);  // 如果你用了信号量
 }
 
+void Client::start() {
+    running = true;
 
-void epoll_thread_func(){
+    net_thread = std::thread(&Client::epoll_thread_func, this, &thread_pool);
+    input_thread = std::thread(&Client::user_thread_func, this, &thread_pool);
+
+//     // 启动 epoll 网络线程
+//     net_thread = std::thread(&Client::epoll_thread_func, this);
+//     // 启动用户输入线程
+//     input_thread = std::thread(&Client::user_thread_func, this);
+}
+
+void Client::stop() {
+    // running = false;
+
+    if (net_thread.joinable()) net_thread.join();
+    if (input_thread.joinable()) input_thread.join();
+}
+
+void Client::epoll_thread_func(threadpool* thread_pool){
     epoll_event events[1024];
-    while(1){
-            int n = epoll_wait(epfd, events, 1024, -1);
-            if (n == -1) {
-                if (errno == EINTR) {
-                    continue;
-                }
-        LOG_ERROR(logger, "epoll_wait failed");
-
-                break;
+    while(running){
+        int n = epoll_wait(epfd, events, 1024, -1);
+        if (n == -1) {
+            if (errno == EINTR) {
+                continue;
             }
-        for(int i=0;i<n;i++){
-            int fd=events[i].data.fd;
-            uint32_t evs = events[i].events;
-            if ((evs & EPOLLERR) || (evs & EPOLLHUP) || (evs & EPOLLRDHUP)) {
-                break;
-            }
-            if(fd==sock){
-                char buf[1024] = {0};
-                int n = recv(sock, buf, sizeof(buf), 0);
-                if (n > 0) {
-                    handle_server_message(string(buf, n));
-                } else if (n == 0) {
-                    cout << "服务器断开连接\n";
-                    exit(0);
-                }
-
-
-
-
-
-                // 处理服务端发送过来的信息
-
-                // 只处理 recv 和 sem_post()，不做任何 cin
-
-
-
-
-
-
-
-
-
-        }else{
-            // 唯一监听的没有触发
+            LOG_ERROR(logger, "epoll_wait failed");
             break;
         }
 
+        for(int i=0; i < n; i++){
+            json j;
+            int fd = events[i].data.fd;
+            uint32_t evs = events[i].events;
+
+            if ((evs & EPOLLERR) || (evs & EPOLLHUP) || (evs & EPOLLRDHUP)) {
+                cout << "服务器断开连接\n";
+                running = false;
+                return;
+            }
+
+            if (fd == sock) {
+                int ret = receive_json(sock, j);
+                std::string type = j["type"];
+
+
+// 接收服务端发送的信息，并且解放阻塞线程的信号量
+
+                if (ret == 0) {
+                    if(j["msg"]=="Invalid or expired token."){
+                        cout <<"登录超时请重新登录。";
+
+
+                        // 然后怎么处理
+                    }
+                    
+                    if(type=="sign_up"){
+
+
+
+
+
+                    thread_pool->enqueue([fd, j]() {
+                    sign_up_msg(fd,J);
+                    });    
+
+
+
+
+                    }else if(type==""){
+
+
+
+                    }else if(type==""){
+                                        
+
+
+                    // if(type=="log_in"){
+                    // thread_pool->enqueue([fd, request]() {
+                    // sign_up_msg(fd,request);
+                    // });
+
+                    // 服务端发来的json好像不一样要修改逻辑
+
+                    // 这里处理接收到的json消息
+
+
+                    // 例如：
+                    // handle_server_message(j);
+
+                    // 根据协议，处理完毕后可能需要 sem_post() 解锁等待线程
+
+                    // sem_post(&sem);
+
+
+
+
+
+
+
+                    
+                    }else if(type=="error"){
+
+                    // 处理错误信息
+
+
+
+                    }else{
+                        std::cout << "收到未知消息";
+                    }
+
+                } else if (ret == -1) {
+                    cout << "接收数据失败或服务器关闭连接\n";
+                    running = false;
+                    return;
+                }else{
+                    return;
+                }
+            } else {
+                // 监听的其他fd触发了，异常处理
+                LOG_ERROR(logger, "未知文件描述符事件");
+                break;
+            }
+        }
     }
-
 }
 
+void Client::user_thread_func(threadpool* thread_pool) {
+
+    // 用线程池
+
+    while(running){
+    main_menu_ui(sock);
+
+
+
+// 交互逻辑，比如说注册函数之类
+// 也就是客户端怎么发送json到服务端
+// 记得通过信号量来等待
+
+
+
+
+
+
+
+
+
+    }
 }
 
-void user_thread_func() {
-    main_menu_ui(sockfd);
-}
 
 
 
 
-void client::run(){
-
-
-    // 启动 epoll 网络线程
-    thread net_thread(epoll_thread_func);
-
-    // 启动用户输入线程
-    thread input_thread(user_thread_func);
-
-    // 等待线程结束
-    input_thread.join();
-    running = false;
-    close(sockfd);
-    net_thread.join();
-
-    // sem_destroy(&sem);
-
-
-
-}

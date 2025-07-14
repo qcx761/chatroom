@@ -1,208 +1,100 @@
-void log_in_UI(int connecting_sockfd) {
-    system("clear");
-    std::cout << "登录" << std::endl;
+#include "client.hpp"
+#include "menu.hpp"
+#include "account.hpp"
+#include <iostream>
+#include <unistd.h>
+#include <arpa/inet.h>
+#include <fcntl.h>
+#include <cstring>
 
-    json j;
-    j["type"] = "log_in";
-    std::string username, password;
+Client::Client(const std::string& ip, int port)
+    : ip(ip), port(port), logger(Logger::Level::DEBUG, "client.log") {
 
-    std::cout << "请输入你的用户名：";
-    std::cin >> username;
-    j["username"] = username;
+    sock = socket(AF_INET, SOCK_STREAM, 0);
+    if (sock < 0) {
+        LOG_ERROR(logger, "Socket creation failed");
+        exit(1);
+    }
 
-    struct termios oldt, newt;
+    sockaddr_in addr{};
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(port);
+    inet_pton(AF_INET, ip.c_str(), &addr.sin_addr);
 
-    // 获取当前终端设置
-    tcgetattr(STDIN_FILENO, &oldt);
-    newt = oldt;
+    if (connect(sock, (sockaddr*)&addr, sizeof(addr)) < 0) {
+        LOG_ERROR(logger, "Connect failed");
+        exit(1);
+    }
 
-    // 关闭回显
-    newt.c_lflag &= ~(ECHO);
-    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+    int flags = fcntl(sock, F_GETFL);
+    if (flags == -1 || fcntl(sock, F_SETFL, flags | O_NONBLOCK) == -1) {
+        LOG_ERROR(logger, "fcntl failed");
+        exit(1);
+    }
 
-    std::cout << "请输入你的密码：";
-    std::cin >> password;
-    j["password"] = password;
+    epfd = epoll_create1(0);
+    if (epfd == -1) {
+        LOG_ERROR(logger, "epoll_create1 failed");
+        exit(1);
+    }
 
-    std::cout << std::endl;
-
-    // 恢复终端设置
-    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
-
-    send_json(connecting_sockfd, j);
-    sem_wait(&semaphore); // 等待信号量
+    epoll_event ev{};
+    ev.data.fd = sock;
+    ev.events = EPOLLIN | EPOLLET;
+    epoll_ctl(epfd, EPOLL_CTL_ADD, sock, &ev);
 }
 
-void sign_up_UI(int connecting_sockfd) {
-    system("clear");
-    std::cout << "注册" << std::endl;
-
-    json j;
-    j["type"] = "sign_up";
-    std::string username, password, security_question, security_answer;
-
-    std::cout << "请输入你的用户名：";
-    std::cin >> username;
-    j["username"] = username;
-
-    std::cout << "请输入你的密码：";
-    std::cin >> password;
-    j["password"] = password;
-
-    std::cout << "请输入你的密保问题：";
-    std::cin.ignore();
-    std::getline(std::cin, security_question);
-    j["security_question"] = security_question;
-
-    std::cout << "请输入你的密保答案：";
-    std::getline(std::cin, security_answer);
-    j["security_answer"] = security_answer;
-
-    send_json(connecting_sockfd, j);
-    sem_wait(&semaphore); // 等待信号量
+Client::~Client() {
+    stop(); // 优雅关闭线程与资源
+    if (sock != -1) close(sock);
+    if (epfd != -1) close(epfd);
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#include"account.hpp"
-
-sem_t sem; // 定义信号量
-
-
-
-void waiting() {
-    std::cout << "按 Enter 键继续...";
-    std::cin.get();  // 等待按回车
+void Client::start() {
+    running = true;
+    net_thread = std::thread(&Client::epoll_thread_func, this);
+    input_thread = std::thread(&Client::user_thread_func, this);
 }
 
-void flushInput() {
-    std::cin.clear();
-    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+void Client::stop() {
+    running = false;
+
+    if (net_thread.joinable()) net_thread.join();
+    if (input_thread.joinable()) input_thread.join();
 }
 
-void main_menu_ui(int sock) {
+void Client::epoll_thread_func() {
+    epoll_event events[1024];
 
-
-
-
-
-sem_init(&sem, 0, 0);
-
-
-
-
-    int n;
-    while (1) {
-        system("clear"); // 清屏
-        show_main_menu();
-
-        std::cout << "请输入你的选项：";
-        if (!(std::cin >> n)) {
-            flushInput();
-            std::cout << "无效的输入，请输入数字。" << std::endl;
-            waiting();
-            continue;
+    while (running) {
+        int n = epoll_wait(epfd, events, 1024, 1000);
+        if (n < 0 && errno != EINTR) {
+            LOG_ERROR(logger, "epoll_wait failed");
+            break;
         }
 
-        switch (n) {
-        case 1:
-            log_in(sock);
-            flushInput();
-            waiting();
-
-            break;
-        case 2:
-            sign_up(sock);
-            flushInput();
-            waiting();
-
-            break;
-        case 3:
-            exit(0);
-        default:
-            std::cout << "无效数字" << std::endl;
-            flushInput();
-            waiting();
-            break;
+        for (int i = 0; i < n; ++i) {
+            int fd = events[i].data.fd;
+            if (fd == sock) {
+                char buf[1024] = {0};
+                int count = recv(sock, buf, sizeof(buf), 0);
+                if (count > 0) {
+                    std::string msg(buf, count);
+                    std::cout << "[Server] " << msg << std::endl;
+                } else if (count == 0) {
+                    std::cout << "服务器断开连接\n";
+                    running = false;
+                    return;
+                }
+            }
         }
     }
 }
 
-void log_in(int sock){
-    system("clear");
-    std::cout << "登录" << std::endl;
-    json j;
-    j["type"]="log_in";
-
-    string username,password;
-    cout<<"请输入用户名 :";
-
-    cin >> username;
-    cout<<"请输入密码   :";
-
-    cin >> password;
-    j["username"]=username;
-    j["password"]=password;
-    send_json(sock, j);
-
-    sem_wait(&sem); // 等待信号量
-
-
-
-
-}
-
-void sign_up(int sock){
-    system("clear");
-    std::cout << "注册" << std::endl;
-    json j;
-    j["type"]="sign_up";
-    string username,password_old,password_new;
-    while(1){
-    cout<<"请输入用户名 :";
-    cin >> username;
-
-    cout<<"请输入密码   :";
-    cin >> password_old;
-    cout<<"请再次输入密码:";
-    cin >> password_new;
-    if(password_new==password_old){
-        break;
-    }else{
-    cout<< "两次密码不一样"<<endl;
+void Client::user_thread_func() {
+    while (running) {
+        main_menu_ui(sock);
+        // 你可以在 main_menu_ui 中处理退出请求，例如：
+        // if (user_wants_exit) running = false;
     }
-}
-    j["username"]=username;
-    j["password"]=password_old;
-    send_json(sock, j);
-
-    sem_wait(&sem); // 等待信号量
-}
-
-void send_json(int sock,json j){
-    ;
 }
