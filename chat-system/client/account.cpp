@@ -16,6 +16,7 @@ void flushInput() {
 
 // 关闭终端回显，读一行密码
 string get_password(const string& prompt) {
+
     struct termios oldt, newt;
     cout << prompt;
 
@@ -38,7 +39,7 @@ string get_password(const string& prompt) {
 
 void main_menu_ui(int sock) {
 
-    sem_init(&sem, 0, 0);  // 初始化信号量
+   // sem_init(&sem, 0, 0);  // 初始化信号量
 
 
     int n;
@@ -82,14 +83,14 @@ void log_in(int sock) {
     json j;
     j["type"] = "log_in";
 
-    string username, password;
-    cout << "请输入用户名 :";
-    cin >> username;
+    string account, password;
+    cout << "请输入帐号   :";
+    cin >> account;
     cin.ignore(numeric_limits<streamsize>::max(), '\n');  // 清理缓冲区换行符
 
     password = get_password("请输入密码   :");
 
-    j["username"] = username;
+    j["account"] = account;
     j["password"] = password;
     send_json(sock, j);
 
@@ -100,7 +101,7 @@ void log_in(int sock) {
 
 
 
-    sem_wait(&sem); // 等待信号量
+    // sem_wait(&sem); // 等待信号量
 
 
 
@@ -115,12 +116,16 @@ void sign_up(int sock) {
     cout << "注册" << endl;
     json j;
     j["type"] = "sign_up";
-    string username, password_old, password_new;
+    string username,account, password_old, password_new;
 
     while (1) {
         cout << "请输入用户名 :";
         cin >> username;
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');  // 这里也加，防止影响后续 getline
+        cin.ignore(numeric_limits<streamsize>::max(), '\n'); 
+
+        cout << "请输入帐号  :";
+        cin >> account;
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');  // 防止影响后续 getline
 
         password_old = get_password("请输入密码   :");
         password_new = get_password("请再次输入密码:");
@@ -135,6 +140,7 @@ void sign_up(int sock) {
         }
     }
 
+    j["account"]  = account;
     j["username"] = username;
     j["password"] = password_old;
     send_json(sock, j);
@@ -143,7 +149,7 @@ void sign_up(int sock) {
 
 
 
-    sem_wait(&sem); // 等待信号量
+    // sem_wait(&sem); // 等待信号量
 
 
 

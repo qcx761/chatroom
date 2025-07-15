@@ -1,20 +1,17 @@
 #include "json.hpp"
 #include "msg.hpp"
 
-#include <sw/redis++/redis++.h>
-#include <mysql_driver.h>
-#include <mysql_connection.h>
-#include <cppconn/driver.h>
-#include <cppconn/exception.h>
-#include <cppconn/prepared_statement.h>
-#include <cppconn/resultset.h>
-#include <random>
-#include <sstream>
-#include <memory>
-#include <iostream>
-
 using json = nlohmann::json;
 using namespace sw::redis;
+
+
+// 获取MySQL连接
+std::shared_ptr<sql::Connection> get_mysql_connection() {
+    sql::mysql::MySQL_Driver* driver = sql::mysql::get_mysql_driver_instance();
+    auto conn = std::shared_ptr<sql::Connection>(driver->connect("tcp://127.0.0.1:3306", "qcx", "qcx761"));
+    conn->setSchema("chatroom");  // 你的数据库名
+    return conn;
+}
 
 // 生成32位随机Token字符串
 std::string generate_token() {
@@ -29,47 +26,59 @@ std::string generate_token() {
     return ss.str();
 }
 
-// 获取MySQL连接
-std::shared_ptr<sql::Connection> get_mysql_connection() {
-    sql::mysql::MySQL_Driver* driver = sql::mysql::get_mysql_driver_instance();
-    auto conn = std::shared_ptr<sql::Connection>(driver->connect("tcp://127.0.0.1:3306", "qcx", "qcx761"));
-    conn->setSchema("chatroom");
-    return conn;
+// 验证token是否有效
+bool verify_token(const std::string& token, std::string& out_account) {
+    try {
+        Redis redis("tcp://127.0.0.1:6379");
+        std::string token_key = "token:" + token;
+        auto val = redis.get(token_key);
+        if (val) {
+            out_account = *val;
+            return true;
+        } else {
+            return false; // token 不存在或过期
+        }
+    } catch (const std::exception& e) {
+        std::cerr << "Redis error: " << e.what() << std::endl;
+        return false;
+    }
 }
 
 // 注册处理函数
 void sign_up_msg(int fd, const json &request) {
     json response;
+    std::string account = request.value("account", "");
     std::string username = request.value("username", "");
     std::string password = request.value("password", "");
 
-    if (username.empty() || password.empty()) {
+    if (account.empty() || username.empty() || password.empty()) {
         response["type"] = "sign_up";
         response["status"] = "error";
-        response["msg"] = "Username or password cannot be empty";
+        response["msg"] = "Account, username or password cannot be empty";
         send_json(fd, response);
         return;
     }
 
     try {
-        // 获得一个指向数据库连接的智能指针 conn
         auto conn = get_mysql_connection();
 
+        // 检查account是否已存在
         auto check_stmt = std::unique_ptr<sql::PreparedStatement>(
-            conn->prepareStatement("SELECT COUNT(*) FROM users WHERE username = ?"));
-        check_stmt->setString(1, username);
+            conn->prepareStatement("SELECT COUNT(*) FROM users WHERE account = ?"));
+        check_stmt->setString(1, account);
         auto res = check_stmt->executeQuery();
         res->next();
 
         if (res->getInt(1) > 0) {
             response["type"] = "sign_up";
             response["status"] = "fail";
-            response["msg"] = "Username already exists";
+            response["msg"] = "Account already exists";
         } else {
             auto insert_stmt = std::unique_ptr<sql::PreparedStatement>(
-                conn->prepareStatement("INSERT INTO users (username, password) VALUES (?, ?)"));
-            insert_stmt->setString(1, username);
-            insert_stmt->setString(2, password);  // 建议密码使用哈希后存储，这里简化示例
+                conn->prepareStatement("INSERT INTO users (account, username, password) VALUES (?, ?, ?)"));
+            insert_stmt->setString(1, account);
+            insert_stmt->setString(2, username);
+            insert_stmt->setString(3, password);  // 建议密码哈希存储
             insert_stmt->executeUpdate();
 
             response["type"] = "sign_up";
@@ -82,19 +91,28 @@ void sign_up_msg(int fd, const json &request) {
         response["msg"] = std::string("Exception: ") + e.what();
     }
 
-    send_json(fd, response);
+
+
+    int n;
+    do{
+    n=send_json(fd, response);
+    }while(n!=0);
+
+
+
+    // send_json(fd, response);
 }
 
 // 登录处理函数
 void log_in_msg(int fd, const json &request) {
     json response;
-    std::string username = request.value("username", "");
+    std::string account = request.value("account", "");
     std::string password = request.value("password", "");
 
-    if (username.empty() || password.empty()) {
+    if (account.empty() || password.empty()) {
         response["type"] = "log_in";
         response["status"] = "error";
-        response["msg"] = "Username or password cannot be empty";
+        response["msg"] = "Account or password cannot be empty";
         send_json(fd, response);
         return;
     }
@@ -103,14 +121,14 @@ void log_in_msg(int fd, const json &request) {
         auto conn = get_mysql_connection();
 
         auto stmt = std::unique_ptr<sql::PreparedStatement>(
-            conn->prepareStatement("SELECT password FROM users WHERE username = ?"));
-        stmt->setString(1, username);
+            conn->prepareStatement("SELECT password FROM users WHERE account = ?"));
+        stmt->setString(1, account);
         auto res = stmt->executeQuery();
 
         if (!res->next()) {
             response["type"] = "log_in";
             response["status"] = "fail";
-            response["msg"] = "User not found";
+            response["msg"] = "Account not found";
             send_json(fd, response);
             return;
         }
@@ -128,7 +146,7 @@ void log_in_msg(int fd, const json &request) {
         Redis redis("tcp://127.0.0.1:6379");
         std::string token = generate_token();
         std::string token_key = "token:" + token;
-        redis.set(token_key, username);
+        redis.set(token_key, account);
         redis.expire(token_key, 3600);  // 1小时有效期
 
         response["type"] = "log_in";
@@ -141,8 +159,77 @@ void log_in_msg(int fd, const json &request) {
         response["msg"] = std::string("Exception: ") + e.what();
     }
 
+
+
+    int n;
+    do{
+    n=send_json(fd, response);
+    }while(n!=0);
+
+    // send_json(fd, response);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void error_msg(int fd, const nlohmann::json &request){
+    json response;
+    response["type"] = "error";
+    response["msg"] = "Unrecognized request type";
     send_json(fd, response);
 }
+
+
 
 // 登出函数
 void log_out_msg(const std::string& token) {
@@ -156,24 +243,3 @@ void log_out_msg(const std::string& token) {
 }
 
 
-
-
-
-
-// 验证token是否有效
-bool verify_token(const std::string& token, std::string& out_username) {
-    try {
-        Redis redis("tcp://127.0.0.1:6379");
-        std::string token_key = "token:" + token;
-        auto val = redis.get(token_key);
-        if (val) {
-            out_username = *val;
-            return true;
-        } else {
-            return false; // token 不存在或过期
-        }
-    } catch (const std::exception& e) {
-        std::cerr << "Redis error: " << e.what() << std::endl;
-        return false;
-    }
-}

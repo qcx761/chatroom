@@ -167,7 +167,13 @@ void SubReactor::run() {
 
 void SubReactor::heartbeatCheck() {
     while (running) {
-        std::this_thread::sleep_for(std::chrono::seconds(5));
+
+
+// 服务端要发送心跳检测包
+
+
+
+        std::this_thread::sleep_for(std::chrono::seconds(1000000000));
         auto now = std::chrono::steady_clock::now();
         std::lock_guard<std::mutex> lock(conn_mtx);
         for (auto it = heartbeats.begin(); it != heartbeats.end(); ) {

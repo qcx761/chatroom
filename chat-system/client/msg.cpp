@@ -1,104 +1,59 @@
-#include"msg.hpp"
-#include"json.hpp"
+#include "msg.hpp"
+#include "json.hpp"
 
+using json = nlohmann::json;
 
-
-// 处理服务端接收并且发送信息
-
-void error_msg(int fd,const json &request){
-    json response;
-    response["type"] = "error";
-    response["msg"] = "Unrecognized request type";
+// 处理服务端返回的错误消息
+void error_msg(int fd, const json &response) {
     
-    send_json(fd, response);
+    
+    std::cerr << "[ERROR] 服务器返回错误: " << response.value("msg", "未知错误") << std::endl;
+    
+    
+    // 可以做其他错误处理，比如弹窗、日志记录等
+}
+
+// 处理服务端返回的登录响应
+void log_in_msg(int fd, const json &response) {
+    std::string status = response.value("status", "error");
+    std::string msg = response.value("msg", "未知错误");
+
+    if (status == "success") {
+        std::cout << "[登录成功] " << msg << std::endl;
+        std::string token = response.value("token", "");
+        if (!token.empty()) {
+            // 保存token，供后续请求使用
+            // 例如保存到客户端变量或文件
+            std::cout << "收到Token: " << token << std::endl;
+        }
+    } else if (status == "fail") {
+        std::cout << "[登录失败] " << msg << std::endl;
+    } else {
+        std::cerr << "[登录错误] " << msg << std::endl;
+    }
+
+
+
+
+
 
 }
 
+// 处理服务端返回的注册响应
+void sign_up_msg(int fd, const json &response) {
+    std::string status = response.value("status", "error");
+    std::string msg = response.value("msg", "未知错误");
 
-
-void log_in_msg(int fd, const json &request){
-
-    // std::string type=request.value("type","");
-    // json response;
-
-    // std::string username = request.value("username", "");
-    // std::string password = request.value("password", "");
-
-    // if(username.empty() || password.empty()){
-    //     response["type"] = "log_in";
-    //     response["status"] = "error";
-    //     response["msg"] = "username or password is empty";
-    //     send_json(fd, response);
-        // continue;
-    // }
-
-    // try {
-    //     auto redis = Redis("tcp://127.0.0.1:6379");
-
-    //     if (!redis.exists("user:" + username)) {
-    //         response["type"] = "log_in";
-    //         response["status"] = "fail";
-    //         response["msg"] = "User not found";
-    //     } else {
-    //         auto stored_pass = redis.hget("user:" + username, "password");
-    //         if (stored_pass && *stored_pass == password) {
-    //             response["type"] = "log_in";
-    //             response["status"] = "success";
-    //             response["msg"] = "Login successful";
-    //         } else {
-    //             response["type"] = "log_in";
-    //             response["status"] = "fail";
-    //             response["msg"] = "Incorrect password";
-    //         }
-    //     }
-    // } catch (const Error &e) {
-    //     response["type"] = "log_in";
-    //     response["status"] = "error";
-    //     response["msg"] = std::string("Redis error: ") + e.what();
-    // }
-
-    // send_json(fd, response);
-}
+    if (status == "success") {
+        std::cout << "[注册成功] " << msg << std::endl;
+        // 注册成功后，可以自动登录或提示用户去登录
+    } else if (status == "fail") {
+        std::cout << "[注册失败] " << msg << std::endl;
+    } else {
+        std::cerr << "[注册错误] " << msg << std::endl;
+    }
 
 
 
-void sign_up_msg(int fd, const json &request){
-
-    // std::string type=request.value("type","");
-    // json response;
-
-    // std::string username = request.value("username", "");
-    // std::string password = request.value("password", "");
-
-    // if(username.empty() || password.empty()){
-    //     response["type"] = "sign_up";
-    //     response["status"] = "error";
-    //     response["msg"] = "username or password is empty";
-    //     send_json(fd, response);
-    //     // continue;
-    // }
-
-    // try {
-    //     // 连接 Redis（可以提取为类的成员变量，不建议每次都重新连接）
-    //     auto redis = Redis("tcp://127.0.0.1:6379");
-
-    //     // 检查是否已存在
-    //     if (redis.exists("user:" + username)) {
-    //         response["type"] = "sign_up";
-    //         response["status"] = "fail";
-    //         response["msg"] = "Username already exists";
-    //     } else {
-    //         // 注册成功，存储账号密码（明文存储仅用于示例，实际要哈希加密）
-    //         redis.hset("user:" + username, "password", password);
-    //         response["type"] = "sign_up";
-    //         response["status"] = "success";
-    //         response["msg"] = "Registered successfully";
-    //     }
-    // } catch (const Error &e) {
-    //     response["type"] = "sign_up";
-    //     response["status"] = "error";
-    //     response["msg"] = std::string("Redis error: ") + e.what();
-    // }
-
-    // send_json(fd, response);
+    
 }

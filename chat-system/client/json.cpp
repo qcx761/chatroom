@@ -4,7 +4,7 @@ using namespace std;
 
 
 
-
+// 发送json，消息格式: 4字节长度+json字符串
 int send_json(int sockfd, const json& j) {
     std::string payload = j.dump();
     uint32_t len = htonl(payload.size());  // 转为网络字节序
@@ -41,3 +41,4 @@ int receive_json(int sockfd, json& j) {
 
     return 0;
 }
+

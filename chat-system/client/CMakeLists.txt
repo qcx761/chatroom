@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 17)
 # 添加头文件路径
 include_directories(
     /usr/local/include       # hiredis, redis++
-    /usr/include/mysql-cppconn-8 # 如果使用系统安装的 mysqlcppconn8
+    /usr/include/mysql-cppconn-8 # 如果有此路径
 )
 
 # 添加库文件路径
@@ -31,9 +31,9 @@ target_include_directories(client PRIVATE
     ../log
 )
 
-# 链接 Redis++、Hiredis、MySQL
+# 修改这里：把 mysqlcppconn8 改成 mysqlcppconn
 target_link_libraries(client
     redis++          # Redis++ C++ client
     hiredis          # hiredis 是 redis++ 的底层依赖
-    mysqlcppconn8    # MySQL Connector/C++ 8 (X DevAPI)
+    mysqlcppconn     # 修改这里，去掉 8 后缀
 )

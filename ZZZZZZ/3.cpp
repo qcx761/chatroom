@@ -1,118 +1,166 @@
-std::string type = j["type"];
+#include "account.hpp"
+#include "json.hpp"
 
-        if (type == "log_in_response") {
-            std::string status = j["status"];
-            if (status == "success") {
-                current_UID = j["UID"];
-                std::cout << "\n✅ 登录成功，UID: " << current_UID << std::endl;
-            } else {
-                std::cout << "\n❌ 登录失败：" << j["reason"] << std::endl;
-            }
-            sem_post(&semaphore);  // 通知主线程
+
+sem_t sem; // 定义信号量
+
+void waiting() {
+    cout << "按 Enter 键继续...";
+    cin.get();  // 等待按回车
+}
+
+void flushInput() {
+    cin.clear();
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+}
+
+// 关闭终端回显，读一行密码
+string get_password(const string& prompt) {
+
+    struct termios oldt, newt;
+    cout << prompt;
+
+    // 获取当前终端属性
+    tcgetattr(STDIN_FILENO, &oldt);
+    newt = oldt;
+    // 关闭回显
+    newt.c_lflag &= ~ECHO;
+    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+
+    string password;
+    getline(cin, password);
+
+    // 恢复终端属性
+    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+    cout << endl;
+
+    return password;
+}
+
+void main_menu_ui(int sock) {
+
+    sem_init(&sem, 0, 0);  // 初始化信号量
+
+
+    int n;
+    while (1) {
+        system("clear"); // 清屏
+        show_main_menu();
+
+        cout << "请输入你的选项：";
+        if (!(cin >> n)) {
+            flushInput();
+            cout << "无效的输入，请输入数字。" << endl;
+            waiting();
+            continue;
         }
 
-        else if (type == "sign_up_response") {
-            std::string status = j["status"];
-            if (status == "success") {
-                std::cout << "\n✅ 注册成功，请登录。\n";
-            } else {
-                std::cout << "\n❌ 注册失败：" << j["reason"] << "\n";
-            }
-            sem_post(&semaphore);  // 通知主线程
-        }
-
-        // 你可以继续添加其他响应类型
-        // e.g., retrieve_password_response, change_password_response, etc.
-
-        else {
-            std::cout << "\n⚠️ 收到未知消息：" << j.dump(4) << "\n";
-        }
-
-
-
-
-
-
-void Client::epoll_thread_func(threadpool* thread_pool){
-    epoll_event events[1024];
-    while(running){
-        int n = epoll_wait(epfd, events, 1024, -1);
-        if (n == -1) {
-            if (errno == EINTR) {
-                continue;
-            }
-            LOG_ERROR(logger, "epoll_wait failed");
+        switch (n) {
+        case 1:
+            log_in(sock);
+            flushInput();
+            waiting();
             break;
-        }
-
-        for(int i=0; i < n; i++){
-            json j;
-            int fd = events[i].data.fd;
-            uint32_t evs = events[i].events;
-
-            if ((evs & EPOLLERR) || (evs & EPOLLHUP) || (evs & EPOLLRDHUP)) {
-                cout << "服务器断开连接\n";
-                running = false;
-                return;
-            }
-
-            if (fd == sock) {
-                int ret = receive_json(sock, j);
-                std::string type = j["type"];
-
-
-                if (ret == 0) {
-                    
-
-
-
-                    // if(type=="log_in"){
-                    // thread_pool->enqueue([fd, request]() {
-                    // sign_up_msg(fd,request);
-                    // });
-
-// 服务端发来的json好像不一样要修改逻辑
-
-
-                    if(type=="sign_up"){
-
-
-
-
-                    }else if(type==""){
-
-                    }
-                                        
-
-
-
-                    // 这里处理接收到的json消息
-
-
-                    // 例如：
-                    // handle_server_message(j);
-
-                    // 根据协议，处理完毕后可能需要 sem_post() 解锁等待线程
-
-                    // sem_post(&sem);
-
-
-
-                    
-                    else{
-                        std::cout << "收到未知消息";
-                    }
-
-                } else if (ret == -1) {
-                    cout << "接收数据失败或服务器关闭连接\n";
-                    running = false;
-                    return;
-                }
-            } else {
-                // 监听的其他fd触发了，异常处理
-                LOG_ERROR(logger, "未知文件描述符事件");
-                break;
-                }
+        case 2:
+            sign_up(sock);
+            flushInput();
+            waiting();
+            break;
+        case 3:
+            exit(0);
+        default:
+            cout << "无效数字" << endl;
+            flushInput();
+            waiting();
+            break;
         }
     }
 }
+
+void log_in(int sock) {
+    system("clear");
+    cout << "登录" << endl;
+    json j;
+    j["type"] = "log_in";
+
+    string account, password;
+    cout << "请输入帐号 :";
+    cin >> account;
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');  // 清理缓冲区换行符
+
+    password = get_password("请输入密码   :");
+
+    j["account"] = account;
+    j["password"] = password;
+    send_json(sock, j);
+
+
+
+
+
+
+
+
+    sem_wait(&sem); // 等待信号量
+
+
+
+
+
+
+
+}
+
+void sign_up(int sock) {
+    system("clear");
+    cout << "注册" << endl;
+    json j;
+    j["type"] = "sign_up";
+    string username,account, password_old, password_new;
+
+    while (1) {
+        cout << "请输入用户名 :";
+        cin >> username;
+        cin.ignore(numeric_limits<streamsize>::max(), '\n'); 
+
+        cout << "请输入帐号  :";
+        cin >> account;
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');  // 防止影响后续 getline
+
+        password_old = get_password("请输入密码   :");
+        password_new = get_password("请再次输入密码:");
+
+        if (password_new == password_old) {
+            break;
+        } else {
+            cout << "两次密码不一样" << endl;
+            waiting();
+            system("clear");
+            cout << "注册" << endl;
+        }
+    }
+
+    j["account"]  = account;
+    j["username"] = username;
+    j["password"] = password_old;
+    send_json(sock, j);
+
+
+
+
+
+    sem_wait(&sem); // 等待信号量
+
+
+
+
+
+
+}
+
+
+
+
+// 记得释放信号量
+// sem_post(&sem);
+//sem_destroy(sem_t *sem);

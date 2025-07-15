@@ -2,6 +2,7 @@
 
 #include <nlohmann/json.hpp>
 #include <sw/redis++/redis++.h>  // Redis 库头文件
+#include<iostream>
 
 using json = nlohmann::json;
 using namespace sw::redis;

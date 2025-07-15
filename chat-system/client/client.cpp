@@ -1,7 +1,8 @@
-#include "client.hpp"
-#include"menu.hpp"
-#include"json.hpp"
-#include"account.hpp"
+#include"client.hpp" // 客户端
+#include"menu.hpp"  // 目录
+#include"json.hpp"  // json发送
+#include"account.hpp"// 阻塞函数
+#include"msg.hpp"  // 信息处理函数
 using namespace std;
 
 Client::Client(std::string ip, int port) :thread_pool(10), logger(Logger::Level::DEBUG, "client.log")
@@ -101,18 +102,32 @@ void Client::epoll_thread_func(threadpool* thread_pool){
             }
 
             if (fd == sock) {
+
+
+
+
+
+
+
                 int ret = receive_json(sock, j);
                 std::string type = j["type"];
-
-
-// 接收服务端发送的信息，并且解放阻塞线程的信号量
-
+                // 接收服务端发送的信息，并且解放阻塞线程的信号量
                 if (ret == 0) {
                     if(j["msg"]=="Invalid or expired token."){
                         cout <<"登录超时请重新登录。";
+                    // 这里一般需要通知主线程或UI线程让用户重新登录
+                    // 例如设置一个全局标志或调用某个函数
+                    // 或者可以断开连接，等待用户重新登录
+
+
+                    // running = false;  
+                    // 关闭当前 epoll 线程循环（断开连接）
+
+
 
 
                         // 然后怎么处理
+                        continue;
                     }
                     
                     if(type=="sign_up"){
@@ -121,15 +136,20 @@ void Client::epoll_thread_func(threadpool* thread_pool){
 
 
 
-                    thread_pool->enqueue([fd, j]() {
-                    sign_up_msg(fd,J);
+                    thread_pool->enqueue([fd,j]() {
+                    sign_up_msg(fd,j);
                     });    
 
 
 
 
-                    }else if(type==""){
+                    }else if(type=="log_in"){
 
+
+
+                    thread_pool->enqueue([fd,j]() {
+                    log_in_msg(fd,j);
+                    });    
 
 
                     }else if(type==""){
@@ -177,8 +197,15 @@ void Client::epoll_thread_func(threadpool* thread_pool){
                 }else{
                     return;
                 }
+
+
+
+
+
+
+
             } else {
-                // 监听的其他fd触发了，异常处理
+                // 监听的其他fd触发了，异常处理,一般不会进入
                 LOG_ERROR(logger, "未知文件描述符事件");
                 break;
             }
@@ -191,6 +218,7 @@ void Client::user_thread_func(threadpool* thread_pool) {
     // 用线程池
 
     while(running){
+        
     main_menu_ui(sock);
 
 

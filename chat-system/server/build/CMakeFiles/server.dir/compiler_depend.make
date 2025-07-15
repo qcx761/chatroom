@@ -1223,6 +1223,56 @@ CMakeFiles/server.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/server/ms
   /usr/include/asm-generic/socket.h \
   /usr/include/asm-generic/sockios.h \
   /usr/include/assert.h \
+  /usr/include/boost/assert.hpp \
+  /usr/include/boost/assert/source_location.hpp \
+  /usr/include/boost/config.hpp \
+  /usr/include/boost/config/compiler/gcc.hpp \
+  /usr/include/boost/config/detail/cxx_composite.hpp \
+  /usr/include/boost/config/detail/posix_features.hpp \
+  /usr/include/boost/config/detail/select_compiler_config.hpp \
+  /usr/include/boost/config/detail/select_platform_config.hpp \
+  /usr/include/boost/config/detail/select_stdlib_config.hpp \
+  /usr/include/boost/config/detail/suffix.hpp \
+  /usr/include/boost/config/helper_macros.hpp \
+  /usr/include/boost/config/platform/linux.hpp \
+  /usr/include/boost/config/pragma_message.hpp \
+  /usr/include/boost/config/stdlib/libstdcpp3.hpp \
+  /usr/include/boost/config/user.hpp \
+  /usr/include/boost/config/workaround.hpp \
+  /usr/include/boost/core/addressof.hpp \
+  /usr/include/boost/core/checked_delete.hpp \
+  /usr/include/boost/core/detail/sp_thread_pause.hpp \
+  /usr/include/boost/core/detail/sp_thread_sleep.hpp \
+  /usr/include/boost/core/detail/sp_thread_yield.hpp \
+  /usr/include/boost/core/yield_primitives.hpp \
+  /usr/include/boost/cstdint.hpp \
+  /usr/include/boost/current_function.hpp \
+  /usr/include/boost/exception/exception.hpp \
+  /usr/include/boost/scoped_ptr.hpp \
+  /usr/include/boost/shared_ptr.hpp \
+  /usr/include/boost/smart_ptr/bad_weak_ptr.hpp \
+  /usr/include/boost/smart_ptr/detail/local_counted_base.hpp \
+  /usr/include/boost/smart_ptr/detail/local_sp_deleter.hpp \
+  /usr/include/boost/smart_ptr/detail/operator_bool.hpp \
+  /usr/include/boost/smart_ptr/detail/requires_cxx11.hpp \
+  /usr/include/boost/smart_ptr/detail/shared_count.hpp \
+  /usr/include/boost/smart_ptr/detail/sp_convertible.hpp \
+  /usr/include/boost/smart_ptr/detail/sp_counted_base.hpp \
+  /usr/include/boost/smart_ptr/detail/sp_counted_base_gcc_atomic.hpp \
+  /usr/include/boost/smart_ptr/detail/sp_counted_impl.hpp \
+  /usr/include/boost/smart_ptr/detail/sp_disable_deprecated.hpp \
+  /usr/include/boost/smart_ptr/detail/sp_has_gcc_intrinsics.hpp \
+  /usr/include/boost/smart_ptr/detail/sp_has_sync_intrinsics.hpp \
+  /usr/include/boost/smart_ptr/detail/sp_noexcept.hpp \
+  /usr/include/boost/smart_ptr/detail/sp_nullptr_t.hpp \
+  /usr/include/boost/smart_ptr/detail/sp_typeinfo_.hpp \
+  /usr/include/boost/smart_ptr/detail/spinlock.hpp \
+  /usr/include/boost/smart_ptr/detail/spinlock_gcc_atomic.hpp \
+  /usr/include/boost/smart_ptr/detail/spinlock_pool.hpp \
+  /usr/include/boost/smart_ptr/detail/yield_k.hpp \
+  /usr/include/boost/smart_ptr/scoped_ptr.hpp \
+  /usr/include/boost/smart_ptr/shared_ptr.hpp \
+  /usr/include/boost/throw_exception.hpp \
   /usr/include/c++/13/algorithm \
   /usr/include/c++/13/any \
   /usr/include/c++/13/array \
@@ -1433,6 +1483,19 @@ CMakeFiles/server.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/server/ms
   /usr/include/c++/13/variant \
   /usr/include/c++/13/vector \
   /usr/include/c++/13/version \
+  /usr/include/cppconn/build_config.h \
+  /usr/include/cppconn/config.h \
+  /usr/include/cppconn/connection.h \
+  /usr/include/cppconn/datatype.h \
+  /usr/include/cppconn/driver.h \
+  /usr/include/cppconn/exception.h \
+  /usr/include/cppconn/prepared_statement.h \
+  /usr/include/cppconn/resultset.h \
+  /usr/include/cppconn/resultset_metadata.h \
+  /usr/include/cppconn/sqlstring.h \
+  /usr/include/cppconn/statement.h \
+  /usr/include/cppconn/variant.h \
+  /usr/include/cppconn/warning.h \
   /usr/include/ctype.h \
   /usr/include/endian.h \
   /usr/include/errno.h \
@@ -1442,12 +1505,16 @@ CMakeFiles/server.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/server/ms
   /usr/include/hiredis/hiredis.h \
   /usr/include/hiredis/read.h \
   /usr/include/hiredis/sds.h \
+  /usr/include/inttypes.h \
   /usr/include/libintl.h \
+  /usr/include/linux/close_range.h \
   /usr/include/linux/errno.h \
   /usr/include/linux/posix_types.h \
   /usr/include/linux/stddef.h \
   /usr/include/locale.h \
   /usr/include/math.h \
+  /usr/include/mysql_connection.h \
+  /usr/include/mysql_driver.h \
   /usr/include/netinet/in.h \
   /usr/include/nlohmann/adl_serializer.hpp \
   /usr/include/nlohmann/byte_container_with_subtype.hpp \
@@ -1503,6 +1570,7 @@ CMakeFiles/server.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/server/ms
   /usr/include/string.h \
   /usr/include/strings.h \
   /usr/include/time.h \
+  /usr/include/unistd.h \
   /usr/include/wchar.h \
   /usr/include/wctype.h \
   /usr/include/x86_64-linux-gnu/asm/bitsperlong.h \
@@ -1513,15 +1581,19 @@ CMakeFiles/server.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/server/ms
   /usr/include/x86_64-linux-gnu/asm/sockios.h \
   /usr/include/x86_64-linux-gnu/bits/atomic_wide_counter.h \
   /usr/include/x86_64-linux-gnu/bits/byteswap.h \
+  /usr/include/x86_64-linux-gnu/bits/confname.h \
   /usr/include/x86_64-linux-gnu/bits/cpu-set.h \
   /usr/include/x86_64-linux-gnu/bits/endian.h \
   /usr/include/x86_64-linux-gnu/bits/endianness.h \
+  /usr/include/x86_64-linux-gnu/bits/environments.h \
   /usr/include/x86_64-linux-gnu/bits/errno.h \
   /usr/include/x86_64-linux-gnu/bits/floatn-common.h \
   /usr/include/x86_64-linux-gnu/bits/floatn.h \
   /usr/include/x86_64-linux-gnu/bits/flt-eval-method.h \
   /usr/include/x86_64-linux-gnu/bits/fp-fast.h \
   /usr/include/x86_64-linux-gnu/bits/fp-logb.h \
+  /usr/include/x86_64-linux-gnu/bits/getopt_core.h \
+  /usr/include/x86_64-linux-gnu/bits/getopt_posix.h \
   /usr/include/x86_64-linux-gnu/bits/in.h \
   /usr/include/x86_64-linux-gnu/bits/iscanonical.h \
   /usr/include/x86_64-linux-gnu/bits/libc-header-start.h \
@@ -1532,6 +1604,7 @@ CMakeFiles/server.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/server/ms
   /usr/include/x86_64-linux-gnu/bits/mathcalls-helper-functions.h \
   /usr/include/x86_64-linux-gnu/bits/mathcalls-narrow.h \
   /usr/include/x86_64-linux-gnu/bits/mathcalls.h \
+  /usr/include/x86_64-linux-gnu/bits/posix_opt.h \
   /usr/include/x86_64-linux-gnu/bits/pthread_stack_min-dynamic.h \
   /usr/include/x86_64-linux-gnu/bits/pthreadtypes-arch.h \
   /usr/include/x86_64-linux-gnu/bits/pthreadtypes.h \
@@ -1582,6 +1655,7 @@ CMakeFiles/server.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/server/ms
   /usr/include/x86_64-linux-gnu/bits/types/wint_t.h \
   /usr/include/x86_64-linux-gnu/bits/typesizes.h \
   /usr/include/x86_64-linux-gnu/bits/uintn-identity.h \
+  /usr/include/x86_64-linux-gnu/bits/unistd_ext.h \
   /usr/include/x86_64-linux-gnu/bits/waitflags.h \
   /usr/include/x86_64-linux-gnu/bits/waitstatus.h \
   /usr/include/x86_64-linux-gnu/bits/wchar.h \
@@ -2062,6 +2136,56 @@ CMakeFiles/server.dir/subreactor.cpp.o: /home/kong/plan/chartroom/chat-system/se
   /usr/include/asm-generic/socket.h \
   /usr/include/asm-generic/sockios.h \
   /usr/include/assert.h \
+  /usr/include/boost/assert.hpp \
+  /usr/include/boost/assert/source_location.hpp \
+  /usr/include/boost/config.hpp \
+  /usr/include/boost/config/compiler/gcc.hpp \
+  /usr/include/boost/config/detail/cxx_composite.hpp \
+  /usr/include/boost/config/detail/posix_features.hpp \
+  /usr/include/boost/config/detail/select_compiler_config.hpp \
+  /usr/include/boost/config/detail/select_platform_config.hpp \
+  /usr/include/boost/config/detail/select_stdlib_config.hpp \
+  /usr/include/boost/config/detail/suffix.hpp \
+  /usr/include/boost/config/helper_macros.hpp \
+  /usr/include/boost/config/platform/linux.hpp \
+  /usr/include/boost/config/pragma_message.hpp \
+  /usr/include/boost/config/stdlib/libstdcpp3.hpp \
+  /usr/include/boost/config/user.hpp \
+  /usr/include/boost/config/workaround.hpp \
+  /usr/include/boost/core/addressof.hpp \
+  /usr/include/boost/core/checked_delete.hpp \
+  /usr/include/boost/core/detail/sp_thread_pause.hpp \
+  /usr/include/boost/core/detail/sp_thread_sleep.hpp \
+  /usr/include/boost/core/detail/sp_thread_yield.hpp \
+  /usr/include/boost/core/yield_primitives.hpp \
+  /usr/include/boost/cstdint.hpp \
+  /usr/include/boost/current_function.hpp \
+  /usr/include/boost/exception/exception.hpp \
+  /usr/include/boost/scoped_ptr.hpp \
+  /usr/include/boost/shared_ptr.hpp \
+  /usr/include/boost/smart_ptr/bad_weak_ptr.hpp \
+  /usr/include/boost/smart_ptr/detail/local_counted_base.hpp \
+  /usr/include/boost/smart_ptr/detail/local_sp_deleter.hpp \
+  /usr/include/boost/smart_ptr/detail/operator_bool.hpp \
+  /usr/include/boost/smart_ptr/detail/requires_cxx11.hpp \
+  /usr/include/boost/smart_ptr/detail/shared_count.hpp \
+  /usr/include/boost/smart_ptr/detail/sp_convertible.hpp \
+  /usr/include/boost/smart_ptr/detail/sp_counted_base.hpp \
+  /usr/include/boost/smart_ptr/detail/sp_counted_base_gcc_atomic.hpp \
+  /usr/include/boost/smart_ptr/detail/sp_counted_impl.hpp \
+  /usr/include/boost/smart_ptr/detail/sp_disable_deprecated.hpp \
+  /usr/include/boost/smart_ptr/detail/sp_has_gcc_intrinsics.hpp \
+  /usr/include/boost/smart_ptr/detail/sp_has_sync_intrinsics.hpp \
+  /usr/include/boost/smart_ptr/detail/sp_noexcept.hpp \
+  /usr/include/boost/smart_ptr/detail/sp_nullptr_t.hpp \
+  /usr/include/boost/smart_ptr/detail/sp_typeinfo_.hpp \
+  /usr/include/boost/smart_ptr/detail/spinlock.hpp \
+  /usr/include/boost/smart_ptr/detail/spinlock_gcc_atomic.hpp \
+  /usr/include/boost/smart_ptr/detail/spinlock_pool.hpp \
+  /usr/include/boost/smart_ptr/detail/yield_k.hpp \
+  /usr/include/boost/smart_ptr/scoped_ptr.hpp \
+  /usr/include/boost/smart_ptr/shared_ptr.hpp \
+  /usr/include/boost/throw_exception.hpp \
   /usr/include/c++/13/algorithm \
   /usr/include/c++/13/any \
   /usr/include/c++/13/array \
@@ -2277,6 +2401,19 @@ CMakeFiles/server.dir/subreactor.cpp.o: /home/kong/plan/chartroom/chat-system/se
   /usr/include/c++/13/variant \
   /usr/include/c++/13/vector \
   /usr/include/c++/13/version \
+  /usr/include/cppconn/build_config.h \
+  /usr/include/cppconn/config.h \
+  /usr/include/cppconn/connection.h \
+  /usr/include/cppconn/datatype.h \
+  /usr/include/cppconn/driver.h \
+  /usr/include/cppconn/exception.h \
+  /usr/include/cppconn/prepared_statement.h \
+  /usr/include/cppconn/resultset.h \
+  /usr/include/cppconn/resultset_metadata.h \
+  /usr/include/cppconn/sqlstring.h \
+  /usr/include/cppconn/statement.h \
+  /usr/include/cppconn/variant.h \
+  /usr/include/cppconn/warning.h \
   /usr/include/ctype.h \
   /usr/include/endian.h \
   /usr/include/errno.h \
@@ -2287,6 +2424,7 @@ CMakeFiles/server.dir/subreactor.cpp.o: /home/kong/plan/chartroom/chat-system/se
   /usr/include/hiredis/hiredis.h \
   /usr/include/hiredis/read.h \
   /usr/include/hiredis/sds.h \
+  /usr/include/inttypes.h \
   /usr/include/libintl.h \
   /usr/include/linux/close_range.h \
   /usr/include/linux/errno.h \
@@ -2295,6 +2433,8 @@ CMakeFiles/server.dir/subreactor.cpp.o: /home/kong/plan/chartroom/chat-system/se
   /usr/include/linux/stddef.h \
   /usr/include/locale.h \
   /usr/include/math.h \
+  /usr/include/mysql_connection.h \
+  /usr/include/mysql_driver.h \
   /usr/include/netinet/in.h \
   /usr/include/nlohmann/adl_serializer.hpp \
   /usr/include/nlohmann/byte_container_with_subtype.hpp \
@@ -2519,10 +2659,6 @@ CMakeFiles/server.dir/subreactor.cpp.o: /home/kong/plan/chartroom/chat-system/se
 
 /usr/local/include/sw/redis++/connection_pool.h:
 
-/usr/local/include/sw/redis++/hiredis_features.h:
-
-/usr/local/include/sw/redis++/connection.h:
-
 /usr/local/include/sw/redis++/command_options.h:
 
 /usr/local/include/sw/redis++/command_args.h:
@@ -2530,6 +2666,16 @@ CMakeFiles/server.dir/subreactor.cpp.o: /home/kong/plan/chartroom/chat-system/se
 /usr/include/hiredis/sds.h:
 
 /usr/include/hiredis/alloc.h:
+
+/usr/include/cppconn/warning.h:
+
+/usr/include/cppconn/variant.h:
+
+/usr/include/cppconn/statement.h:
+
+/usr/include/cppconn/connection.h:
+
+/usr/include/cppconn/config.h:
 
 /usr/include/c++/13/variant:
 
@@ -2540,6 +2686,60 @@ CMakeFiles/server.dir/subreactor.cpp.o: /home/kong/plan/chartroom/chat-system/se
 /usr/include/c++/13/bits/random.tcc:
 
 /usr/include/c++/13/bits/random.h:
+
+/usr/include/boost/smart_ptr/shared_ptr.hpp:
+
+/usr/include/boost/smart_ptr/detail/spinlock_pool.hpp:
+
+/usr/include/boost/smart_ptr/detail/spinlock.hpp:
+
+/usr/include/boost/smart_ptr/detail/sp_typeinfo_.hpp:
+
+/usr/include/boost/smart_ptr/detail/sp_noexcept.hpp:
+
+/usr/include/boost/smart_ptr/detail/sp_has_sync_intrinsics.hpp:
+
+/usr/include/boost/smart_ptr/detail/sp_disable_deprecated.hpp:
+
+/usr/include/boost/smart_ptr/detail/sp_convertible.hpp:
+
+/usr/include/boost/smart_ptr/detail/shared_count.hpp:
+
+/usr/include/boost/smart_ptr/detail/requires_cxx11.hpp:
+
+/usr/include/boost/smart_ptr/bad_weak_ptr.hpp:
+
+/usr/include/boost/scoped_ptr.hpp:
+
+/usr/include/boost/current_function.hpp:
+
+/usr/include/cppconn/build_config.h:
+
+/usr/include/boost/cstdint.hpp:
+
+/usr/local/include/sw/redis++/hiredis_features.h:
+
+/usr/local/include/sw/redis++/connection.h:
+
+/usr/include/boost/core/checked_delete.hpp:
+
+/usr/include/boost/core/yield_primitives.hpp:
+
+/usr/include/boost/core/addressof.hpp:
+
+/usr/include/boost/config/detail/suffix.hpp:
+
+/usr/include/cppconn/resultset.h:
+
+/usr/include/boost/config/detail/select_platform_config.hpp:
+
+/usr/include/boost/config/detail/select_compiler_config.hpp:
+
+/usr/include/boost/config/detail/posix_features.hpp:
+
+/usr/include/boost/assert/source_location.hpp:
+
+/usr/include/boost/assert.hpp:
 
 /home/kong/plan/chartroom/chat-system/server/msg.hpp:
 
@@ -2589,9 +2789,13 @@ CMakeFiles/server.dir/subreactor.cpp.o: /home/kong/plan/chartroom/chat-system/se
 
 /usr/include/x86_64-linux-gnu/bits/fp-logb.h:
 
+/usr/include/boost/config/workaround.hpp:
+
 /usr/include/x86_64-linux-gnu/bits/fp-fast.h:
 
 /usr/include/x86_64-linux-gnu/asm/bitsperlong.h:
+
+/usr/include/cppconn/sqlstring.h:
 
 /usr/include/string.h:
 
@@ -2635,9 +2839,13 @@ CMakeFiles/server.dir/subreactor.cpp.o: /home/kong/plan/chartroom/chat-system/se
 
 /usr/local/include/sw/redis++/shards_pool.h:
 
+/usr/include/boost/config/platform/linux.hpp:
+
 /usr/include/nlohmann/detail/exceptions.hpp:
 
 /usr/include/nlohmann/detail/conversions/to_json.hpp:
+
+/usr/include/mysql_driver.h:
 
 /usr/include/x86_64-linux-gnu/bits/posix_opt.h:
 
@@ -2682,6 +2890,8 @@ CMakeFiles/server.dir/subreactor.cpp.o: /home/kong/plan/chartroom/chat-system/se
 /usr/include/c++/13/pstl/glue_algorithm_defs.h:
 
 /usr/include/c++/13/pstl/execution_defs.h:
+
+/usr/include/boost/smart_ptr/detail/sp_has_gcc_intrinsics.hpp:
 
 /usr/include/c++/13/memory:
 
@@ -2745,6 +2955,8 @@ CMakeFiles/server.dir/subreactor.cpp.o: /home/kong/plan/chartroom/chat-system/se
 
 /usr/include/c++/13/bits/gslice.h:
 
+/usr/include/mysql_connection.h:
+
 /usr/include/c++/13/bits/fs_path.h:
 
 /usr/include/nlohmann/detail/input/input_adapters.hpp:
@@ -2755,9 +2967,13 @@ CMakeFiles/server.dir/subreactor.cpp.o: /home/kong/plan/chartroom/chat-system/se
 
 /usr/include/c++/13/bits/fs_dir.h:
 
+/usr/include/boost/core/detail/sp_thread_pause.hpp:
+
 /usr/include/c++/13/bits/forward_list.h:
 
 /usr/include/c++/13/bits/align.h:
+
+/usr/include/cppconn/driver.h:
 
 /usr/include/c++/13/backward/auto_ptr.h:
 
@@ -2770,6 +2986,8 @@ CMakeFiles/server.dir/subreactor.cpp.o: /home/kong/plan/chartroom/chat-system/se
 /usr/include/x86_64-linux-gnu/gnu/stubs.h:
 
 /usr/include/c++/13/bits/deque.tcc:
+
+/usr/include/boost/config/detail/select_stdlib_config.hpp:
 
 /usr/include/x86_64-linux-gnu/bits/byteswap.h:
 
@@ -2788,6 +3006,8 @@ CMakeFiles/server.dir/subreactor.cpp.o: /home/kong/plan/chartroom/chat-system/se
 /usr/include/stdlib.h:
 
 /usr/include/c++/13/queue:
+
+/usr/include/boost/config/user.hpp:
 
 /usr/include/wctype.h:
 
@@ -2849,6 +3069,8 @@ CMakeFiles/server.dir/subreactor.cpp.o: /home/kong/plan/chartroom/chat-system/se
 
 /usr/include/features-time64.h:
 
+/usr/include/boost/core/detail/sp_thread_sleep.hpp:
+
 /usr/include/x86_64-linux-gnu/bits/iscanonical.h:
 
 /usr/include/c++/13/map:
@@ -2877,11 +3099,15 @@ CMakeFiles/server.dir/subreactor.cpp.o: /home/kong/plan/chartroom/chat-system/se
 
 /usr/lib/gcc/x86_64-linux-gnu/13/include/stddef.h:
 
+/usr/include/boost/smart_ptr/detail/sp_nullptr_t.hpp:
+
 /usr/include/nlohmann/detail/meta/identity_tag.hpp:
 
 /usr/include/c++/13/debug/assertions.h:
 
 /usr/include/c++/13/ctime:
+
+/usr/include/inttypes.h:
 
 /usr/include/c++/13/deque:
 
@@ -2914,6 +3140,8 @@ CMakeFiles/server.dir/subreactor.cpp.o: /home/kong/plan/chartroom/chat-system/se
 /usr/include/c++/13/bits/stl_algo.h:
 
 /usr/include/c++/13/clocale:
+
+/usr/include/boost/core/detail/sp_thread_yield.hpp:
 
 /usr/include/x86_64-linux-gnu/bits/pthreadtypes-arch.h:
 
@@ -2973,15 +3201,23 @@ CMakeFiles/server.dir/subreactor.cpp.o: /home/kong/plan/chartroom/chat-system/se
 
 /usr/include/c++/13/bits/istream.tcc:
 
+/usr/include/boost/smart_ptr/detail/local_sp_deleter.hpp:
+
 /usr/include/nlohmann/thirdparty/hedley/hedley_undef.hpp:
 
 /usr/include/c++/13/bits/cxxabi_forced.h:
+
+/usr/include/boost/exception/exception.hpp:
 
 /usr/include/c++/13/cassert:
 
 /usr/include/c++/13/bits/cpp_type_traits.h:
 
 /usr/include/x86_64-linux-gnu/bits/types.h:
+
+/usr/include/cppconn/datatype.h:
+
+/usr/include/boost/shared_ptr.hpp:
 
 /usr/include/x86_64-linux-gnu/bits/stdint-intn.h:
 
@@ -3001,7 +3237,13 @@ CMakeFiles/server.dir/subreactor.cpp.o: /home/kong/plan/chartroom/chat-system/se
 
 /usr/local/include/sw/redis++/shards.h:
 
+/usr/include/boost/smart_ptr/detail/sp_counted_impl.hpp:
+
 /home/kong/plan/chartroom/chat-system/log/logger.cpp:
+
+/usr/include/boost/smart_ptr/detail/operator_bool.hpp:
+
+/usr/include/boost/smart_ptr/detail/local_counted_base.hpp:
 
 /usr/include/c++/13/cerrno:
 
@@ -3060,6 +3302,8 @@ CMakeFiles/server.dir/subreactor.cpp.o: /home/kong/plan/chartroom/chat-system/se
 /usr/include/x86_64-linux-gnu/bits/thread-shared-types.h:
 
 /usr/include/c++/13/bits/string_view.tcc:
+
+/usr/include/boost/config/compiler/gcc.hpp:
 
 /usr/include/c++/13/bits/locale_facets.tcc:
 
@@ -3137,6 +3381,8 @@ CMakeFiles/server.dir/subreactor.cpp.o: /home/kong/plan/chartroom/chat-system/se
 
 /usr/include/c++/13/bits/fstream.tcc:
 
+/usr/include/boost/smart_ptr/detail/sp_counted_base.hpp:
+
 /usr/include/c++/13/bits/refwrap.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/__fpos_t.h:
@@ -3146,6 +3392,8 @@ CMakeFiles/server.dir/subreactor.cpp.o: /home/kong/plan/chartroom/chat-system/se
 /usr/include/linux/errno.h:
 
 /usr/include/c++/13/debug/debug.h:
+
+/usr/include/boost/config/helper_macros.hpp:
 
 /usr/include/c++/13/bits/std_mutex.h:
 
@@ -3163,6 +3411,8 @@ CMakeFiles/server.dir/subreactor.cpp.o: /home/kong/plan/chartroom/chat-system/se
 
 /usr/include/x86_64-linux-gnu/bits/types/wint_t.h:
 
+/usr/include/cppconn/resultset_metadata.h:
+
 /usr/include/c++/13/bits/stl_queue.h:
 
 /usr/include/x86_64-linux-gnu/bits/floatn.h:
@@ -3170,6 +3420,8 @@ CMakeFiles/server.dir/subreactor.cpp.o: /home/kong/plan/chartroom/chat-system/se
 /usr/local/include/sw/redis++/pipeline.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/struct_itimerspec.h:
+
+/usr/include/boost/smart_ptr/detail/sp_counted_base_gcc_atomic.hpp:
 
 /usr/include/x86_64-linux-gnu/c++/13/bits/c++allocator.h:
 
@@ -3186,6 +3438,8 @@ CMakeFiles/server.dir/subreactor.cpp.o: /home/kong/plan/chartroom/chat-system/se
 /usr/include/x86_64-linux-gnu/bits/setjmp.h:
 
 /usr/include/hiredis/hiredis.h:
+
+/usr/include/boost/config/pragma_message.hpp:
 
 /usr/include/x86_64-linux-gnu/bits/types/__fpos64_t.h:
 
@@ -3226,6 +3480,8 @@ CMakeFiles/server.dir/subreactor.cpp.o: /home/kong/plan/chartroom/chat-system/se
 /usr/include/math.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/__FILE.h:
+
+/usr/include/boost/config.hpp:
 
 /usr/include/c++/13/bits/stl_multimap.h:
 
@@ -3271,11 +3527,15 @@ CMakeFiles/server.dir/subreactor.cpp.o: /home/kong/plan/chartroom/chat-system/se
 
 /usr/include/x86_64-linux-gnu/bits/types/struct_tm.h:
 
+/usr/include/boost/throw_exception.hpp:
+
 /usr/include/x86_64-linux-gnu/bits/epoll.h:
 
 /usr/include/nlohmann/detail/input/binary_reader.hpp:
 
 /usr/include/x86_64-linux-gnu/bits/types/time_t.h:
+
+/usr/include/boost/config/detail/cxx_composite.hpp:
 
 /usr/include/x86_64-linux-gnu/bits/types/timer_t.h:
 
@@ -3286,6 +3546,10 @@ CMakeFiles/server.dir/subreactor.cpp.o: /home/kong/plan/chartroom/chat-system/se
 /usr/include/x86_64-linux-gnu/bits/typesizes.h:
 
 /usr/include/x86_64-linux-gnu/bits/waitflags.h:
+
+/usr/include/boost/smart_ptr/detail/yield_k.hpp:
+
+/usr/include/boost/smart_ptr/detail/spinlock_gcc_atomic.hpp:
 
 /usr/include/x86_64-linux-gnu/bits/types/mbstate_t.h:
 
@@ -3304,6 +3568,8 @@ CMakeFiles/server.dir/subreactor.cpp.o: /home/kong/plan/chartroom/chat-system/se
 /usr/include/c++/13/typeinfo:
 
 /usr/include/x86_64-linux-gnu/c++/13/bits/c++io.h:
+
+/usr/include/boost/config/stdlib/libstdcpp3.hpp:
 
 /usr/include/c++/13/any:
 
@@ -3345,6 +3611,8 @@ CMakeFiles/server.dir/subreactor.cpp.o: /home/kong/plan/chartroom/chat-system/se
 
 /home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp:
 
+/usr/include/boost/smart_ptr/scoped_ptr.hpp:
+
 /home/kong/plan/chartroom/chat-system/threadpool/threadpool.hpp:
 
 /usr/include/c++/13/array:
@@ -3359,9 +3627,13 @@ CMakeFiles/server.dir/subreactor.cpp.o: /home/kong/plan/chartroom/chat-system/se
 
 /usr/include/c++/13/bits/enable_special_members.h:
 
+/usr/include/cppconn/exception.h:
+
 /usr/include/c++/13/bits/stl_list.h:
 
 /usr/include/c++/13/bits/erase_if.h:
+
+/usr/include/cppconn/prepared_statement.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/error_t.h:
 
