@@ -2,7 +2,6 @@
 #include "json.hpp"
 
 
-sem_t sem; // 定义信号量
 
 void waiting() {
     cout << "按 Enter 键继续...";
@@ -37,9 +36,8 @@ string get_password(const string& prompt) {
     return password;
 }
 
-void main_menu_ui(int sock) {
+void main_menu_ui(int sock,sem_t& sem) {
 
-   // sem_init(&sem, 0, 0);  // 初始化信号量
 
 
     int n;
@@ -47,7 +45,7 @@ void main_menu_ui(int sock) {
         system("clear"); // 清屏
         show_main_menu();
 
-        cout << "请输入你的选项：";
+        // cout << "请输入你的选项：";
         if (!(cin >> n)) {
             flushInput();
             cout << "无效的输入，请输入数字。" << endl;
@@ -57,12 +55,12 @@ void main_menu_ui(int sock) {
 
         switch (n) {
         case 1:
-            log_in(sock);
+            log_in(sock,sem);
             flushInput();
             waiting();
             break;
         case 2:
-            sign_up(sock);
+            sign_up(sock,sem);
             flushInput();
             waiting();
             break;
@@ -77,7 +75,7 @@ void main_menu_ui(int sock) {
     }
 }
 
-void log_in(int sock) {
+void log_in(int sock,sem_t& sem) {
     system("clear");
     cout << "登录" << endl;
     json j;
@@ -101,7 +99,7 @@ void log_in(int sock) {
 
 
 
-    // sem_wait(&sem); // 等待信号量
+    sem_wait(&sem); // 等待信号量
 
 
 
@@ -111,7 +109,7 @@ void log_in(int sock) {
 
 }
 
-void sign_up(int sock) {
+void sign_up(int sock,sem_t& sem) {
     system("clear");
     cout << "注册" << endl;
     json j;
@@ -149,7 +147,7 @@ void sign_up(int sock) {
 
 
 
-    // sem_wait(&sem); // 等待信号量
+    sem_wait(&sem); // 等待信号量
 
 
 

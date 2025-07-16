@@ -38,6 +38,12 @@ public:
     Client& operator=(Client&&) = default;
 
 
+
+    // void wait_sem() { sem_wait(&sem); }
+    // void post_sem() { sem_post(&sem); }
+    
+
+
 private:
     int epfd=-1;
     int sock=-1;
@@ -46,11 +52,11 @@ private:
     std::atomic<bool> running = true;
     std::thread input_thread;
     std::thread net_thread;
+
     threadpool thread_pool;
+    sem_t sem;                      // 信号量，用来同步等待服务器响应
+    std::atomic<bool> login_success{false};  // 服务器返回的登录结果
 
-    void epoll_thread_func(threadpool* thread_pool);
-    void user_thread_func(threadpool* thread_pool);
-
-    // void epoll_thread_func();   // 网络线程
-    // void user_thread_func();    // 用户交互线程
+        void epoll_thread_func();   // 网络线程
+        void user_thread_func();    // 用户交互线程
 };

@@ -56,19 +56,18 @@ Client::~Client()
     if (sock != -1) close(sock);
     if (epfd != -1) close(epfd);
 
-    //sem_destroy(&sem);  // 如果你用了信号量
+    sem_destroy(&sem);  // 如果你用了信号量
 }
 
 void Client::start() {
     running = true;
 
-    net_thread = std::thread(&Client::epoll_thread_func, this, &thread_pool);
-    input_thread = std::thread(&Client::user_thread_func, this, &thread_pool);
-
-//     // 启动 epoll 网络线程
-//     net_thread = std::thread(&Client::epoll_thread_func, this);
-//     // 启动用户输入线程
-//     input_thread = std::thread(&Client::user_thread_func, this);
+    sem_init(&sem, 0, 0);  // 初始化信号量  
+    
+    // 启动 epoll 网络线程
+    net_thread = std::thread(&Client::epoll_thread_func, this);
+    // 启动用户输入线程
+    input_thread = std::thread(&Client::user_thread_func, this);
 }
 
 void Client::stop() {
@@ -78,7 +77,7 @@ void Client::stop() {
     if (input_thread.joinable()) input_thread.join();
 }
 
-void Client::epoll_thread_func(threadpool* thread_pool){
+void Client::epoll_thread_func(){
     epoll_event events[1024];
     while(running){
         int n = epoll_wait(epfd, events, 1024, -1);
@@ -102,57 +101,53 @@ void Client::epoll_thread_func(threadpool* thread_pool){
             }
 
             if (fd == sock) {
-
-
-
-
-
-
-
                 int ret = receive_json(sock, j);
                 std::string type = j["type"];
                 // 接收服务端发送的信息，并且解放阻塞线程的信号量
+                
+
+
                 if (ret == 0) {
                     if(j["msg"]=="Invalid or expired token."){
                         cout <<"登录超时请重新登录。";
-                    // 这里一般需要通知主线程或UI线程让用户重新登录
-                    // 例如设置一个全局标志或调用某个函数
-                    // 或者可以断开连接，等待用户重新登录
+                        // 这里一般需要通知主线程或UI线程让用户重新登录
+                        // 例如设置一个全局标志或调用某个函数
+                        // 或者可以断开连接，等待用户重新登录
 
 
-                    // running = false;  
-                    // 关闭当前 epoll 线程循环（断开连接）
+                        // running = false;  
+                        // 关闭当前 epoll 线程循环（断开连接）
 
 
 
 
                         // 然后怎么处理
+
+
+                        login_success.store(success);  // 设置结果状态
+                        sem_post(&sem);  
+
                         continue;
                     }
                     
                     if(type=="sign_up"){
+                        thread_pool.enqueue([this, fd, j]() {
+                            sign_up_msg(fd, j);
+                            sem_post(&this->sem);  // 通过 this 访问成员变量
+                        });
+                        continue;
+                    }
 
+                    if(type=="log_in"){
+                        thread_pool.enqueue([this, fd, j]() {
+                            bool success = log_in_msg(fd, j);
+                            this->login_success.store(success);
+                            sem_post(&this->sem);  // 通过 this 访问成员变量
+                        });
+                        continue;
+                    }
 
-
-
-
-                    thread_pool->enqueue([fd,j]() {
-                    sign_up_msg(fd,j);
-                    });    
-
-
-
-
-                    }else if(type=="log_in"){
-
-
-
-                    thread_pool->enqueue([fd,j]() {
-                    log_in_msg(fd,j);
-                    });    
-
-
-                    }else if(type==""){
+                    if(type==""){
                                         
 
 
@@ -180,28 +175,47 @@ void Client::epoll_thread_func(threadpool* thread_pool){
 
 
                     
-                    }else if(type=="error"){
+                    }
+
+                    if(type=="error"){
 
                     // 处理错误信息
 
 
 
-                    }else{
-                        std::cout << "收到未知消息";
                     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    std::cout << "收到未知消息";
                 } else if (ret == -1) {
                     cout << "接收数据失败或服务器关闭连接\n";
                     running = false;
                     return;
                 }else{
+                    // 不会进入
                     return;
                 }
-
-
-
-
-
 
 
             } else {
@@ -213,13 +227,13 @@ void Client::epoll_thread_func(threadpool* thread_pool){
     }
 }
 
-void Client::user_thread_func(threadpool* thread_pool) {
-
+void Client::user_thread_func() {
+    
     // 用线程池
 
     while(running){
-        
-    main_menu_ui(sock);
+
+    main_menu_ui(sem,sock);
 
 
 

@@ -26,17 +26,14 @@ void log_in_msg(int fd, const json &response) {
             // 例如保存到客户端变量或文件
             std::cout << "收到Token: " << token << std::endl;
         }
+        return true;
     } else if (status == "fail") {
         std::cout << "[登录失败] " << msg << std::endl;
+        return false;
     } else {
         std::cerr << "[登录错误] " << msg << std::endl;
+        return false;
     }
-
-
-
-
-
-
 }
 
 // 处理服务端返回的注册响应
@@ -52,8 +49,4 @@ void sign_up_msg(int fd, const json &response) {
     } else {
         std::cerr << "[注册错误] " << msg << std::endl;
     }
-
-
-
-    
 }
