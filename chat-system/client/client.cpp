@@ -265,7 +265,7 @@ void Client::user_thread_func() {
         // 主交互逻辑
         switch(state)
         {
-
+            // 对应menu.cpp查看
             case main_menu:
             {
                 main_menu_ui(sock,sem,login_success);
@@ -312,8 +312,8 @@ void Client::user_thread_func() {
                 switch (m)
                 {
                 case 1: state=next11_menu; break;    
-                case 2: 
-                case 3: 
+                case 2: destory_account(); break;
+                case 3: quit_account(); break;
                 case 4: state=next_menu; break;
                 default:
                     cout << "无效数字" << endl;
@@ -335,9 +335,9 @@ void Client::user_thread_func() {
                 }
                 switch (m)
                 {
-                case 1: 
-                case 2: 
-                case 3: 
+                case 1: username_view(); break;
+                case 2: username_change(); break;
+                case 3: password_change(); break;
                 case 4: state=next1_menu;
                 default:
                     cout << "无效数字" << endl;

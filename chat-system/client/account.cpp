@@ -125,4 +125,10 @@ void sign_up(int sock,sem_t& sem) {
         }
 }
 
-// void main_menu_ui(int sock,sem_t& sem,std::atomic<bool>& login_success) {
+void destory_account(){
+    
+}
+void quit_account();
+void username_view();
+void username_change();
+void password_change();
