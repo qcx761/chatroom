@@ -235,10 +235,66 @@ void Client::user_thread_func() {
 // 记得通过信号量来等待
 
     while(running){
-    main_menu_ui(sock,sem,login_success);
+        int m;
+        main_menu_ui(sock,sem,login_success);
+        show_next_menu();
+        if (!(cin >> m)) {
+            flushInput();
+            cout << "无效的输入，请输入数字。" << endl;
+            waiting();
+            continue;
+        }
+        switch (m) {
+        case 1:
+            
+
+
+
+            // log_in(sock,sem);
+            waiting();
+            break;
+        case 2:
+
+
+            // 调用函数
+            //sign_up(sock,sem);
+
+
+
+            waiting();
+            break;
+        case 3:
+
+
+
+            // 调用函数
+
+
+
+
+            waiting();
+            break;
+        default:
+            cout << "无效数字" << endl;
+            flushInput();
+            waiting();
+            break;
+        }
+
+
+
+
+
+
+
+
 
 
     // 登录成功之后交互逻辑
+    
+    if(login_success.load()){
+        // 登录过期怎么处理
+    }
     
 
 

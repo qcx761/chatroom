@@ -14,16 +14,10 @@ using json = nlohmann::json;
 
 void flushInput();
 void waiting();
-void main_menu_ui(int sock,sem_t& sem,std::atomic<bool>& login_success);
-// void main_menu_ui(int sock);
-// void log_in(int sock);
 void log_in(int sock,sem_t& sem);
-// void sign_up(int sock);
 void sign_up(int sock,sem_t& sem);
 string get_password(const string& prompt);
-
-
-
+void main_menu_ui(int sock,sem_t& sem,std::atomic<bool>& login_success);
 
 
 

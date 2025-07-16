@@ -37,13 +37,10 @@ string get_password(const string& prompt) {
 }
 
 void main_menu_ui(int sock,sem_t& sem,std::atomic<bool>& login_success) {
-
-
-
-    int n;
     while (!login_success.load()) {
         system("clear"); // 清屏
         show_main_menu();
+        int n;
 
         // cout << "请输入你的选项：";
         if (!(cin >> n)) {
@@ -127,3 +124,5 @@ void sign_up(int sock,sem_t& sem) {
             return;
         }
 }
+
+// void main_menu_ui(int sock,sem_t& sem,std::atomic<bool>& login_success) {

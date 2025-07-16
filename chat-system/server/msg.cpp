@@ -62,28 +62,42 @@ void sign_up_msg(int fd, const json &request) {
     try {
         auto conn = get_mysql_connection();
 
-        // 检查account是否已存在
-        auto check_stmt = std::unique_ptr<sql::PreparedStatement>(
+        // 检查 account 是否存在
+        auto check_account_stmt = std::unique_ptr<sql::PreparedStatement>(
             conn->prepareStatement("SELECT COUNT(*) FROM users WHERE account = ?"));
-        check_stmt->setString(1, account);
-        auto res = check_stmt->executeQuery();
-        res->next();
+        check_account_stmt->setString(1, account);
+        auto res_account = check_account_stmt->executeQuery();
+        res_account->next();
 
-        if (res->getInt(1) > 0) {
+        if (res_account->getInt(1) > 0) {
             response["type"] = "sign_up";
             response["status"] = "fail";
             response["msg"] = "Account already exists";
         } else {
-            auto insert_stmt = std::unique_ptr<sql::PreparedStatement>(
-                conn->prepareStatement("INSERT INTO users (account, username, password) VALUES (?, ?, ?)"));
-            insert_stmt->setString(1, account);
-            insert_stmt->setString(2, username);
-            insert_stmt->setString(3, password);  // 建议密码哈希存储
-            insert_stmt->executeUpdate();
+            // 检查 username 是否存在
+            auto check_username_stmt = std::unique_ptr<sql::PreparedStatement>(
+                conn->prepareStatement("SELECT COUNT(*) FROM users WHERE username = ?"));
+            check_username_stmt->setString(1, username);
+            auto res_username = check_username_stmt->executeQuery();
+            res_username->next();
 
-            response["type"] = "sign_up";
-            response["status"] = "success";
-            response["msg"] = "Registered successfully";
+            if (res_username->getInt(1) > 0) {
+                response["type"] = "sign_up";
+                response["status"] = "fail";
+                response["msg"] = "Username already exists";
+            } else {
+                // 插入新用户
+                auto insert_stmt = std::unique_ptr<sql::PreparedStatement>(
+                    conn->prepareStatement("INSERT INTO users (account, username, password) VALUES (?, ?, ?)"));
+                insert_stmt->setString(1, account);
+                insert_stmt->setString(2, username);
+                insert_stmt->setString(3, password);  // 注意：建议密码哈希存储
+                insert_stmt->executeUpdate();
+
+                response["type"] = "sign_up";
+                response["status"] = "success";
+                response["msg"] = "Registered successfully";
+            }
         }
     } catch (const std::exception &e) {
         response["type"] = "sign_up";
@@ -91,16 +105,11 @@ void sign_up_msg(int fd, const json &request) {
         response["msg"] = std::string("Exception: ") + e.what();
     }
 
-
-
+    // 重试发送
     int n;
-    do{
-    n=send_json(fd, response);
-    }while(n!=0);
-
-
-
-    // send_json(fd, response);
+    do {
+        n = send_json(fd, response);
+    } while (n != 0);
 }
 
 // 登录处理函数
@@ -161,12 +170,11 @@ void log_in_msg(int fd, const json &request) {
 
 
 
+    // 重试发送
     int n;
-    do{
-    n=send_json(fd, response);
-    }while(n!=0);
-
-    // send_json(fd, response);
+    do {
+        n = send_json(fd, response);
+    } while (n != 0);
 }
 
 
