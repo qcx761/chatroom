@@ -36,12 +36,12 @@ string get_password(const string& prompt) {
     return password;
 }
 
-void main_menu_ui(int sock,sem_t& sem) {
+void main_menu_ui(int sock,sem_t& sem,std::atomic<bool>& login_success) {
 
 
 
     int n;
-    while (1) {
+    while (!login_success.load()) {
         system("clear"); // 清屏
         show_main_menu();
 
@@ -56,12 +56,12 @@ void main_menu_ui(int sock,sem_t& sem) {
         switch (n) {
         case 1:
             log_in(sock,sem);
-            flushInput();
+            // flushInput();
             waiting();
             break;
         case 2:
             sign_up(sock,sem);
-            flushInput();
+            // flushInput();
             waiting();
             break;
         case 3:
@@ -73,6 +73,8 @@ void main_menu_ui(int sock,sem_t& sem) {
             break;
         }
     }
+        // system("clear"); // 清屏
+        
 }
 
 void log_in(int sock,sem_t& sem) {
@@ -91,22 +93,7 @@ void log_in(int sock,sem_t& sem) {
     j["account"] = account;
     j["password"] = password;
     send_json(sock, j);
-
-
-
-
-
-
-
-
     sem_wait(&sem); // 等待信号量
-
-
-
-
-
-
-
 }
 
 void sign_up(int sock,sem_t& sem) {
@@ -116,7 +103,6 @@ void sign_up(int sock,sem_t& sem) {
     j["type"] = "sign_up";
     string username,account, password_old, password_new;
 
-    while (1) {
         cout << "请输入用户名 :";
         cin >> username;
         cin.ignore(numeric_limits<streamsize>::max(), '\n'); 
@@ -129,36 +115,15 @@ void sign_up(int sock,sem_t& sem) {
         password_new = get_password("请再次输入密码:");
 
         if (password_new == password_old) {
-            break;
+            j["account"]  = account;
+            j["username"] = username;
+            j["password"] = password_old;
+
+            send_json(sock, j);
+
+            sem_wait(&sem); // 等待信号量
         } else {
             cout << "两次密码不一样" << endl;
-            waiting();
-            system("clear");
-            cout << "注册" << endl;
+            return;
         }
-    }
-
-    j["account"]  = account;
-    j["username"] = username;
-    j["password"] = password_old;
-    send_json(sock, j);
-
-
-
-
-
-    sem_wait(&sem); // 等待信号量
-
-
-
-
-
-
 }
-
-
-
-
-// 记得释放信号量
-// sem_post(&sem);
-//sem_destroy(sem_t *sem);

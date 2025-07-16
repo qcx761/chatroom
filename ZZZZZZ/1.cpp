@@ -1,61 +1,164 @@
+#include "account.hpp"
+#include "json.hpp"
 
-// 非阻塞接收json，返回值：0成功收到并解析一条json，1数据不完整需继续接收，-1错误或断开
-int receive_json(int sockfd, json& j) {
-    // 静态缓冲区用于缓存未完整读取的数据，单socket单线程安全
-    static std::vector<char> buffer;
 
-    char temp[4096];
-    while (true) {
-        ssize_t n = recv(sockfd, temp, sizeof(temp), 0);
-        if (n > 0) {
-            buffer.insert(buffer.end(), temp, temp + n);
-        } else if (n == 0) {
-            // 连接关闭
-            return -1;
-        } else {
-            if (errno == EAGAIN || errno == EWOULDBLOCK) {
-                // 非阻塞下无更多数据，退出读取循环
-                break;
-            } else if (errno == EINTR) {
-                // 中断，继续接收
-                continue;
-            } else {
-                perror("recv");
-                return -1;
-            }
-        }
-    }
 
-    // 解析完整消息
-    while (true) {
-        if (buffer.size() < 4) {
-            // 长度字段不完整，等待更多数据
-            return 1;
-        }
-
-        uint32_t len_net = 0;
-        memcpy(&len_net, buffer.data(), 4);
-        uint32_t len = ntohl(len_net);
-
-        if (buffer.size() < 4 + len) {
-            // json内容不完整，继续等待数据
-            return 1;
-        }
-
-        std::string json_str(buffer.begin() + 4, buffer.begin() + 4 + len);
-
-        try {
-            j = json::parse(json_str);
-        } catch (const std::exception& e) {
-            std::cerr << "JSON parse error: " << e.what() << std::endl;
-            return -1;
-        }
-
-        // 消息处理完毕，移除缓冲区已处理部分
-        buffer.erase(buffer.begin(), buffer.begin() + 4 + len);
-
-        return 0;  // 成功解析一条消息
-    }
-
-    return 1; // 理论上不会到这里
+void waiting() {
+    cout << "按 Enter 键继续...";
+    cin.get();  // 等待按回车
 }
+
+void flushInput() {
+    cin.clear();
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+}
+
+// 关闭终端回显，读一行密码
+string get_password(const string& prompt) {
+
+    struct termios oldt, newt;
+    cout << prompt;
+
+    // 获取当前终端属性
+    tcgetattr(STDIN_FILENO, &oldt);
+    newt = oldt;
+    // 关闭回显
+    newt.c_lflag &= ~ECHO;
+    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+
+    string password;
+    getline(cin, password);
+
+    // 恢复终端属性
+    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+    cout << endl;
+
+    return password;
+}
+
+void main_menu_ui(int sock,sem_t& sem) {
+
+
+
+    int n;
+    while (1) {
+        system("clear"); // 清屏
+        show_main_menu();
+
+        // cout << "请输入你的选项：";
+        if (!(cin >> n)) {
+            flushInput();
+            cout << "无效的输入，请输入数字。" << endl;
+            waiting();
+            continue;
+        }
+
+        switch (n) {
+        case 1:
+            log_in(sock,sem);
+            flushInput();
+            waiting();
+            break;
+        case 2:
+            sign_up(sock,sem);
+            flushInput();
+            waiting();
+            break;
+        case 3:
+            exit(0);
+        default:
+            cout << "无效数字" << endl;
+            flushInput();
+            waiting();
+            break;
+        }
+    }
+}
+
+void log_in(int sock,sem_t& sem) {
+    system("clear");
+    cout << "登录" << endl;
+    json j;
+    j["type"] = "log_in";
+
+    string account, password;
+    cout << "请输入帐号   :";
+    cin >> account;
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');  // 清理缓冲区换行符
+
+    password = get_password("请输入密码   :");
+
+    j["account"] = account;
+    j["password"] = password;
+    send_json(sock, j);
+
+
+
+
+
+
+
+
+    sem_wait(&sem); // 等待信号量
+
+
+
+
+
+
+
+}
+
+void sign_up(int sock,sem_t& sem) {
+    system("clear");
+    cout << "注册" << endl;
+    json j;
+    j["type"] = "sign_up";
+    string username,account, password_old, password_new;
+
+    while (1) {
+        cout << "请输入用户名 :";
+        cin >> username;
+        cin.ignore(numeric_limits<streamsize>::max(), '\n'); 
+
+        cout << "请输入帐号  :";
+        cin >> account;
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');  // 防止影响后续 getline
+
+        password_old = get_password("请输入密码   :");
+        password_new = get_password("请再次输入密码:");
+
+        if (password_new == password_old) {
+            break;
+        } else {
+            cout << "两次密码不一样" << endl;
+            waiting();
+            system("clear");
+            cout << "注册" << endl;
+        }
+    }
+
+    j["account"]  = account;
+    j["username"] = username;
+    j["password"] = password_old;
+    send_json(sock, j);
+
+
+
+
+
+    sem_wait(&sem); // 等待信号量
+
+
+
+
+
+
+}
+
+
+
+
+// 记得释放信号量
+// sem_post(&sem);
+//sem_destroy(sem_t *sem);

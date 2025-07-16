@@ -9,6 +9,7 @@ void show_main_menu(){
         std::cout << "请输入你的选项：";
 }
 
+
 void show_next_menu(){
         system("clear");
         std::cout << "1. 消息" << std::endl;

@@ -1,7 +1,6 @@
 #include <iostream>
 #include <semaphore.h>
-
-
+#include <atomic>
 #include <termios.h>// 隐藏终端输入
 #include <unistd.h>
 #include <nlohmann/json.hpp>
@@ -15,7 +14,7 @@ using json = nlohmann::json;
 
 void flushInput();
 void waiting();
-void main_menu_ui(int sock,sem_t& sem);
+void main_menu_ui(int sock,sem_t& sem,std::atomic<bool>& login_success);
 // void main_menu_ui(int sock);
 // void log_in(int sock);
 void log_in(int sock,sem_t& sem);

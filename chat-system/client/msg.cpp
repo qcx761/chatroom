@@ -14,7 +14,7 @@ void error_msg(int fd, const json &response) {
 }
 
 // 处理服务端返回的登录响应
-void log_in_msg(int fd, const json &response) {
+bool log_in_msg(int fd, const json &response) {
     std::string status = response.value("status", "error");
     std::string msg = response.value("msg", "未知错误");
 

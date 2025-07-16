@@ -124,7 +124,7 @@ void Client::epoll_thread_func(){
                         // 然后怎么处理
 
 
-                        login_success.store(success);  // 设置结果状态
+                        login_success.store(false);  // 判断登录
                         sem_post(&sem);  
 
                         continue;
@@ -229,17 +229,19 @@ void Client::epoll_thread_func(){
 
 void Client::user_thread_func() {
     
-    // 用线程池
-
-    while(running){
-
-    main_menu_ui(sem,sock);
-
-
 
 // 交互逻辑，比如说注册函数之类
 // 也就是客户端怎么发送json到服务端
 // 记得通过信号量来等待
+
+    while(running){
+    main_menu_ui(sock,sem,login_success);
+
+
+    // 登录成功之后交互逻辑
+    
+
+
 
 
 
