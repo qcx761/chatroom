@@ -228,87 +228,153 @@ void Client::epoll_thread_func(){
 }
 
 void Client::user_thread_func() {
-    
 
-// 交互逻辑，比如说注册函数之类
-// 也就是客户端怎么发送json到服务端
-// 记得通过信号量来等待
+  MenuState state = main_menu; // 初始化界面
+    
+    // signal(SIGINT, SIG_IGN);   // 忽略 Ctrl+C (中断信号)
+    // signal(SIGTERM, SIG_IGN);  // 忽略 kill 发送的终止信号
+    // signal(SIGTSTP, SIG_IGN);  // 忽略 Ctrl+Z (挂起/停止信号)
+
+    // struct termios tty;
+    // if (tcgetattr(STDIN_FILENO, &tty) == 0) {
+    //     tty.c_cc[VEOF] = 0;
+    //     tcsetattr(STDIN_FILENO, TCSANOW, &tty);
+    // }
+
+
+    // 交互逻辑，比如说注册函数之类
+    // 也就是客户端怎么发送json到服务端
+    // 记得通过信号量来等待
 
     while(running){
-        int m;
-        main_menu_ui(sock,sem,login_success);
-        show_next_menu();
-        if (!(cin >> m)) {
-            flushInput();
-            cout << "无效的输入，请输入数字。" << endl;
-            waiting();
+
+        // 登录过期检测
+        if (!login_success.load() && state != main_menu) {
+            std::cout << "登录已过期，请重新登录。" << std::endl;
+
+
+            // 不知道哪里清除
+
+            // current_UID.clear();             // 清除登录状态
+
+            state = main_menu;               // 返回登录页
+            waiting();                       // 等待用户确认
             continue;
         }
-        switch (m) {
-        case 1:
-            
+
+        // 主交互逻辑
+        switch(state)
+        {
+
+            case main_menu:
+            {
+                main_menu_ui(sock,sem,login_success);
+                state=next_menu; // 进入主界面
+                break;
+            }
+
+            case next_menu:
+            {
+                int m;
+                show_next_menu();
+                if (!(cin >> m)) {
+                    flushInput();
+                    cout << "无效的输入，请输入数字。" << endl;
+                    waiting();
+                    continue;
+                }
+                switch (m)
+                {
+                case 1: state=next1_menu; break; // 进入个人中心
+                case 2: 
+                case 3: 
+                case 4: 
+                case 5: 
+                case 6: 
+                default:
+                    cout << "无效数字" << endl;
+                    flushInput(); // 去除数字后面的换行符
+                    waiting();
+                }
+                break;
+            }
+
+            case next1_menu:
+            {
+                int m;
+                show_next1_menu();
+                if (!(cin >> m)) {
+                    flushInput();
+                    cout << "无效的输入，请输入数字。" << endl;
+                    waiting();
+                    continue;
+                }
+                switch (m)
+                {
+                case 1: state=next11_menu; break;    
+                case 2: 
+                case 3: 
+                case 4: state=next_menu; break;
+                default:
+                    cout << "无效数字" << endl;
+                    flushInput(); // 去除数字后面的换行符
+                    waiting();
+                }
+                break;
+            }
+
+            case next11_menu:
+            {
+                int m;
+                show_next11_menu();
+                if (!(cin >> m)) {
+                    flushInput();
+                    cout << "无效的输入，请输入数字。" << endl;
+                    waiting();
+                    continue;
+                }
+                switch (m)
+                {
+                case 1: 
+                case 2: 
+                case 3: 
+                case 4: state=next1_menu;
+                default:
+                    cout << "无效数字" << endl;
+                    flushInput(); // 去除数字后面的换行符
+                    waiting();
+                }
+                break;
+            }
+
+            // case next1_menu:
+            // {
+            //     int m;
+            //     //show_next_menu();
+            //     if (!(cin >> m)) {
+            //         flushInput();
+            //         cout << "无效的输入，请输入数字。" << endl;
+            //         waiting();
+            //         continue;
+            //     }
+            //     switch (m)
+            //     {
+            //     case 1: 
+            //     case 2: 
+            //     case 3: 
+            //     case 4: 
+            //     }
+            //     break;
+            // }
 
 
 
-            // log_in(sock,sem);
-            waiting();
-            break;
-        case 2:
-
-
-            // 调用函数
-            //sign_up(sock,sem);
 
 
 
-            waiting();
-            break;
-        case 3:
-
-
-
-            // 调用函数
-
-
-
-
-            waiting();
-            break;
-        default:
-            cout << "无效数字" << endl;
-            flushInput();
-            waiting();
-            break;
-        }
-
-
-
-
-
-
-
-
-
-
-    // 登录成功之后交互逻辑
-    
-    if(login_success.load()){
-        // 登录过期怎么处理
-    }
-    
-
-
-
-
-
-
-
-
-
-
-
-    }
-}
+        } // switch处理
+    } // while循环
+} // 线程
 
 
 

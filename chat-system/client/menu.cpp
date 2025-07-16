@@ -24,6 +24,7 @@ void show_next_menu(){
         std::cout << "请输入你的选项：";
 }
 
+// 个人中心
 void show_next1_menu(){
         system("clear");
         std::cout << "1. 个人信息" << std::endl;
@@ -33,6 +34,7 @@ void show_next1_menu(){
         std::cout << "请输入你的选项：";
 }
 
+// 个人信息
 void show_next11_menu(){
         system("clear");
         std::cout << "1. 用户名查看" << std::endl;

@@ -1,279 +1,170 @@
-while (true) {
-                char buf[1024];
-                ssize_t len = read(fd, buf, sizeof(buf));
-                if (len == -1) {
-                    if (errno == EAGAIN || errno == EWOULDBLOCK) {
-                        // 读完所有当前数据，退出循环等待下一次事件
-                        break;
-                    } else {
-                        // 发生错误，关闭连接并清理
-                        std::lock_guard<std::mutex> lock(conn_mtx);
-                        if (connections.count(fd)) {
-                            connections[fd]->closeConn();
-                            delete connections[fd];
-                            connections.erase(fd);
-                        }
-                        break;
-                    }
-                } else if (len == 0) {
-                    // 对端关闭连接，清理资源
-                    std::lock_guard<std::mutex> lock(conn_mtx);
-                    if (connections.count(fd)) {
-                        connections[fd]->closeConn();
-                        delete connections[fd];
-                        connections.erase(fd);
-                    }
-                    break;
-                } else {
-                    // 正常读取到数据，处理
-                    std::lock_guard<std::mutex> lock(conn_mtx);
-                    if (connections.count(fd)) {
-                        connections[fd]->updateHeartbeat();
-                        
-
-
-
-
-                        
-                cout<<"111111111111111111111111111111"<<endl;
-
-                        // 函数的处理
-
-
-
-                        
-                        
-
-        // thread_pool->enqueue([conn = connections[fd], data = std::string(buf,len)] {
-                        // conn->handleMessage(data.c_str(), data.size());});
-
-
-
-                       // 先将命令储存到缓冲区后在调用线程池
-                    }
-                }
-            }
-
-
-
-void SubReactor::run() {
-    epoll_event events[1024];
-    while (running) {
-        int n = epoll_wait(epfd, events, 1024, 1000);
-        for (int i = 0; i < n; ++i) {
-            int fd = events[i].data.fd;
-
-            json request;
-            int ret = receive_json(fd, request);
-
-            if (ret != 0) {
-                // 读取失败或连接关闭，清理连接
-                std::lock_guard<std::mutex> lock(conn_mtx);
-                if (connections.count(fd)) {
-                    connections[fd]->closeConn();
-                    delete connections[fd];
-                    connections.erase(fd);
-                }
-                continue;
-            }
-
-            // 更新心跳
-            {
-                std::lock_guard<std::mutex> lock(conn_mtx);
-                if (connections.count(fd)) {
-                    connections[fd]->updateHeartbeat();
-                }
-            }
-
-            std::string type = request.value("type", "");
-            json response;
-
-            if (type == "log_in") {
-                std::string username = request.value("username", "");
-                std::string password = request.value("password", "");
-
-                // 假设 check_user_login 是你实现的 Redis 验证函数
-                bool login_ok = check_user_login(username, password);
-
-                response["type"] = "log_in_response";
-                response["success"] = login_ok;
-
-                if (login_ok) {
-                    std::string uid = get_uid_from_username(username);  // 你也要实现这个函数
-                    response["UID"] = uid;
-                } else {
-                    response["error"] = "用户名或密码错误";
-                }
-                send_json(fd, response);
-            }
-            else if (type == "sign_up") {
-                // 处理注册逻辑
-            }
-            else if (type == "retrieve_password") {
-                // 处理找回密码逻辑
-            }
-            else {
-                response["type"] = "error";
-                response["msg"] = "未知请求类型: " + type;
-                send_json(fd, response);
-            }
-        }
-    }
-}
-
-
-
-
-
-
-
-
-
-
-
-
-#pragma once
-
-#include <unordered_map>
-#include <thread>
-#include <mutex>
-#include <chrono>
-#include <atomic>
-#include <vector>
-#include <sys/epoll.h>
-#include <unistd.h>
-#include <netinet/in.h>
-#include <fcntl.h>
 #include <iostream>
-#include "json.hpp"
-#include "../threadpool/threadpool.hpp"
+#include <string>
+#include <termios.h>
+#include <unistd.h>
+#include <csignal>
+#include <semaphore.h>
+#include "Account_UI.h"
+#include "../log/mars_logger.h"
 
-using json = nlohmann::json;
+extern std::string current_UID;
+extern sem_t semaphore;
 
-class SubReactor {
-public:
-    SubReactor(threadpool* pool);
-    ~SubReactor();
-
-    void addClient(int client_fd);
-
-private:
-    int epfd;
-    std::atomic<bool> running;
-    std::thread event_thread;
-    std::thread heartbeat_thread;
-    threadpool* thread_pool;
-
-    std::unordered_map<int, std::chrono::steady_clock::time_point> heartbeats;
-    std::mutex conn_mtx;
-
-    void run();
-    void heartbeatCheck();
-    void closeAndRemove(int fd);
-    int receive_json(int sockfd, json& j);
-    int send_json(int sockfd, const json& j);
+// 菜单状态枚举
+enum MenuState {
+    MENU_MAIN,
+    MENU_HOME,
+    MENU_ACCOUNT,
+    MENU_FRIEND,
+    MENU_GROUP,
+    MENU_EXIT
 };
 
-
-#include "subreactor.hpp"
-
-SubReactor::SubReactor(threadpool* pool) : thread_pool(pool) {
-    epfd = epoll_create1(0);
-    running = true;
-    event_thread = std::thread(&SubReactor::run, this);
-    heartbeat_thread = std::thread(&SubReactor::heartbeatCheck, this);
+// 等待用户按任意键继续
+void waiting_for_input() {
+    std::cout << "按任意键继续...";
+    std::cin.ignore();
+    std::cin.get();
 }
 
-SubReactor::~SubReactor() {
-    running = false;
-    if (event_thread.joinable()) event_thread.join();
-    if (heartbeat_thread.joinable()) heartbeat_thread.join();
-    close(epfd);
-    for (auto& [fd, _] : heartbeats) {
-        close(fd);
+// 主菜单处理函数
+void main_menu_UI(int connecting_sockfd) {
+    MenuState state = MENU_MAIN;
+    bool running = true;
+
+    signal(SIGINT, SIG_IGN);
+    signal(SIGTERM, SIG_IGN);
+    signal(SIGTSTP, SIG_IGN);
+
+    struct termios tty;
+    if (tcgetattr(STDIN_FILENO, &tty) == 0) {
+        tty.c_cc[VEOF] = 0;
+        tcsetattr(STDIN_FILENO, TCSANOW, &tty);
     }
-    heartbeats.clear();
-}
 
-void SubReactor::addClient(int client_fd) {
-    epoll_event ev{};
-    ev.events = EPOLLIN | EPOLLET;
-    ev.data.fd = client_fd;
+    sem_init(&semaphore, 0, 0);
 
-    std::lock_guard<std::mutex> lock(conn_mtx);
-    epoll_ctl(epfd, EPOLL_CTL_ADD, client_fd, &ev);
-    heartbeats[client_fd] = std::chrono::steady_clock::now();
-}
-
-void SubReactor::closeAndRemove(int fd) {
-    epoll_ctl(epfd, EPOLL_CTL_DEL, fd, nullptr);
-    close(fd);
-    heartbeats.erase(fd);
-}
-
-void SubReactor::run() {
-    epoll_event events[1024];
     while (running) {
-        int n = epoll_wait(epfd, events, 1024, 1000);
-        for (int i = 0; i < n; ++i) {
-            int fd = events[i].data.fd;
+        switch (state) {
+            case MENU_MAIN: {
+                int n;
+                system("clear");
+                std::cout << "欢迎进入聊天室！" << std::endl;
+                std::cout << "1. 登录" << std::endl;
+                std::cout << "2. 注册" << std::endl;
+                std::cout << "3. 找回密码" << std::endl;
+                std::cout << "4. 退出" << std::endl;
+                std::cout << "请输入：";
+                if (!(std::cin >> n)) {
+                    std::cin.clear();
+                    std::cin.ignore(1024, '\n');
+                    std::cout << "无效输入，请重试。\n";
+                    waiting_for_input();
+                    continue;
+                }
 
-            json request;
-            if (receive_json(fd, request) != 0) {
-                std::lock_guard<std::mutex> lock(conn_mtx);
-                if (heartbeats.count(fd)) closeAndRemove(fd);
-                continue;
+                switch (n) {
+                    case 1:
+                        log_in_UI(connecting_sockfd);
+                        if (!current_UID.empty()) state = MENU_HOME;
+                        break;
+                    case 2:
+                        sign_up_UI(connecting_sockfd);
+                        break;
+                    case 3:
+                        retrieve_password(connecting_sockfd);
+                        break;
+                    case 4:
+                        running = false;
+                        break;
+                    default:
+                        std::cout << "请正确输入选项！" << std::endl;
+                        waiting_for_input();
+                }
+                break;
             }
 
-            {
-                std::lock_guard<std::mutex> lock(conn_mtx);
-                heartbeats[fd] = std::chrono::steady_clock::now();
+            case MENU_HOME: {
+                int n;
+                system("clear");
+                std::cout << "== 主菜单 ==" << std::endl;
+                std::cout << "1. 账号管理" << std::endl;
+                std::cout << "2. 好友管理" << std::endl;
+                std::cout << "3. 群组管理" << std::endl;
+                std::cout << "4. 注销登录" << std::endl;
+                std::cout << "5. 返回登录页" << std::endl;
+                std::cout << "请输入：";
+                std::cin >> n;
+
+                switch (n) {
+                    case 1: state = MENU_ACCOUNT; break;
+                    case 2: state = MENU_FRIEND; break;
+                    case 3: state = MENU_GROUP; break;
+                    case 4:
+                        log_out_UI(connecting_sockfd, current_UID);
+                        current_UID.clear();
+                        state = MENU_MAIN;
+                        break;
+                    case 5:
+                        current_UID.clear();
+                        state = MENU_MAIN;
+                        break;
+                    default:
+                        std::cout << "无效输入！\n";
+                        waiting_for_input();
+                }
+                break;
             }
 
-            std::string type = request.value("type", "");
-            json response;
+            case MENU_ACCOUNT: {
+                int n;
+                system("clear");
+                std::cout << "== 账号管理 ==" << std::endl;
+                std::cout << "1. 修改用户名" << std::endl;
+                std::cout << "2. 修改密码" << std::endl;
+                std::cout << "3. 修改密保" << std::endl;
+                std::cout << "4. 返回上一级" << std::endl;
+                std::cout << "5. 返回主菜单" << std::endl;
+                std::cout << "请输入：";
+                std::cin >> n;
 
-            if (type == "log_in") {
-                std::string user = request.value("username", "");
-                std::string pass = request.value("password", "");
-                // 示例逻辑：登录成功
-                response["type"] = "log_in";
-                response["status"] = "success";
-                response["message"] = "登录成功";
-                send_json(fd, response);
+                switch (n) {
+                    case 1: change_usename_UI(connecting_sockfd, current_UID); break;
+                    case 2: change_password_UI(connecting_sockfd, current_UID); break;
+                    case 3: change_security_question_UI(connecting_sockfd, current_UID); break;
+                    case 4: state = MENU_HOME; break;
+                    case 5: state = MENU_HOME; break;
+                    default:
+                        std::cout << "无效输入。\n";
+                        waiting_for_input();
+                }
+                break;
             }
-            else if (type == "sign_up") {
-                response["type"] = "sign_up";
-                response["status"] = "success";
-                response["message"] = "注册成功";
-                send_json(fd, response);
+
+            case MENU_FRIEND: {
+                system("clear");
+                std::cout << "== 好友管理 [待实现] ==" << std::endl;
+                std::cout << "按任意键返回主菜单..." << std::endl;
+                waiting_for_input();
+                state = MENU_HOME;
+                break;
             }
-            else {
-                response["type"] = "error";
-                response["message"] = "未知请求类型";
-                send_json(fd, response);
+
+            case MENU_GROUP: {
+                system("clear");
+                std::cout << "== 群组管理 [待实现] ==" << std::endl;
+                std::cout << "按任意键返回主菜单..." << std::endl;
+                waiting_for_input();
+                state = MENU_HOME;
+                break;
+            }
+
+            case MENU_EXIT: {
+                running = false;
+                break;
             }
         }
     }
+
+    std::cout << "程序退出。\n";
 }
-
-void SubReactor::heartbeatCheck() {
-    while (running) {
-        std::this_thread::sleep_for(std::chrono::seconds(5));
-        auto now = std::chrono::steady_clock::now();
-        std::lock_guard<std::mutex> lock(conn_mtx);
-        for (auto it = heartbeats.begin(); it != heartbeats.end(); ) {
-            if (std::chrono::duration_cast<std::chrono::seconds>(now - it->second).count() > 10) {
-                std::cout << "⏱️ 客户端超时断开: fd = " << it->first << "\n";
-                close(it->first);
-                epoll_ctl(epfd, EPOLL_CTL_DEL, it->first, nullptr);
-                it = heartbeats.erase(it);
-            } else {
-                ++it;
-            }
-        }
-    }
-}
-
-
-

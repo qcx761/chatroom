@@ -1,170 +1,107 @@
-#include <iostream>
-#include <stack>
-#include <string>
-#include <limits>
-
-// 菜单状态枚举
 enum MenuState {
-    MENU_MAIN,          // 主菜单
-    MENU_NEXT,          // 二级菜单
-    MENU_USER_CENTER,   // 个人中心
-    MENU_USER_INFO,     // 用户信息
-    MENU_EXIT           // 退出
+        main_menu,    // 主菜单
+
+        next_menu,    // 登录后主界面
+        next1_menu
+
+        MENU_ACCOUNT, // 账户管理
+        MENU_FRIEND,  // 好友管理
+        MENU_GROUP,   // 群组管理
+        MENU_EXIT     // 退出
+
+
+
 };
 
-// 当前用户状态
-struct UserState {
-    bool is_logged_in = false;
-    std::string username;
-};
+void Client::user_thread_func() {
 
-// 清除输入缓冲区
-void flushInput() {
-    std::cin.clear();
-    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-}
+    MenuState state = MENU_MAIN;
+    
+    signal(SIGINT, SIG_IGN);   // 忽略 Ctrl+C (中断信号)
+    signal(SIGTERM, SIG_IGN);  // 忽略 kill 发送的终止信号
+    signal(SIGTSTP, SIG_IGN);  // 忽略 Ctrl+Z (挂起/停止信号)
 
-// 等待用户按键
-void pressAnyKeyToContinue() {
-    std::cout << "\n按任意键继续...";
-    flushInput();
-    std::cin.get();
-}
-
-// 菜单显示函数
-void show_menu(MenuState state) {
-    system("clear"); // Linux/macOS 清屏
-    // system("cls"); // Windows 用这个
-
-    switch (state) {
-        case MENU_MAIN:
-            std::cout << "=== 主菜单 ===\n"
-                      << "1. 登录\n"
-                      << "2. 注册\n"
-                      << "3. 退出\n"
-                      << "请选择: ";
-            break;
-
-        case MENU_NEXT:
-            std::cout << "=== 功能菜单 ===\n"
-                      << "1. 个人中心\n"
-                      << "2. 消息\n"
-                      << "3. 返回上级\n"
-                      << "4. 退出\n"
-                      << "请选择: ";
-            break;
-
-        case MENU_USER_CENTER:
-            std::cout << "=== 个人中心 ===\n"
-                      << "1. 个人信息\n"
-                      << "2. 修改密码\n"
-                      << "3. 返回上级\n"
-                      << "4. 退出\n"
-                      << "请选择: ";
-            break;
-
-        case MENU_USER_INFO:
-            std::cout << "=== 个人信息 ===\n"
-                      << "1. 查看资料\n"
-                      << "2. 修改头像\n"
-                      << "3. 返回上级\n"
-                      << "4. 退出\n"
-                      << "请选择: ";
-            break;
-
-        default:
-            break;
+    struct termios tty;
+    if (tcgetattr(STDIN_FILENO, &tty) == 0) {
+        tty.c_cc[VEOF] = 0;
+        tcsetattr(STDIN_FILENO, TCSANOW, &tty);
     }
-}
 
-// 模拟登录函数
-bool mock_login() {
-    std::string username, password;
-    std::cout << "用户名: ";
-    std::cin >> username;
-    std::cout << "密码: ";
-    std::cin >> password;
 
-    // 简单模拟验证
-    return !username.empty() && !password.empty();
-}
+// 交互逻辑，比如说注册函数之类
+// 也就是客户端怎么发送json到服务端
+// 记得通过信号量来等待
 
-// 主控制函数
-void menu_system() {
-    std::stack<MenuState> menu_stack;
-    menu_stack.push(MENU_MAIN); // 初始化主菜单
-    UserState user;
+    while(running){
 
-    while (!menu_stack.empty()) {
-        MenuState current = menu_stack.top();
-        show_menu(current);
+        // 登录过期检测
+        if (!login_success.load() && state != main_menu) {
+            std::cout << "登录已过期，请重新登录。" << std::endl;
 
-        int choice;
-        if (!(std::cin >> choice)) {
-            flushInput();
-            std::cout << "输入无效，请重新输入！\n";
-            pressAnyKeyToContinue();
+
+
+            // 不知道哪里清除
+
+            // current_UID.clear();             // 清除登录状态
+
+            state = main_menu;               // 返回登录页
+            waiting();                       // 等待用户确认
             continue;
         }
 
-        switch (current) {
-            case MENU_MAIN:
-                if (choice == 1) {
-                    if (mock_login()) {
-                        user.is_logged_in = true;
-                        menu_stack.push(MENU_NEXT);
-                    } else {
-                        std::cout << "登录失败！\n";
-                        pressAnyKeyToContinue();
-                    }
-                } else if (choice == 3) {
-                    menu_stack.push(MENU_EXIT);
-                }
-                break;
+        switch(state)
+        {
 
-            case MENU_NEXT:
-                if (choice == 1) {
-                    menu_stack.push(MENU_USER_CENTER);
-                } else if (choice == 3) {
-                    menu_stack.pop(); // 返回上级
-                } else if (choice == 4) {
-                    menu_stack.push(MENU_EXIT);
-                }
+            case main_menu:
+            {
+                main_menu_ui(sock,sem,login_success);
+                state=next_menu;
                 break;
+            }
 
-            case MENU_USER_CENTER:
-                if (choice == 1) {
-                    menu_stack.push(MENU_USER_INFO);
-                } else if (choice == 3) {
-                    menu_stack.pop(); // 返回上级
-                } else if (choice == 4) {
-                    menu_stack.push(MENU_EXIT);
+            case next_menu:
+            {
+                int m;
+                show_next_menu();
+                if (!(cin >> m)) {
+                    flushInput();
+                    cout << "无效的输入，请输入数字。" << endl;
+                    waiting();
+                    continue;
+                }
+                switch (m)
+                {
+                case 1: state=next1_menu; break;
+                case 2: 
+                case 3:
+                case 4: state=
+                default :
+                    cout << "无效数字" << endl;
+                    flushInput(); // 去除数字后面的换行符
+                    waiting();
                 }
                 break;
+            }
+            case next1_menu:
+            {
 
-            case MENU_USER_INFO:
-                if (choice == 3) {
-                    menu_stack.pop(); // 返回上级
-                } else if (choice == 4) {
-                    menu_stack.push(MENU_EXIT);
-                }
                 break;
+            }
+            case
+            {
 
-            case MENU_EXIT:
-                if (choice == 1) {
-                    while (!menu_stack.empty()) {
-                        menu_stack.pop(); // 清空栈退出
-                    }
-                } else if (choice == 2) {
-                    menu_stack.pop(); // 取消退出
-                }
                 break;
+            }
+
         }
+
+
+
+        
     }
-    std::cout << "系统已退出\n";
 }
 
-int main() {
-    menu_system();
-    return 0;
-}
+
+
+
+
