@@ -1,170 +1,162 @@
-#include <iostream>
-#include <string>
-#include <termios.h>
-#include <unistd.h>
-#include <csignal>
-#include <semaphore.h>
-#include "Account_UI.h"
-#include "../log/mars_logger.h"
+// 注册处理函数
+void sign_up_msg(int fd, const json &request) {
+    json response;
+    std::string account = request.value("account", "");
+    std::string username = request.value("username", "");
+    std::string password = request.value("password", "");
 
-extern std::string current_UID;
-extern sem_t semaphore;
-
-// 菜单状态枚举
-enum MenuState {
-    MENU_MAIN,
-    MENU_HOME,
-    MENU_ACCOUNT,
-    MENU_FRIEND,
-    MENU_GROUP,
-    MENU_EXIT
-};
-
-// 等待用户按任意键继续
-void waiting_for_input() {
-    std::cout << "按任意键继续...";
-    std::cin.ignore();
-    std::cin.get();
-}
-
-// 主菜单处理函数
-void main_menu_UI(int connecting_sockfd) {
-    MenuState state = MENU_MAIN;
-    bool running = true;
-
-    signal(SIGINT, SIG_IGN);
-    signal(SIGTERM, SIG_IGN);
-    signal(SIGTSTP, SIG_IGN);
-
-    struct termios tty;
-    if (tcgetattr(STDIN_FILENO, &tty) == 0) {
-        tty.c_cc[VEOF] = 0;
-        tcsetattr(STDIN_FILENO, TCSANOW, &tty);
+    if (account.empty() || username.empty() || password.empty()) {
+        response["type"] = "sign_up";
+        response["status"] = "error";
+        response["msg"] = "Account, username or password cannot be empty";
+        send_json(fd, response);
+        return;
     }
 
-    sem_init(&semaphore, 0, 0);
+    try {
+        auto conn = get_mysql_connection();
 
-    while (running) {
-        switch (state) {
-            case MENU_MAIN: {
-                int n;
-                system("clear");
-                std::cout << "欢迎进入聊天室！" << std::endl;
-                std::cout << "1. 登录" << std::endl;
-                std::cout << "2. 注册" << std::endl;
-                std::cout << "3. 找回密码" << std::endl;
-                std::cout << "4. 退出" << std::endl;
-                std::cout << "请输入：";
-                if (!(std::cin >> n)) {
-                    std::cin.clear();
-                    std::cin.ignore(1024, '\n');
-                    std::cout << "无效输入，请重试。\n";
-                    waiting_for_input();
-                    continue;
-                }
+        // 检查 account 是否存在，使用 MySQL JSON 查询（假设字段名 info）
+        auto check_account_stmt = std::unique_ptr<sql::PreparedStatement>(
+            conn->prepareStatement("SELECT COUNT(*) FROM users WHERE JSON_EXTRACT(info, '$.account') = ?"));
+        check_account_stmt->setString(1, account);
+        auto res_account = check_account_stmt->executeQuery();
+        res_account->next();
 
-                switch (n) {
-                    case 1:
-                        log_in_UI(connecting_sockfd);
-                        if (!current_UID.empty()) state = MENU_HOME;
-                        break;
-                    case 2:
-                        sign_up_UI(connecting_sockfd);
-                        break;
-                    case 3:
-                        retrieve_password(connecting_sockfd);
-                        break;
-                    case 4:
-                        running = false;
-                        break;
-                    default:
-                        std::cout << "请正确输入选项！" << std::endl;
-                        waiting_for_input();
-                }
-                break;
-            }
+        if (res_account->getInt(1) > 0) {
+            response["type"] = "sign_up";
+            response["status"] = "fail";
+            response["msg"] = "Account already exists";
+        } else {
+            // 检查 username 是否存在
+            auto check_username_stmt = std::unique_ptr<sql::PreparedStatement>(
+                conn->prepareStatement("SELECT COUNT(*) FROM users WHERE JSON_EXTRACT(info, '$.username') = ?"));
+            check_username_stmt->setString(1, username);
+            auto res_username = check_username_stmt->executeQuery();
+            res_username->next();
 
-            case MENU_HOME: {
-                int n;
-                system("clear");
-                std::cout << "== 主菜单 ==" << std::endl;
-                std::cout << "1. 账号管理" << std::endl;
-                std::cout << "2. 好友管理" << std::endl;
-                std::cout << "3. 群组管理" << std::endl;
-                std::cout << "4. 注销登录" << std::endl;
-                std::cout << "5. 返回登录页" << std::endl;
-                std::cout << "请输入：";
-                std::cin >> n;
+            if (res_username->getInt(1) > 0) {
+                response["type"] = "sign_up";
+                response["status"] = "fail";
+                response["msg"] = "Username already exists";
+            } else {
+                // 构造json存储用户信息
+                json user_info = {
+                    {"account", account},
+                    {"username", username},
+                    {"password", password}  // 建议用哈希存储
+                };
 
-                switch (n) {
-                    case 1: state = MENU_ACCOUNT; break;
-                    case 2: state = MENU_FRIEND; break;
-                    case 3: state = MENU_GROUP; break;
-                    case 4:
-                        log_out_UI(connecting_sockfd, current_UID);
-                        current_UID.clear();
-                        state = MENU_MAIN;
-                        break;
-                    case 5:
-                        current_UID.clear();
-                        state = MENU_MAIN;
-                        break;
-                    default:
-                        std::cout << "无效输入！\n";
-                        waiting_for_input();
-                }
-                break;
-            }
+                auto insert_stmt = std::unique_ptr<sql::PreparedStatement>(
+                    conn->prepareStatement("INSERT INTO users (info) VALUES (?)"));
+                insert_stmt->setString(1, user_info.dump());  // 存JSON字符串
+                insert_stmt->executeUpdate();
 
-            case MENU_ACCOUNT: {
-                int n;
-                system("clear");
-                std::cout << "== 账号管理 ==" << std::endl;
-                std::cout << "1. 修改用户名" << std::endl;
-                std::cout << "2. 修改密码" << std::endl;
-                std::cout << "3. 修改密保" << std::endl;
-                std::cout << "4. 返回上一级" << std::endl;
-                std::cout << "5. 返回主菜单" << std::endl;
-                std::cout << "请输入：";
-                std::cin >> n;
-
-                switch (n) {
-                    case 1: change_usename_UI(connecting_sockfd, current_UID); break;
-                    case 2: change_password_UI(connecting_sockfd, current_UID); break;
-                    case 3: change_security_question_UI(connecting_sockfd, current_UID); break;
-                    case 4: state = MENU_HOME; break;
-                    case 5: state = MENU_HOME; break;
-                    default:
-                        std::cout << "无效输入。\n";
-                        waiting_for_input();
-                }
-                break;
-            }
-
-            case MENU_FRIEND: {
-                system("clear");
-                std::cout << "== 好友管理 [待实现] ==" << std::endl;
-                std::cout << "按任意键返回主菜单..." << std::endl;
-                waiting_for_input();
-                state = MENU_HOME;
-                break;
-            }
-
-            case MENU_GROUP: {
-                system("clear");
-                std::cout << "== 群组管理 [待实现] ==" << std::endl;
-                std::cout << "按任意键返回主菜单..." << std::endl;
-                waiting_for_input();
-                state = MENU_HOME;
-                break;
-            }
-
-            case MENU_EXIT: {
-                running = false;
-                break;
+                response["type"] = "sign_up";
+                response["status"] = "success";
+                response["msg"] = "Registered successfully";
             }
         }
+    } catch (const std::exception &e) {
+        response["type"] = "sign_up";
+        response["status"] = "error";
+        response["msg"] = std::string("Exception: ") + e.what();
     }
 
-    std::cout << "程序退出。\n";
+    int n;
+    do {
+        n = send_json(fd, response);
+    } while (n != 0);
+}
+
+// 登录处理函数
+void log_in_msg(int fd, const json &request) {
+    json response;
+    std::string account = request.value("account", "");
+    std::string password = request.value("password", "");
+
+    if (account.empty() || password.empty()) {
+        response["type"] = "log_in";
+        response["status"] = "error";
+        response["msg"] = "Account or password cannot be empty";
+        send_json(fd, response);
+        return;
+    }
+
+    try {
+        auto conn = get_mysql_connection();
+
+        auto stmt = std::unique_ptr<sql::PreparedStatement>(
+            conn->prepareStatement("SELECT info FROM users WHERE JSON_EXTRACT(info, '$.account') = ?"));
+        stmt->setString(1, account);
+        auto res = stmt->executeQuery();
+
+        if (!res->next()) {
+            response["type"] = "log_in";
+            response["status"] = "fail";
+            response["msg"] = "Account not found";
+            send_json(fd, response);
+            return;
+        }
+
+        // 从 info 字段获取完整用户 JSON
+        std::string info_str = res->getString("info");
+        json user_info = json::parse(info_str);
+
+        std::string stored_pass = user_info.value("password", "");
+        if (stored_pass != password) {
+            response["type"] = "log_in";
+            response["status"] = "fail";
+            response["msg"] = "Incorrect password";
+            send_json(fd, response);
+            return;
+        }
+
+        // 密码正确，生成token，存redis，存JSON字符串
+        Redis redis("tcp://127.0.0.1:6379");
+        std::string token = generate_token();
+        std::string token_key = "token:" + token;
+
+        // 只存 account 和 username，方便验证和展示
+        json token_info = {
+            {"account", user_info["account"]},
+            {"username", user_info["username"]}
+        };
+
+        redis.set(token_key, token_info.dump());
+        redis.expire(token_key, 3600);  // 1小时有效期
+
+        response["type"] = "log_in";
+        response["status"] = "success";
+        response["msg"] = "Login successful";
+        response["token"] = token;
+    } catch (const std::exception &e) {
+        response["type"] = "log_in";
+        response["status"] = "error";
+        response["msg"] = std::string("Exception: ") + e.what();
+    }
+
+    int n;
+    do {
+        n = send_json(fd, response);
+    } while (n != 0);
+}
+
+// 验证token是否有效（读取redis的json）
+bool verify_token(const std::string& token, std::string& out_account) {
+    try {
+        Redis redis("tcp://127.0.0.1:6379");
+        std::string token_key = "token:" + token;
+        auto val = redis.get(token_key);
+        if (val) {
+            json token_info = json::parse(*val);
+            out_account = token_info.value("account", "");
+            return true;
+        } else {
+            return false; // token 不存在或过期
+        }
+    } catch (const std::exception& e) {
+        std::cerr << "Redis error: " << e.what() << std::endl;
+        return false;
+    }
 }

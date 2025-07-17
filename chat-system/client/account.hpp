@@ -19,8 +19,8 @@ void sign_up(int sock,sem_t& sem);
 string get_password(const string& prompt);
 void main_menu_ui(int sock,sem_t& sem,std::atomic<bool>& login_success);
 
-void destory_account();
-void quit_account();
+void destory_account(MenuState& state,std::atomic<bool>& login_success);
+void quit_account(MenuState& state,std::atomic<bool>& login_success);
 void username_view();
 void username_change();
 void password_change();

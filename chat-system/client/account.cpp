@@ -125,10 +125,51 @@ void sign_up(int sock,sem_t& sem) {
         }
 }
 
-void destory_account(){
-    
+void destory_account(MenuState& state,std::atomic<bool>& login_success){
+    system("clear");
+    cout <<"注销函数 :" << endl;
+    cout<<"确定要注销函数吗(Y/N) :";
+    char a;
+    cin>>a;
+    if(a=='Y'){
+
+        
+// 注销函数实现
+
+
+
+
+
+
+
+        login_success.store(false);
+        state=main_menu;
+        cout<<"成功注销"<<endl;
+    }else if(a=='N'){
+        return;
+    }else{
+        cout<< "未知输入，默认取消注销"<< endl;
+    }
+
+    // 不会跑到这
+    flushInput();
+    waiting();
 }
-void quit_account();
-void username_view();
-void username_change();
-void password_change();
+
+void quit_account(MenuState& state,std::atomic<bool>& login_success){
+
+// 处理在线状态之类的，退出函数
+
+
+    login_success.store(false);
+    state=main_menu;
+}
+void username_view(){
+    ;
+}
+void username_change(){
+    ;
+}
+void password_change(){
+    ;
+}

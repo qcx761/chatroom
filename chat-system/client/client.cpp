@@ -312,8 +312,8 @@ void Client::user_thread_func() {
                 switch (m)
                 {
                 case 1: state=next11_menu; break;    
-                case 2: destory_account(); break;
-                case 3: quit_account(); break;
+                case 2: destory_account(state,login_success); break;
+                case 3: quit_account(state,login_success); break;
                 case 4: state=next_menu; break;
                 default:
                     cout << "无效数字" << endl;
@@ -338,7 +338,7 @@ void Client::user_thread_func() {
                 case 1: username_view(); break;
                 case 2: username_change(); break;
                 case 3: password_change(); break;
-                case 4: state=next1_menu;
+                case 4: state=next1_menu; break;
                 default:
                     cout << "无效数字" << endl;
                     flushInput(); // 去除数字后面的换行符
