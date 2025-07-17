@@ -108,42 +108,111 @@ void Client::epoll_thread_func(){
 
 
                 if (ret == 0) {
+
+
+        // 超时登录记得测试一下可能有点问题
+
+                    // 超时登录处理
                     if(j["msg"]=="Invalid or expired token."){
-                        cout <<"登录超时请重新登录。";
-                        // 这里一般需要通知主线程或UI线程让用户重新登录
-                        // 例如设置一个全局标志或调用某个函数
-                        // 或者可以断开连接，等待用户重新登录
-
-
-                        // running = false;  
-                        // 关闭当前 epoll 线程循环（断开连接）
-
-
-
-
-                        // 然后怎么处理
-
-
+                        cout <<"登录超时请重新登录。"<<endl;
+                        waiting();
                         login_success.store(false);  // 判断登录
                         sem_post(&sem);  
-
                         continue;
                     }
                     
                     if(type=="sign_up"){
-                        thread_pool.enqueue([this, fd, j]() {
-                            sign_up_msg(fd, j);
+                        thread_pool.enqueue([this,j]() {
+                            sign_up_msg(j);
                             sem_post(&this->sem);  // 通过 this 访问成员变量
                         });
                         continue;
                     }
 
                     if(type=="log_in"){
-                        thread_pool.enqueue([this, fd, j]() {
-                            bool success = log_in_msg(fd, j,this->token);
-                            this->login_success.store(success);
+                        thread_pool.enqueue([this,j]() {
+                            bool success_if = log_in_msg(j,this->token);
+                            this->login_success.store(success_if);
                             sem_post(&this->sem);  // 通过 this 访问成员变量
                         });
+                        continue;
+                    }
+
+
+
+
+
+
+
+                    if(type=="destory_account"){
+                        thread_pool.enqueue([this, fd, j]() {
+                            destory_account_msg(fd, j,this->token);
+                            
+                            sem_post(&this->sem);  // 通过 this 访问成员变量
+                        });
+
+
+
+                        // 帐号密码错误
+                        // cout<<"成功注销"<<endl;
+                        
+                        // 成功后记得
+                        //login_success.store(false);
+                        //state=main_menu;
+
+            // 记得用waiting等待输出|||||||||||||||||            
+                        continue;
+                    }
+
+                    if(type=="quit_account"){
+                        thread_pool.enqueue([this]() {
+                            quit_account_msg();
+                            sem_post(&this->sem);  // 通过 this 访问成员变量
+                        });
+
+
+                            // login_success.store(false);
+                            // state=main_menu;
+                            // flushInput();
+                            // waiting();
+                       // 成功失败都要再这里面实现交互逻辑
+                        continue;
+                    }
+
+                    if(type=="username_view"){
+                        thread_pool.enqueue([this, fd, j]() {
+                            username_view_msg(fd, j,this->token);
+                            
+                            sem_post(&this->sem);  // 通过 this 访问成员变量
+                        });
+
+
+
+
+                        continue;
+                    }
+
+                    if(type=="username_change"){
+                        thread_pool.enqueue([this, fd, j]() {
+                            username_change_msg(fd, j,this->token);
+                            
+                            sem_post(&this->sem);  // 通过 this 访问成员变量
+                        });
+
+
+
+                        continue;
+                    }
+
+                    if(type=="password_change"){
+                        thread_pool.enqueue([this, fd, j]() {
+                            password_change_msg(fd, j,this->token);
+                            
+                            sem_post(&this->sem);  // 通过 this 访问成员变量
+                        });
+                            // 要有修改密码成功的提示，用waiting
+
+
                         continue;
                     }
 
@@ -250,12 +319,12 @@ void Client::user_thread_func() {
 
         // 登录过期检测
         if (!login_success.load() && state != main_menu) {
-            std::cout << "登录已过期，请重新登录。" << std::endl;
+            std::cout << "请重新登录。" << std::endl;
 
 
             // 不知道哪里清除
 
-            
+
             // current_UID.clear();          // 清除登录状态
             token.clear();                   // 清除token
             state = main_menu;               // 返回登录页
@@ -313,8 +382,8 @@ void Client::user_thread_func() {
                 switch (m)
                 {
                 case 1: state=next11_menu; break;    
-                case 2: destory_account(state,login_success); break;
-                case 3: quit_account(state,login_success); break;
+                case 2: destory_account(sock,state,login_success,token,sem); break;
+                case 3: quit_account(sock,state,login_success,token,sem); break;
                 case 4: state=next_menu; break;
                 default:
                     cout << "无效数字" << endl;

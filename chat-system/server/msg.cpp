@@ -197,8 +197,13 @@ void log_in_msg(int fd, const json &request) {
 
 
 
+// void destory_account_msg(int fd, const json &request)
 
 
+
+// resp["type"] = type;
+// resp["status"] = "error";
+// resp["msg"] = "Invalid or expired token.";
 
 
 

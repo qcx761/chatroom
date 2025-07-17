@@ -86,6 +86,19 @@ void SubReactor::run() {
             std::string token = request.value("token", "");
             std::string username;
             if (token.empty() || !verify_token(token, username)) {
+
+
+
+
+// 去掉redis中的缓存来消除上线状态
+
+
+
+
+
+
+
+
                 json resp;
                 resp["type"] = type;
                 resp["status"] = "error";
@@ -95,14 +108,100 @@ void SubReactor::run() {
             }
             
             
-            if(type==""){
+            if(type=="destory_account"){
+                // thread_pool->enqueue([fd, request]() {
+                //     destory_account_msg(fd,request);
+                // });
 
 
 
 
 
 
+                continue;
 
+            }else if(type=="quit_account"){
+
+
+
+
+
+                
+
+
+                continue;
+
+            }else if(type=="username_view"){
+
+
+
+
+
+                
+                continue;
+
+            }else if(type=="username_change"){
+
+
+
+
+
+
+                continue;
+
+            }else if(type=="password_change"){
+
+
+
+
+
+
+            continue;
+
+            }else if(type==""){
+
+
+
+
+
+
+            continue;
+
+            }else if(type==""){
+
+
+
+
+            continue;
+
+            }else if(type==""){
+
+
+
+
+
+                continue;
+
+            }else if(type==""){
+
+
+
+
+
+                
+
+
+                continue;
+
+            }else if(type==""){
+
+
+
+
+
+                
+
+                continue;
 
 
             }else if(type==""){
@@ -114,46 +213,7 @@ void SubReactor::run() {
                 
 
 
-
-            }else if(type==""){
-
-
-
-
-
-                
-
-
-
-            }else if(type==""){
-
-
-
-
-
-                
-
-
-
-            }else if(type==""){
-
-
-
-
-
-                
-
-
-
-            }else if(type==""){
-
-
-
-
-
-                
-
-
+                continue;
 
             }else{
                 // 处理错误逻辑

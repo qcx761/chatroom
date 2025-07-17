@@ -14,7 +14,7 @@ void error_msg(int fd, const json &response) {
 }
 
 // 处理服务端返回的登录响应
-bool log_in_msg(int fd, const json &response,std::string& token) {
+bool log_in_msg(const json &response,std::string& token) {
     std::string status = response.value("status", "error");
     std::string msg = response.value("msg", "未知错误");
 
@@ -37,7 +37,7 @@ bool log_in_msg(int fd, const json &response,std::string& token) {
 }
 
 // 处理服务端返回的注册响应
-void sign_up_msg(int fd, const json &response) {
+void sign_up_msg(const json &response) {
     std::string status = response.value("status", "error");
     std::string msg = response.value("msg", "未知错误");
 
@@ -50,3 +50,38 @@ void sign_up_msg(int fd, const json &response) {
         std::cerr << "[注册错误] " << msg << std::endl;
     }
 }
+
+void destory_account_msg(){
+    std::string status = response.value("status", "error");
+    std::string msg = response.value("msg", "未知错误");
+
+    if (status == "success") {
+        std::cout << "[注销成功] " << msg << std::endl;
+        
+    } else if (status == "fail") {
+        std::cout << "[注册失败] " << msg << std::endl;
+    } else {
+        std::cerr << "[注册错误] " << msg << std::endl;
+    }
+
+}
+void quit_account_msg(){
+
+
+}
+void username_view_msg(){
+
+
+}
+void username_change_msg(){
+
+
+}
+void password_change_msg(){
+
+
+}
+
+resp["type"] = type;
+resp["status"] = "error";
+resp["msg"] = "Invalid or expired token.";

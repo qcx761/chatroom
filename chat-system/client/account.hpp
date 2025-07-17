@@ -19,11 +19,11 @@ void sign_up(int sock,sem_t& sem);
 string get_password(const string& prompt);
 void main_menu_ui(int sock,sem_t& sem,std::atomic<bool>& login_success);
 
-void destory_account(MenuState& state,std::atomic<bool>& login_success);
-void quit_account(MenuState& state,std::atomic<bool>& login_success);
-void username_view();
-void username_change();
-void password_change();
+void destory_account(int sock,MenuState& state,std::atomic<bool>& login_success,string token,sem_t sem);
+void quit_account(int sock,MenuState& state,std::atomic<bool>& login_success,string token,sem_t sem);
+void username_view(int sock,string token,sem_t sem);
+void username_change(int sock,string token,sem_t sem);
+void password_change(int sock,string token,sem_t sem);
 
 
 
