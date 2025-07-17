@@ -14,17 +14,17 @@ void error_msg(int fd, const json &response) {
 }
 
 // 处理服务端返回的登录响应
-bool log_in_msg(int fd, const json &response) {
+bool log_in_msg(int fd, const json &response,std::string& token) {
     std::string status = response.value("status", "error");
     std::string msg = response.value("msg", "未知错误");
 
     if (status == "success") {
         std::cout << "[登录成功] " << msg << std::endl;
-        std::string token = response.value("token", "");
-        if (!token.empty()) {
+        std::string tokenn = response.value("token", "");
+        if (!tokenn.empty()) {
             // 保存token，供后续请求使用
-            // 例如保存到客户端变量或文件
-            std::cout << "收到Token: " << token << std::endl;
+            token=tokenn;
+            std::cout << "收到Token: " << tokenn << std::endl;
         }
         return true;
     } else if (status == "fail") {

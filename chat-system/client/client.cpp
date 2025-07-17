@@ -140,7 +140,7 @@ void Client::epoll_thread_func(){
 
                     if(type=="log_in"){
                         thread_pool.enqueue([this, fd, j]() {
-                            bool success = log_in_msg(fd, j);
+                            bool success = log_in_msg(fd, j,this->token);
                             this->login_success.store(success);
                             sem_post(&this->sem);  // 通过 this 访问成员变量
                         });
@@ -255,8 +255,9 @@ void Client::user_thread_func() {
 
             // 不知道哪里清除
 
-            // current_UID.clear();             // 清除登录状态
-
+            
+            // current_UID.clear();          // 清除登录状态
+            token.clear();                   // 清除token
             state = main_menu;               // 返回登录页
             waiting();                       // 等待用户确认
             continue;

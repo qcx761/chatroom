@@ -1,152 +1,253 @@
-#include "server.hpp"
-// #include "../log/logger.hpp"
-// #include "../threadpool/threadpool.hpp"
+#include "json.hpp"
+#include "msg.hpp"
 
-using namespace std;
+using json = nlohmann::json;
+using namespace sw::redis;
 
-// 记录等级为 DEBUG 及以上的所有日志”写入 client.log 文件中
-Server::Server(int Port) : port(Port) ,thread_pool(thread_count),logger(Logger::Level::DEBUG, "server.log")
-{
-    listen_fd = socket(AF_INET, SOCK_STREAM, 0);
-    if (listen_fd < 0)
-    {
-        LOG_ERROR(logger, "socket failed");
-        exit(1);
+
+// 获取MySQL连接
+std::shared_ptr<sql::Connection> get_mysql_connection() {
+    sql::mysql::MySQL_Driver* driver = sql::mysql::get_mysql_driver_instance();
+    auto conn = std::shared_ptr<sql::Connection>(driver->connect("tcp://127.0.0.1:3306", "qcx", "qcx761"));
+    conn->setSchema("chatroom");  // 你的数据库名
+    return conn;
+}
+
+// 生成32位随机Token字符串
+std::string generate_token() {
+    static const char charset[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+    static std::default_random_engine engine(std::random_device{}());
+    static std::uniform_int_distribution<size_t> dist(0, sizeof(charset) - 2);
+
+    std::stringstream ss;   
+    for (int i = 0; i < 32; ++i) {
+        ss << charset[dist(engine)];
     }
-    int opt = 1;
-    setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+    return ss.str();
+}
 
-    sockaddr_in addr{};
-    socklen_t addr_len = sizeof(addr);
-    addr.sin_family = AF_INET;
-    addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    addr.sin_port = htons(Port);
-
-    if (bind(listen_fd, (sockaddr *)&addr, addr_len) < 0)
-    {
-        LOG_ERROR(logger, "bind failed");
-        close(listen_fd);
-        exit(1);
+// 验证token是否有效
+bool verify_token(const std::string& token, std::string& out_account) {
+    try {
+        Redis redis("tcp://127.0.0.1:6379");
+        std::string token_key = "token:" + token;
+        auto val = redis.get(token_key);
+        if (val) {
+            out_account = *val;
+            return true;
+        } else {
+            return false; // token 不存在或过期
+        }
+    } catch (const std::exception& e) {
+        std::cerr << "Redis error: " << e.what() << std::endl;
+        return false;
     }
+}
 
-    if (listen(listen_fd, 10) < 0)
-    {
-        LOG_ERROR(logger, "listen failed");
+// 注册处理函数
+void sign_up_msg(int fd, const json &request) {
+    json response;
+    std::string account = request.value("account", "");
+    std::string username = request.value("username", "");
+    std::string password = request.value("password", "");
 
-        close(listen_fd);
-        exit(1);
-    }
-
-    epfd = epoll_create1(0);
-    if (epfd == -1)
-    {
-        LOG_ERROR(logger, "epoll_create failed");
-        close(listen_fd);
-        exit(1);
-    }
-
-    epoll_event ev{};
-    ev.events = EPOLLIN | EPOLLET;
-    ev.data.fd = listen_fd;
-    if (epoll_ctl(epfd, EPOLL_CTL_ADD, listen_fd, &ev) == -1)
-    {
-        LOG_ERROR(logger, "epoll_ctl ADD server_fd failed");
-        close(listen_fd);
-        close(epfd);
-        exit(1);
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-    epoll_event events[MAX_EVENTS];
-        while (1) {
-            int n = epoll_wait(epfd, events, MAX_EVENTS, -1);
-            if (n == -1) {
-                if (errno == EINTR) {
-                    continue;
-                }
-                LOG_ERROR(logger, "epoll_wait failed");
-                break;
-            }
-            for (int i = 0; i < n; i++) {
-                int fd = events[i].data.fd;
-                uint32_t evs = events[i].events;
-
-                if ((evs & EPOLLERR) || (evs & EPOLLHUP) || (evs & EPOLLRDHUP)) {
-                    close(fd);
-                    continue;
-                }
-
-                if (fd == listen_fd) { // 客户端连接
-                    sockaddr_in client_addr{};
-                    socklen_t client_len = sizeof(client_addr);
-                    int client_fd = accept(listen_fd, (sockaddr*)&client_addr, &client_len);
-
-                    if (client_fd == -1) {
-                        if (errno == EAGAIN || errno == EWOULDBLOCK) {
-                LOG_ERROR(logger, "client_accpet failed");
-                            break;
-                        }
-                    }
-
-                    // set_nonblocking(client_fd);
-                        int flags = fcntl(client_fd, F_GETFL, 0);
-    if (flags == -1) {
-        LOG_ERROR(logger, "fcntl F_GETFL failed");
-
+    if (account.empty() || username.empty() || password.empty()) {
+        response["type"] = "sign_up";
+        response["status"] = "error";
+        response["msg"] = "Account, username or password cannot be empty";
+        send_json(fd, response);
         return;
     }
-    if (fcntl(client_fd, F_SETFL, flags | O_NONBLOCK) == -1) {
-        LOG_ERROR(logger, "fcntl F_GETFL failed");
 
-    }
+    try {
+        auto conn = get_mysql_connection();
 
-                    epoll_event client_ev{};
-                    client_ev.events = EPOLLIN | EPOLLET | EPOLLRDHUP | EPOLLERR;
-                    client_ev.data.fd = client_fd;
+        // 检查 account 是否存在
+        auto check_account_stmt = std::unique_ptr<sql::PreparedStatement>(
+            conn->prepareStatement("SELECT COUNT(*) FROM users WHERE account = ?"));
+        check_account_stmt->setString(1, account);
+        auto res_account = check_account_stmt->executeQuery();
+        res_account->next();
 
-                    if (epoll_ctl(epfd, EPOLL_CTL_ADD, client_fd, &client_ev) == -1) {
-                        LOG_ERROR(logger, "epoll_ctl ADD client_fd failed");
-                        close(client_fd);
-                    }
+        if (res_account->getInt(1) > 0) {
+            response["type"] = "sign_up";
+            response["status"] = "fail";
+            response["msg"] = "Account already exists";
+        } else {
+            // 检查 username 是否存在
+            auto check_username_stmt = std::unique_ptr<sql::PreparedStatement>(
+                conn->prepareStatement("SELECT COUNT(*) FROM users WHERE username = ?"));
+            check_username_stmt->setString(1, username);
+            auto res_username = check_username_stmt->executeQuery();
+            res_username->next();
 
-                    std::ostringstream oss;
-oss << "New control connection accepted: fd=" << client_fd;
+            if (res_username->getInt(1) > 0) {
+                response["type"] = "sign_up";
+                response["status"] = "fail";
+                response["msg"] = "Username already exists";
+            } else {
+                // 插入新用户
+                auto insert_stmt = std::unique_ptr<sql::PreparedStatement>(
+                    conn->prepareStatement("INSERT INTO users (account, username, password) VALUES (?, ?, ?)"));
+                insert_stmt->setString(1, account);
+                insert_stmt->setString(2, username);
+                insert_stmt->setString(3, password);  // 注意：建议密码哈希存储
+                insert_stmt->executeUpdate();
 
-
-
-LOG_INFO(logger, oss.str());
-
-
-
-                } else if(evs&EPOLLOUT) {
-                    // 执行客户端的要求
-                }else{
-                    
-                }
+                response["type"] = "sign_up";
+                response["status"] = "success";
+                response["msg"] = "Registered successfully";
             }
         }
+    } catch (const std::exception &e) {
+        response["type"] = "sign_up";
+        response["status"] = "error";
+        response["msg"] = std::string("Exception: ") + e.what();
+    }
 
-                                // 心跳检测在哪里实现
+    // 重试发送
+    int n;
+    do {
+        n = send_json(fd, response);
+    } while (n != 0);
 }
 
-Server::~Server()
-{
-    close(epfd);
-    close(listen_fd);
+// 登录处理函数
+void log_in_msg(int fd, const json &request) {
+    json response;
+    std::string account = request.value("account", "");
+    std::string password = request.value("password", "");
+
+    if (account.empty() || password.empty()) {
+        response["type"] = "log_in";
+        response["status"] = "error";
+        response["msg"] = "Account or password cannot be empty";
+        send_json(fd, response);
+        return;
+    }
+
+    try {
+        auto conn = get_mysql_connection();
+
+        auto stmt = std::unique_ptr<sql::PreparedStatement>(
+            conn->prepareStatement("SELECT password FROM users WHERE account = ?"));
+        stmt->setString(1, account);
+        auto res = stmt->executeQuery();
+
+        if (!res->next()) {
+            response["type"] = "log_in";
+            response["status"] = "fail";
+            response["msg"] = "Account not found";
+            send_json(fd, response);
+            return;
+        }
+
+        std::string stored_pass = res->getString("password");
+        if (stored_pass != password) {
+            response["type"] = "log_in";
+            response["status"] = "fail";
+            response["msg"] = "Incorrect password";
+            send_json(fd, response);
+            return;
+        }
+
+        // 密码正确，生成token，存redis
+        Redis redis("tcp://127.0.0.1:6379");
+        std::string token = generate_token();
+        std::string token_key = "token:" + token;
+        redis.set(token_key, account);
+        redis.expire(token_key, 3600);  // 1小时有效期
+
+        response["type"] = "log_in";
+        response["status"] = "success";
+        response["msg"] = "Login successful";
+        response["token"] = token;
+    } catch (const std::exception &e) {
+        response["type"] = "log_in";
+        response["status"] = "error";
+        response["msg"] = std::string("Exception: ") + e.what();
+    }
+
+
+
+    // 重试发送
+    int n;
+    do {
+        n = send_json(fd, response);
+    } while (n != 0);
 }
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void error_msg(int fd, const nlohmann::json &request){
+    json response;
+    response["type"] = "error";
+    response["msg"] = "Unrecognized request type";
+    send_json(fd, response);
+}
+
+
+
+// 登出函数
+void log_out_msg(const std::string& token) {
+    try {
+        Redis redis("tcp://127.0.0.1:6379");
+        std::string token_key = "token:" + token;
+        redis.del(token_key);
+    } catch (const std::exception& e) {
+        std::cerr << "Logout error: " << e.what() << std::endl;
+    }
+}
 
 

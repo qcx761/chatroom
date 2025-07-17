@@ -9,4 +9,4 @@ using namespace sw::redis;
 
 void error_msg(int fd,const json &request);
 void sign_up_msg(int fd, const json &request);
-bool log_in_msg(int fd, const json &request);
+bool log_in_msg(int fd, const json &request,std::string& token);

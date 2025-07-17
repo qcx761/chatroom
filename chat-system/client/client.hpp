@@ -55,6 +55,9 @@ public:
 
 
 private:
+
+std::string token;  // 存储token
+
     int epfd=-1;
     int sock=-1;
     int port;
