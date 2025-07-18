@@ -117,7 +117,7 @@ void Client::epoll_thread_func(){
                         cout <<"登录超时请重新登录。"<<endl;
                         waiting();
                         login_success.store(false);  // 判断登录
-                        sem_post(&sem);  
+                        // sem_post(&sem);  
                         continue;
                     }
                     
@@ -138,40 +138,14 @@ void Client::epoll_thread_func(){
                         continue;
                     }
 
-                        
-
-
-
-
-
-
-
-
-
-
                     if(type=="destory_account"){
                         thread_pool.enqueue([this,j]() {
                             destory_account_msg(j);
-
-
-                            // waiting???
-
                             state=main_menu;
                             login_success.store(false);
                             token.clear();
-                            sem_post(&this->sem);  // 通过 this 访问成员变量
-                        });
-
-
-
-                        // 帐号密码错误
-                        // cout<<"成功注销"<<endl;
-                        
-                        // 成功后记得
-                        //login_success.store(false);
-                        //state=main_menu;
-
-            // 记得用waiting等待输出|||||||||||||||||            
+                            sem_post(&this->sem);
+                        });         
                         continue;
                     }
 
@@ -181,40 +155,24 @@ void Client::epoll_thread_func(){
                             state=main_menu;
                             login_success.store(false);
                             token.clear();
-                            sem_post(&this->sem);  // 通过 this 访问成员变量
+                            sem_post(&this->sem);
                         });
-
-
-                            // login_success.store(false);
-                            // state=main_menu;
-                            // flushInput();
-                            // waiting();
-                       // 成功失败都要再这里面实现交互逻辑
                         continue;
                     }
 
                     if(type=="username_view"){
                         thread_pool.enqueue([this,j]() {
                             username_view_msg(j);
-                            
-                            sem_post(&this->sem);  // 通过 this 访问成员变量
+                            sem_post(&this->sem);        
                         });
-
-
-
-
                         continue;
                     }
 
                     if(type=="username_change"){
                         thread_pool.enqueue([this, j]() {
                             username_change_msg(j);
-                            
                             sem_post(&this->sem);  // 通过 this 访问成员变量
                         });
-
-
-
                         continue;
                     }
 
@@ -224,14 +182,85 @@ void Client::epoll_thread_func(){
                             state=main_menu;
                             login_success.store(false);
                             token.clear();
-                            
                             sem_post(&this->sem);  // 通过 this 访问成员变量
                         });
-                            // 要有修改密码成功的提示，用waiting
-
-
                         continue;
                     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    if(type==""){
+                        thread_pool.enqueue([this,j]() {
+                            //_msg(j);
+                            //state=main_menu;
+                            //login_success.store(false);
+                            //token.clear();
+                            sem_post(&this->sem);  // 通过 this 访问成员变量
+                        });
+                        continue;
+                    }    
+                    
+                    if(type==""){
+                        thread_pool.enqueue([this,j]() {
+                            //_msg(j);
+                            //state=main_menu;
+                            //login_success.store(false);
+                            //token.clear();
+                            sem_post(&this->sem);  // 通过 this 访问成员变量
+                        });
+                        continue;
+                    } 
+
+                    if(type==""){
+                        thread_pool.enqueue([this,j]() {
+                            //_msg(j);
+                            //state=main_menu;
+                            //login_success.store(false);
+                            //token.clear();
+                            sem_post(&this->sem);  // 通过 this 访问成员变量
+                        });
+                        continue;
+                    } 
+
+                    if(type==""){
+                        thread_pool.enqueue([this,j]() {
+                            //_msg(j);
+                            //state=main_menu;
+                            //login_success.store(false);
+                            //token.clear();
+                            sem_post(&this->sem);  // 通过 this 访问成员变量
+                        });
+                        continue;
+                    } 
+
+                    if(type==""){
+                        thread_pool.enqueue([this,j]() {
+                            //_msg(j);
+                            //state=main_menu;
+                            //login_success.store(false);
+                            //token.clear();
+                            sem_post(&this->sem);  // 通过 this 访问成员变量
+                        });
+                        continue;
+                    } 
 
                     if(type==""){
                                         
@@ -377,11 +406,17 @@ void Client::user_thread_func() {
                 switch (m)
                 {
                 case 1: state=next1_menu; break; // 进入个人中心
-                case 2: 
+                case 2: state=next2_menu; break;
+
+
+
+
                 case 3: 
                 case 4: 
-                case 5: 
-                case 6: 
+
+
+
+
                 default:
                     cout << "无效数字" << endl;
                     flushInput(); // 去除数字后面的换行符
@@ -403,23 +438,7 @@ void Client::user_thread_func() {
                 switch (m)
                 {
                 case 1: state=next11_menu; break; 
-                //在这里加上waiting（）
-                
-                
-
-
-
-
-
-
-
-
-
-
-
-
-
-                
+                // 注销账户要把所有东西清除
                 case 2: destory_account(sock,token,sem); break;
                 case 3: quit_account(sock,token,sem); break;
                 case 4: state=next_menu; break;
@@ -447,6 +466,90 @@ void Client::user_thread_func() {
                 case 2: username_change(sock,token,sem); break;
                 case 3: password_change(sock,token,sem); break;
                 case 4: state=next1_menu; break;
+                default:
+                    cout << "无效数字" << endl;
+                    flushInput(); // 去除数字后面的换行符
+                    waiting();
+                }
+                break;
+            }
+
+            case next2_menu:
+            {
+                int m;
+                show_next2_menu();
+                if (!(cin >> m)) {
+                    flushInput();
+                    cout << "无效的输入，请输入数字。" << endl;
+                    waiting();
+                    continue;
+                }
+                switch (m)
+                {
+                case 1: 
+                case 2: 
+                case 3: 
+                case 4: 
+                case 5: 
+                case 6: 
+                case 7: 
+                case 8: 
+                default:
+                    cout << "无效数字" << endl;
+                    flushInput(); // 去除数字后面的换行符
+                    waiting();
+                }
+                break;
+            }
+
+            case next21_menu:
+            {
+                int m;
+                show_next21_menu();
+                if (!(cin >> m)) {
+                    flushInput();
+                    cout << "无效的输入，请输入数字。" << endl;
+                    waiting();
+                    continue;
+                }
+                switch (m)
+                {
+                case 1: 
+                case 2: 
+                case 3: 
+                case 4: 
+                case 5: 
+                case 6: 
+                case 7: 
+                case 8: 
+                default:
+                    cout << "无效数字" << endl;
+                    flushInput(); // 去除数字后面的换行符
+                    waiting();
+                }
+                break;
+            }
+
+            case next22_menu:
+            {
+                int m;
+                show_next22_menu();
+                if (!(cin >> m)) {
+                    flushInput();
+                    cout << "无效的输入，请输入数字。" << endl;
+                    waiting();
+                    continue;
+                }
+                switch (m)
+                {
+                case 1: 
+                case 2: 
+                case 3: 
+                case 4: 
+                case 5: 
+                case 6: 
+                case 7: 
+                case 8: 
                 default:
                     cout << "无效数字" << endl;
                     flushInput(); // 去除数字后面的换行符

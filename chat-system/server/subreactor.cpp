@@ -82,94 +82,46 @@ void SubReactor::run() {
                 continue;
             }
             
-            // 校验 token
-            std::string token = request.value("token", "");
-            std::string username;
-            if (token.empty() || !verify_token(token, username)) {
-
-
-
-
-
-
-
-
-// 去掉redis中的缓存来消除上线状态
-
-
-
-
-
-
-
-
-                json resp;
-                resp["type"] = type;
-                resp["status"] = "error";
-                resp["msg"] = "Invalid or expired token.";
-                send_json(fd, resp);
-                continue;
-            }
+// 每次函数之前都验证就好了
+//             // 校验 token
+//             std::string token = request.value("token", "");
+//             std::string username;
+//             if (token.empty() || !verify_token(token, username)) {
+// // 去掉redis中的缓存来消除上线状态
+//                 json resp;
+//                 resp["type"] = type;
+//                 resp["status"] = "error";
+//                 resp["msg"] = "Invalid or expired token.";
+//                 send_json(fd, resp);
+//                 continue;
+//             }
             
             
             if(type=="destory_account"){
                 thread_pool->enqueue([fd, request]() {
                     destory_account_msg(fd,request);
                 });
-
-
-
-
-
-
                 continue;
-
             }else if(type=="quit_account"){
                 thread_pool->enqueue([fd, request]() {
                     quit_account_msg(fd,request);
                 });
-
-
-
-
-                
-
-
                 continue;
-
             }else if(type=="username_view"){
                 thread_pool->enqueue([fd, request]() {
                     username_view_msg(fd,request);
                 });
-
-
-
-
-                
                 continue;
-
             }else if(type=="username_change"){
                 thread_pool->enqueue([fd, request]() {
                     username_change_msg(fd,request);
                 });
-
-
-
-
-
                 continue;
-
             }else if(type=="password_change"){
                 thread_pool->enqueue([fd, request]() {
                     password_change_msg(fd,request);
                 });
-
-
-
-
-
                 continue;
-
             }else if(type==""){
 
 

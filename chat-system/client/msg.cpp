@@ -24,7 +24,7 @@ bool log_in_msg(const json &response,std::string& token) {
         if (!tokenn.empty()) {
             // 保存token，供后续请求使用
             token=tokenn;
-            std::cout << "收到Token: " << tokenn << std::endl;
+            // std::cout << "收到Token: " << tokenn << std::endl;
         }
         return true;
     } else if (status == "fail") {
@@ -51,39 +51,6 @@ void sign_up_msg(const json &response) {
     }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 void destory_account_msg(const json &response){
     std::string status = response.value("status", "error");
     std::string msg = response.value("msg", "未知错误");
@@ -98,6 +65,7 @@ void destory_account_msg(const json &response){
     }
 
 }
+
 void quit_account_msg(const json &response){
     std::string status = response.value("status", "error");
     std::string msg = response.value("msg", "未知错误");
@@ -110,13 +78,20 @@ void quit_account_msg(const json &response){
         std::cerr << "[退出错误] " << msg << std::endl;
     }
 
-
 }
+
+
+
+
+
+
+
+
+
 void username_view_msg(const json &response){
     std::string status = response.value("status", "error");
     std::string msg = response.value("msg", "未知错误");
     std::string username = response.value("username", "error");
-
 
     if (status == "success") {
         std::cout << "[查询成功] 帐号名为 :" << username << std::endl;
@@ -127,6 +102,7 @@ void username_view_msg(const json &response){
     }
 
 }
+
 void username_change_msg(const json &response){
     std::string status = response.value("status", "error");
     std::string msg = response.value("msg", "未知错误");
@@ -153,6 +129,27 @@ void password_change_msg(const json &response){
     }
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // resp["type"] = type;
 // resp["status"] = "error";

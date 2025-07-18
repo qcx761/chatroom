@@ -33,7 +33,7 @@ std::string generate_token() {
     return ss.str();
 }
 
-// 验证token是否有效（读取redis的json）
+// 验证token是否有效（读取redis的json），用token获取account
 bool verify_token(const std::string& token, std::string& out_account) {
     try {
         Redis redis("tcp://127.0.0.1:6379");
@@ -71,13 +71,14 @@ void sign_up_msg(int fd, const json &request) {
         auto conn = get_mysql_connection();
 
         // 检查 account 是否存在，使用 MySQL JSON 查询（假设字段名 info）
+        // 通过 conn->prepareStatement 预编译了一条 SQL 查询语句，语句里用 ? 作为占位符
         auto check_account_stmt = std::unique_ptr<sql::PreparedStatement>(
             conn->prepareStatement("SELECT COUNT(*) FROM users WHERE JSON_EXTRACT(info, '$.account') = ?"));
         check_account_stmt->setString(1, account);
         auto res_account = check_account_stmt->executeQuery();
-        res_account->next();
+        //res_account->next();
 
-        if (res_account->getInt(1) > 0) {
+        if (res_account->next()&&res_account->getInt(1) > 0) {
             response["type"] = "sign_up";
             response["status"] = "fail";
             response["msg"] = "Account already exists";
@@ -87,9 +88,9 @@ void sign_up_msg(int fd, const json &request) {
                 conn->prepareStatement("SELECT COUNT(*) FROM users WHERE JSON_EXTRACT(info, '$.username') = ?"));
             check_username_stmt->setString(1, username);
             auto res_username = check_username_stmt->executeQuery();
-            res_username->next();
+            // res_username->next();
 
-            if (res_username->getInt(1) > 0) {
+            if (res_username->next()&&res_username->getInt(1) > 0) {
                 response["type"] = "sign_up";
                 response["status"] = "fail";
                 response["msg"] = "Username already exists";
@@ -116,6 +117,8 @@ void sign_up_msg(int fd, const json &request) {
         response["msg"] = std::string("Exception: ") + e.what();
     }
 
+
+    // 直接send_json??
     int n;
     do {
         n = send_json(fd, response);
@@ -139,6 +142,7 @@ void log_in_msg(int fd, const json &request) {
     try {
         auto conn = get_mysql_connection();
 
+        // JSON_EXTRACT(json_doc, path)，用于从 JSON 字段中提取你想要的某个值
         auto stmt = std::unique_ptr<sql::PreparedStatement>(
             conn->prepareStatement("SELECT info FROM users WHERE JSON_EXTRACT(info, '$.account') = ?"));
         stmt->setString(1, account);
@@ -195,30 +199,6 @@ void log_in_msg(int fd, const json &request) {
     } while (n != 0);
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 void destory_account_msg(int fd, const json &request){
     json response;
     std::string token = request.value("token", "");
@@ -238,39 +218,284 @@ void destory_account_msg(int fd, const json &request){
         auto conn = get_mysql_connection();
         auto stmt = std::unique_ptr<sql::PreparedStatement>(
             conn->prepareStatement("SELECT id, info FROM users WHERE JSON_EXTRACT(info, '$.account') = ?"));
-        stmt->setString(1, account);
+        stmt->setString(1, account); // 绑定以第一个问号
+        auto res = stmt->executeQuery();
+        
+        if(!res->next()){
+            response["type"] = "destory_account";
+            response["status"] = "fail";
+            response["msg"] = "Account not found";
+        }else{
+            std::string info_str = res->getString("info");// 获取列名为info
+            json user_info = json::parse(info_str);
+            if(user_info.value("password", "") != password){
+                response["type"] = "destory_account";
+                response["status"] = "fail";
+                response["msg"] = "Incorrect password";
+            }else{
+                int id = res->getInt("id");
+                auto del_stmt = std::unique_ptr<sql::PreparedStatement>(
+                    conn->prepareStatement("DELETE FROM users WHERE id = ?"));
+                del_stmt->setInt(1, id); // 返回查询到的行
+                del_stmt->executeUpdate(); // 删除信息
+
+                Redis redis("tcp://127.0.0.1:6379");
+                redis.del("token:" + token); // 删除 Redis key
+
+                response["type"] = "destory_account";
+                response["status"] = "success";
+                response["msg"] = "Account deleted";
+            }
+        }
+    } catch (const std::exception &e) {
+        response["type"] = "destory_account";
+        response["status"] = "error";
+        response["msg"] = e.what();
     }
-
-
-
-
-
+    send_json(fd, response);
 }
-
-
-
-
-
-
 
 void quit_account_msg(int fd, const json &request){
-    ;
+    json response;
+    std::string token = request.value("token", "");
+
+    try {
+        Redis redis("tcp://127.0.0.1:6379");
+        redis.del("token:" + token);
+
+        response["type"] = "quit_account";
+        response["status"] = "success";
+        response["msg"] = "Logged out";
+    } catch (const std::exception &e) {
+        response["type"] = "quit_account";
+        response["status"] = "error";
+        response["msg"] = e.what();
+    }
+
+    send_json(fd, response);
+
 }
+
 void username_view_msg(int fd, const json &request){
-    ;
+    json response;
+    std::string token = request.value("token", "");
+    std::string account;
+
+    if (!verify_token(token, account)) {
+        response["type"] = "username_view";
+        response["status"] = "error";
+        response["msg"] = "Invalid or expired token";
+        send_json(fd, response);
+        return;
+    }
+
+    try {
+        auto conn = get_mysql_connection();
+        auto stmt = std::unique_ptr<sql::PreparedStatement>(
+            conn->prepareStatement("SELECT info FROM users WHERE JSON_EXTRACT(info, '$.account') = ?"));
+        stmt->setString(1, account);
+        auto res = stmt->executeQuery();
+
+        if (res->next()) {
+            json info = json::parse(res->getString("info").asStdString());
+
+            // json info = json::parse(res->getString("info"));
+            response["type"] = "username_view";
+            response["status"] = "success";
+            response["username"] = info["username"];
+            response["msg"] = "view success";
+        } else {
+            response["type"] = "username_view";
+            response["status"] = "fail";
+            response["msg"] = "User not found";
+        }
+    } catch (const std::exception &e) {
+        response["type"] = "username_view";
+        response["status"] = "error";
+        response["msg"] = std::string("Exception: ") + e.what();
+    }
+
+    send_json(fd, response);
 }
+
+
+
+
 void username_change_msg(int fd, const json &request){
-    ;
+    json response;
+    std::string token = request.value("token", "");
+    std::string new_username = request.value("username", "");
+    std::string account;
+
+    if (!verify_token(token, account)) {
+        response["type"] = "username_change";
+        response["status"] = "error";
+        response["msg"] = "Invalid or expired token";
+        send_json(fd, response);
+        return;
+    }
+
+    try {
+        auto conn = get_mysql_connection();
+
+        // 检查用户名是否已存在
+        auto check_stmt = std::unique_ptr<sql::PreparedStatement>(
+            conn->prepareStatement("SELECT COUNT(*) FROM users WHERE JSON_EXTRACT(info, '$.username') = ?"));
+        check_stmt->setString(1, new_username);
+        auto res_check = check_stmt->executeQuery();
+        res_check->next();
+        if (res_check->getInt(1) > 0) {
+            response["type"] = "username_change";
+            response["status"] = "fail";
+            response["msg"] = "Username already taken";
+            send_json(fd, response);
+            return;
+        }
+
+        // 查询当前 info
+        auto select_stmt = std::unique_ptr<sql::PreparedStatement>(
+            conn->prepareStatement("SELECT id, info FROM users WHERE JSON_EXTRACT(info, '$.account') = ?"));
+        select_stmt->setString(1, account);
+        auto res = select_stmt->executeQuery();
+        if (res->next()) {
+            int id = res->getInt("id");
+            json info = json::parse(std::string(res->getString("info")));
+
+            // json info = json::parse(res->getString("info"));
+            info["username"] = new_username;
+
+            auto update_stmt = std::unique_ptr<sql::PreparedStatement>(
+                conn->prepareStatement("UPDATE users SET info = ? WHERE id = ?"));
+            update_stmt->setString(1, info.dump());
+            update_stmt->setInt(2, id);
+            update_stmt->executeUpdate();
+
+            response["type"] = "username_change";
+            response["status"] = "success";
+            response["msg"] = "Username updated";
+        } else {
+            response["type"] = "username_change";
+            response["status"] = "fail";
+            response["msg"] = "Account not found";
+        }
+    } catch (const std::exception &e) {
+        response["type"] = "username_change";
+        response["status"] = "error";
+        response["msg"] = e.what();
+    }
+
+    // 修改redis
+    try {
+        auto redis = sw::redis::Redis("tcp://127.0.0.1:6379");
+        std::string token_key = "token:" + token;
+
+        std::string token_json_str = redis.get(token_key).value_or("");
+        if (!token_json_str.empty()) {
+            json token_info = json::parse(token_json_str);
+            token_info["username"] = new_username;
+            redis.set(token_key, token_info.dump());
+        }
+    } catch (const std::exception &e) {
+        std::cerr << "Redis update error: " << e.what() << std::endl;
+    }
+
+    send_json(fd, response);
 }
+
+
 void password_change_msg(int fd, const json &request){
-    ;
+    
+        json response;
+    std::string token = request.value("token", "");
+    std::string old_pass = request.value("old_password", "");
+    std::string new_pass = request.value("new_password", "");
+    std::string account;
+
+    if (!verify_token(token, account)) {
+        response["type"] = "password_change";
+        response["status"] = "error";
+        response["msg"] = "Invalid or expired token";
+        send_json(fd, response);
+        return;
+    }
+
+    try {
+        auto conn = get_mysql_connection();
+        auto select_stmt = std::unique_ptr<sql::PreparedStatement>(
+            conn->prepareStatement("SELECT id, info FROM users WHERE JSON_EXTRACT(info, '$.account') = ?"));
+        select_stmt->setString(1, account);
+        auto res = select_stmt->executeQuery();
+
+        if (res->next()) {
+            int id = res->getInt("id");
+            json info = json::parse(std::string(res->getString("info")));
+
+            // json info = json::parse(res->getString("info"));
+            if (info["password"] != old_pass) {
+                response["type"] = "password_change";
+                response["status"] = "fail";
+                response["msg"] = "Old password incorrect";
+            } else {
+                info["password"] = new_pass;
+                auto update_stmt = std::unique_ptr<sql::PreparedStatement>(
+                    conn->prepareStatement("UPDATE users SET info = ? WHERE id = ?"));
+                update_stmt->setString(1, info.dump());
+                update_stmt->setInt(2, id);
+                update_stmt->executeUpdate();
+
+                response["type"] = "password_change";
+                response["status"] = "success";
+                response["msg"] = "Password changed";
+            }
+        } else {
+            response["type"] = "password_change";
+            response["status"] = "fail";
+            response["msg"] = "Account not found";
+        }
+    } catch (const std::exception &e) {
+        response["type"] = "password_change";
+        response["status"] = "error";
+        response["msg"] = e.what();
+    }
+
+    send_json(fd, response);
 }
+
+
+
+
+
+// void _msg(int fd, const json &request){
+
+
+
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 // resp["type"] = type;
 // resp["status"] = "error";
 // resp["msg"] = "Invalid or expired token.";
+
+
+
+
+
 
 
 

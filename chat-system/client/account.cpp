@@ -71,7 +71,6 @@ void main_menu_ui(int sock,sem_t& sem,std::atomic<bool>& login_success) {
         }
     }
         // system("clear"); // 清屏
-        
 }
 
 void log_in(int sock,sem_t& sem) {
@@ -125,69 +124,24 @@ void sign_up(int sock,sem_t& sem) {
         }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-void destory_account(int sock,string token,sem_t sem){
+void destory_account(int sock,string token,sem_t& sem){
     system("clear");
     cout <<"注销函数 :" << endl;
     cout<<"确定要注销帐号吗(Y/N) :";
     char a;
     cin>>a;
     if(a=='Y'){
-
-
         string account,password;
-
         cout << "请输入帐号  :";
         cin >> account;
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');  // 防止影响后续 getline
-
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
         password = get_password("请输入密码   :");
-
-
-
-
         json j;
         j["type"] = "destory_account";
         j["token"] = token;
         j["account"]=account;
         j["password"]=password;
         send_json(sock, j);
-
-
-
-
-// 如果不在这里面实现记得不用传入参数
-
-        // login_success.store(false);
-        // state=main_menu;
-
-        // cout<<"成功注销"<<endl;
-
-
     }else if(a=='N'){
         return;
     }else{
@@ -195,90 +149,77 @@ void destory_account(int sock,string token,sem_t sem){
         waiting();
         return;
     }
-
-    flushInput();
-    waiting();
-
-
-
     sem_wait(&sem); // 等待信号量
-
-
-
-
-
+    waiting();
 }
 
-void quit_account(int sock,string token,sem_t sem){
-    // system("clear");
-    // cout <<"注销函数 :" << endl;
-    // cout<<"确定要退出帐号吗(Y/N) :";
-    
-// 处理在线状态之类的，退出函数
-
-// redis里面要注销在线缓存
+void quit_account(int sock,string token,sem_t& sem){
     json j;
     j["type"]="quit_account";
     j["token"]=token;
     send_json(sock,j);
-
-
-    // login_success.store(false);
-    // state=main_menu;
     sem_wait(&sem); // 等待信号量
+    flushInput();
+    waiting();
 }
 
-void username_view(int sock,string token,sem_t sem){
-    system("clear");
-    cout <<"显示用户名 :" ;
+void username_view(int sock,string token,sem_t& sem){
     json j;
     j["type"]="username_view";
     j["token"]=token;
     send_json(sock,j);
-    // 传递token来获取
     sem_wait(&sem); // 等待信号量
-    
+    flushInput();
+    waiting();
 }
-void username_change(int sock,string token,sem_t sem){
+
+void username_change(int sock,string token,sem_t& sem){
     system("clear");
     cout <<"修改用户名 :" << endl;
-    
     string username;
-    cout << "请输入用户名  :";
+    cout << "请输入想修改的用户名  :";
     cin >> username;
-    cin.ignore(numeric_limits<streamsize>::max(), '\n');  // 防止影响后续 getline
-
     json j;
     j["type"]="username_change";
     j["token"]=token;
     j["username"]=username;
     send_json(sock,j);
-    // 传递token来获取
     sem_wait(&sem); // 等待信号量
-
-
+    flushInput();
+    waiting();
 }
-void password_change(int sock,string token,sem_t sem){
+
+void password_change(int sock,string token,sem_t& sem){
     system("clear");
     cout <<"密码修改 :" << endl;
-
-    string password_new,password_old;
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    string password_new,password_old,password_new1;
 
     password_old = get_password("请输入旧密码   :");
-    password_new = get_password("请再次新密码:");
+    password_new = get_password("请输入新密码   :");
+    password_new1 = get_password("请再次输入新密码:");
 
+    if(password_new!=password_new1){
+        cout<<"两次密码不一样"<<endl;
+     waiting();
+
+        return;
+    }
     json j;
     j["type"]="password_change";
     j["token"]=token;
     j["old_password"]=password_old;
     j["new_password"]=password_new;
-
-
     send_json(sock,j);
-    // 传递token来获取
     sem_wait(&sem); // 等待信号量
-    
+    // flushInput();
+    waiting();
 }
+
+
+
+
+
 
 
 

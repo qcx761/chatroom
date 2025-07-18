@@ -9,18 +9,12 @@ void show_main_menu(){
         std::cout << "请输入你的选项：";
 }
 
-
 void show_next_menu(){
         system("clear");
         std::cout << "1. 个人中心" << std::endl;
-        std::cout << "2. 消息" << std::endl;
-        std::cout << "3. 接收文件" << std::endl;
-        std::cout << "4. 通讯录" << std::endl;
-        std::cout << "5. " << std::endl;
-        std::cout << "6. " << std::endl;
-        std::cout << "7. " << std::endl;
-        std::cout << "8. " << std::endl;
-
+        std::cout << "2. 好友与群聊管理" << std::endl;
+        //std::cout << "3. 文件接收" << std::endl;
+        //std::cout << "4. 信息通知" << std::endl;
         std::cout << "请输入你的选项：";
 }
 
@@ -44,9 +38,88 @@ void show_next11_menu(){
         std::cout << "请输入你的选项：";
 }
 
-// 多级菜单是如何实现的，要可以返回上级菜单
-// 或者比如最内层菜单是退出登录，我要可以直接返回初始菜单，要怎么实现
+
+
+
+
+
+
+
+
+
+
+
+// 好友与群聊管理
+void show_next2_menu(){
+        system("clear");
+        //std::cout << "1. 好友管理" << std::endl;
+        //std::cout << "2. 群管理" << std::endl;
+        //std::cout << "3. 好友申请" << std::endl;
+        //std::cout << "4. 群申请" << std::endl;
+        //std::cout << "5. 历史记录查询" << std::endl;
+        //std::cout << "6. 返回" << std::endl;
+        //std::cout << "7. " << std::endl;
+        //std::cout << "8. " << std::endl;
+        std::cout << "请输入你的选项：";
+}
+
+// 好友管理
+void show_next21_menu(){
+        system("clear");
+        //std::cout << "1. 好友列表" << std::endl; // 要实现好友查询，显示在线状态
+        //std::cout << "2. 添加好友" << std::endl;
+        //std::cout << "3. 删除好友" << std::endl;
+        //std::cout << "4. 私聊好友" << std::endl; // 必须是好友
+        //std::cout << "5. 解除屏蔽好友" << std::endl;
+        //std::cout << "6. 屏蔽好友" << std::endl; // 屏蔽信息
+        //std::cout << "7. 返回" << std::endl;
+        //std::cout << "8. " << std::endl;
+        std::cout << "请输入你的选项：";
+}
+
+// 群聊管理
+void show_next22_menu(){
+        system("clear");
+        //std::cout << "1. 群聊列表" << std::endl;
+        //std::cout << "2. 添加群聊" << std::endl;
+        //std::cout << "3. 退出群聊" << std::endl; // 要已加入
+        //std::cout << "4. 群成员列表" << std::endl;
+        //std::cout << "5. 文件发送" << std::endl;
+        //std::cout << "6. 群聊创建" << std::endl;
+        //std::cout << "7. 管理员设置" << std::endl; // 群主
+        //std::cout << "8. 管理员移除" << std::endl; // 群主
+        //std::cout << "9. 移除成员" << std::endl; // 群主 管理员
+        //std::cout << "10. 添加成员" << std::endl; // 群主 管理员
+        //std::cout << "11. 解散群" << std::endl; // 群主
+        //std::cout << "12. 返回" << std::endl;
+        std::cout << "请输入你的选项：";
+}
+
+// 文件接收
+void show_next3_menu(){
+;
+}
+
+// 信息通知
+void show_next4_menu(){
+        system("clear");
+        //std::cout << "1. 好友请求" << std::endl;
+        //std::cout << "2. 私聊" << std::endl;
+        //std::cout << "3. 群申请" << std::endl;
+        //std::cout << "4. " << std::endl;
+
+
+
+
+        //std::cout << "5. 返回" << std::endl;
+        std::cout << "请输入你的选项：";
+}
+
+
 // 退出登录，私聊，发送和查看好友请求，接收文件，黑名单，查询好友，删除好友，      
+// 1.退出登录2.私聊"3.发送好友请求" 4.查看好友请求"
+// 5.接受文件"6.黑名单操作"7.查询好友" 8.删除好友" 
+
 
 
 
@@ -55,17 +128,14 @@ void show_next11_menu(){
 // 实现登录、注册、注销
 // 实现通过验证码登录/注册/密码找回（邮件/手机号等）（提高）
 // 实现数据加密（提高）
+
 // 好友管理
+
 // 实现好友的添加、删除、查询操作
 // 实现显示好友在线状态
 // 禁止不存在好友关系的用户间的私聊
 // 实现屏蔽好友消息
 // 实现好友间聊天
-
-
-
-
-
 
 
 // 群管理
@@ -81,10 +151,6 @@ void show_next11_menu(){
 // 实现群组内聊天功能
 // 聊天功能
 // 对于 私聊和群组 的聊天功能均需要实现：
-
-
-
-
 
 
 // 实现查看历史消息记录
