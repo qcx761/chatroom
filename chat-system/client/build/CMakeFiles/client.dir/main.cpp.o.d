@@ -196,6 +196,7 @@ CMakeFiles/client.dir/main.cpp.o: \
  /usr/include/semaphore.h /usr/include/x86_64-linux-gnu/bits/semaphore.h \
  /usr/include/x86_64-linux-gnu/sys/epoll.h \
  /usr/include/x86_64-linux-gnu/bits/epoll.h \
+ /home/kong/plan/chartroom/chat-system/client/menu.hpp \
  /home/kong/plan/chartroom/chat-system/client/../log/logger.hpp \
  /home/kong/plan/chartroom/chat-system/client/../threadpool/threadpool.hpp \
  /usr/include/c++/13/vector /usr/include/c++/13/bits/stl_uninitialized.h \

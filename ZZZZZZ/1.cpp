@@ -1,164 +1,56 @@
-#include "account.hpp"
-#include "json.hpp"
+void destory_account_msg(int fd, const json &request){
+    json response;
+    std::string token = request.value("token", "");
+    std::string account = request.value("account", "");
+    std::string password = request.value("password", "");
 
-
-
-void waiting() {
-    cout << "按 Enter 键继续...";
-    cin.get();  // 等待按回车
-}
-
-void flushInput() {
-    cin.clear();
-    cin.ignore(numeric_limits<streamsize>::max(), '\n');
-}
-
-// 关闭终端回显，读一行密码
-string get_password(const string& prompt) {
-
-    struct termios oldt, newt;
-    cout << prompt;
-
-    // 获取当前终端属性
-    tcgetattr(STDIN_FILENO, &oldt);
-    newt = oldt;
-    // 关闭回显
-    newt.c_lflag &= ~ECHO;
-    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
-
-    string password;
-    getline(cin, password);
-
-    // 恢复终端属性
-    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
-    cout << endl;
-
-    return password;
-}
-
-void main_menu_ui(int sock,sem_t& sem) {
-
-
-
-    int n;
-    while (1) {
-        system("clear"); // 清屏
-        show_main_menu();
-
-        // cout << "请输入你的选项：";
-        if (!(cin >> n)) {
-            flushInput();
-            cout << "无效的输入，请输入数字。" << endl;
-            waiting();
-            continue;
-        }
-
-        switch (n) {
-        case 1:
-            log_in(sock,sem);
-            flushInput();
-            waiting();
-            break;
-        case 2:
-            sign_up(sock,sem);
-            flushInput();
-            waiting();
-            break;
-        case 3:
-            exit(0);
-        default:
-            cout << "无效数字" << endl;
-            flushInput();
-            waiting();
-            break;
-        }
+    std::string redis_account;
+    if (!verify_token(token, redis_account) || redis_account != account) {
+        response["type"] = "destory_account";
+        response["status"] = "error";
+        response["msg"] = "Invalid or expired token";
+        send_json(fd, response);
+        return;
     }
-}
 
-void log_in(int sock,sem_t& sem) {
-    system("clear");
-    cout << "登录" << endl;
-    json j;
-    j["type"] = "log_in";
+    try {
+        auto conn = get_mysql_connection();
+        auto stmt = std::unique_ptr<sql::PreparedStatement>(
+            conn->prepareStatement("SELECT id, info FROM users WHERE JSON_EXTRACT(info, '$.account') = ?"));
+        stmt->setString(1, account);
+        auto res = stmt->executeQuery();
 
-    string account, password;
-    cout << "请输入帐号   :";
-    cin >> account;
-    cin.ignore(numeric_limits<streamsize>::max(), '\n');  // 清理缓冲区换行符
-
-    password = get_password("请输入密码   :");
-
-    j["account"] = account;
-    j["password"] = password;
-    send_json(sock, j);
-
-
-
-
-
-
-
-
-    sem_wait(&sem); // 等待信号量
-
-
-
-
-
-
-
-}
-
-void sign_up(int sock,sem_t& sem) {
-    system("clear");
-    cout << "注册" << endl;
-    json j;
-    j["type"] = "sign_up";
-    string username,account, password_old, password_new;
-
-    while (1) {
-        cout << "请输入用户名 :";
-        cin >> username;
-        cin.ignore(numeric_limits<streamsize>::max(), '\n'); 
-
-        cout << "请输入帐号  :";
-        cin >> account;
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');  // 防止影响后续 getline
-
-        password_old = get_password("请输入密码   :");
-        password_new = get_password("请再次输入密码:");
-
-        if (password_new == password_old) {
-            break;
+        if (!res->next()) {
+            response["type"] = "destory_account";
+            response["status"] = "fail";
+            response["msg"] = "Account not found";
         } else {
-            cout << "两次密码不一样" << endl;
-            waiting();
-            system("clear");
-            cout << "注册" << endl;
+            std::string info_str = res->getString("info");
+            json user_info = json::parse(info_str);
+            if (user_info.value("password", "") != password) {
+                response["type"] = "destory_account";
+                response["status"] = "fail";
+                response["msg"] = "Incorrect password";
+            } else {
+                int id = res->getInt("id");
+                auto del_stmt = std::unique_ptr<sql::PreparedStatement>(
+                    conn->prepareStatement("DELETE FROM users WHERE id = ?"));
+                del_stmt->setInt(1, id);
+                del_stmt->executeUpdate();
+
+                Redis redis("tcp://127.0.0.1:6379");
+                redis.del("token:" + token);
+
+                response["type"] = "destory_account";
+                response["status"] = "success";
+                response["msg"] = "Account deleted";
+            }
         }
+    } catch (const std::exception &e) {
+        response["type"] = "destory_account";
+        response["status"] = "error";
+        response["msg"] = e.what();
     }
 
-    j["account"]  = account;
-    j["username"] = username;
-    j["password"] = password_old;
-    send_json(sock, j);
-
-
-
-
-
-    sem_wait(&sem); // 等待信号量
-
-
-
-
-
-
+    send_json(fd, response);
 }
-
-
-
-
-// 记得释放信号量
-// sem_post(&sem);
-//sem_destroy(sem_t *sem);

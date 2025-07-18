@@ -197,7 +197,74 @@ void log_in_msg(int fd, const json &request) {
 
 
 
-// void destory_account_msg(int fd, const json &request)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void destory_account_msg(int fd, const json &request){
+    json response;
+    std::string token = request.value("token", "");
+    std::string account = request.value("account", "");
+    std::string password = request.value("password", "");
+
+    std::string redis_account;
+    if (!verify_token(token, redis_account) || redis_account != account) {
+        response["type"] = "destory_account";
+        response["status"] = "error";
+        response["msg"] = "Invalid or expired token";
+        send_json(fd, response);
+        return;
+    }
+
+    try{
+        auto conn = get_mysql_connection();
+        auto stmt = std::unique_ptr<sql::PreparedStatement>(
+            conn->prepareStatement("SELECT id, info FROM users WHERE JSON_EXTRACT(info, '$.account') = ?"));
+        stmt->setString(1, account);
+    }
+
+
+
+
+
+}
+
+
+
+
+
+
+
+void quit_account_msg(int fd, const json &request){
+    ;
+}
+void username_view_msg(int fd, const json &request){
+    ;
+}
+void username_change_msg(int fd, const json &request){
+    ;
+}
+void password_change_msg(int fd, const json &request){
+    ;
+}
 
 
 

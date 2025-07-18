@@ -71,6 +71,8 @@
         "variant": "cpp",
         "list": "cpp",
         "source_location": "cpp",
-        "cinttypes": "cpp"
+        "cinttypes": "cpp",
+        "unordered_set": "cpp",
+        "shared_mutex": "cpp"
     }
 }

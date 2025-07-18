@@ -138,6 +138,11 @@ void Client::epoll_thread_func(){
                         continue;
                     }
 
+                        
+
+
+
+
 
 
 
@@ -145,9 +150,15 @@ void Client::epoll_thread_func(){
 
 
                     if(type=="destory_account"){
-                        thread_pool.enqueue([this, fd, j]() {
-                            destory_account_msg(fd, j,this->token);
-                            
+                        thread_pool.enqueue([this,j]() {
+                            destory_account_msg(j);
+
+
+                            // waiting???
+
+                            state=main_menu;
+                            login_success.store(false);
+                            token.clear();
                             sem_post(&this->sem);  // 通过 this 访问成员变量
                         });
 
@@ -165,8 +176,11 @@ void Client::epoll_thread_func(){
                     }
 
                     if(type=="quit_account"){
-                        thread_pool.enqueue([this]() {
-                            quit_account_msg();
+                        thread_pool.enqueue([this,j]() {
+                            quit_account_msg(j);
+                            state=main_menu;
+                            login_success.store(false);
+                            token.clear();
                             sem_post(&this->sem);  // 通过 this 访问成员变量
                         });
 
@@ -180,8 +194,8 @@ void Client::epoll_thread_func(){
                     }
 
                     if(type=="username_view"){
-                        thread_pool.enqueue([this, fd, j]() {
-                            username_view_msg(fd, j,this->token);
+                        thread_pool.enqueue([this,j]() {
+                            username_view_msg(j);
                             
                             sem_post(&this->sem);  // 通过 this 访问成员变量
                         });
@@ -193,8 +207,8 @@ void Client::epoll_thread_func(){
                     }
 
                     if(type=="username_change"){
-                        thread_pool.enqueue([this, fd, j]() {
-                            username_change_msg(fd, j,this->token);
+                        thread_pool.enqueue([this, j]() {
+                            username_change_msg(j);
                             
                             sem_post(&this->sem);  // 通过 this 访问成员变量
                         });
@@ -205,8 +219,11 @@ void Client::epoll_thread_func(){
                     }
 
                     if(type=="password_change"){
-                        thread_pool.enqueue([this, fd, j]() {
-                            password_change_msg(fd, j,this->token);
+                        thread_pool.enqueue([this,j]() {
+                            password_change_msg(j);
+                            state=main_menu;
+                            login_success.store(false);
+                            token.clear();
                             
                             sem_post(&this->sem);  // 通过 this 访问成员变量
                         });
@@ -298,7 +315,11 @@ void Client::epoll_thread_func(){
 
 void Client::user_thread_func() {
 
-  MenuState state = main_menu; // 初始化界面
+  // MenuState state = main_menu; // 初始化界面
+
+
+  state = main_menu; // 初始化界面
+
     
     // signal(SIGINT, SIG_IGN);   // 忽略 Ctrl+C (中断信号)
     // signal(SIGTERM, SIG_IGN);  // 忽略 kill 发送的终止信号
@@ -381,9 +402,26 @@ void Client::user_thread_func() {
                 }
                 switch (m)
                 {
-                case 1: state=next11_menu; break;    
-                case 2: destory_account(sock,state,login_success,token,sem); break;
-                case 3: quit_account(sock,state,login_success,token,sem); break;
+                case 1: state=next11_menu; break; 
+                //在这里加上waiting（）
+                
+                
+
+
+
+
+
+
+
+
+
+
+
+
+
+                
+                case 2: destory_account(sock,token,sem); break;
+                case 3: quit_account(sock,token,sem); break;
                 case 4: state=next_menu; break;
                 default:
                     cout << "无效数字" << endl;
@@ -405,9 +443,9 @@ void Client::user_thread_func() {
                 }
                 switch (m)
                 {
-                case 1: username_view(); break;
-                case 2: username_change(); break;
-                case 3: password_change(); break;
+                case 1: username_view(sock,token,sem); break;
+                case 2: username_change(sock,token,sem); break;
+                case 3: password_change(sock,token,sem); break;
                 case 4: state=next1_menu; break;
                 default:
                     cout << "无效数字" << endl;

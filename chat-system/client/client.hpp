@@ -15,6 +15,7 @@
 #include <sys/epoll.h>     
 #include <unistd.h>        
 
+#include"menu.hpp"
 
 #include "../log/logger.hpp"
 #include "../threadpool/threadpool.hpp"
@@ -57,6 +58,10 @@ public:
 private:
 
 std::string token;  // 存储token
+
+  std::atomic<MenuState> state;
+
+
 
     int epfd=-1;
     int sock=-1;

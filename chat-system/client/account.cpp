@@ -150,7 +150,7 @@ void sign_up(int sock,sem_t& sem) {
 
 
 
-void destory_account(int sock,MenuState& state,std::atomic<bool>& login_success,string token,sem_t sem){
+void destory_account(int sock,string token,sem_t sem){
     system("clear");
     cout <<"注销函数 :" << endl;
     cout<<"确定要注销帐号吗(Y/N) :";
@@ -191,7 +191,7 @@ void destory_account(int sock,MenuState& state,std::atomic<bool>& login_success,
     }else if(a=='N'){
         return;
     }else{
-        cout<< "未知输入，默认取消注销"<< endl;
+        cout<< "未知输入，取消注销"<< endl;
         waiting();
         return;
     }
@@ -209,7 +209,7 @@ void destory_account(int sock,MenuState& state,std::atomic<bool>& login_success,
 
 }
 
-void quit_account(int sock,MenuState& state,std::atomic<bool>& login_success,string token,sem_t sem){
+void quit_account(int sock,string token,sem_t sem){
     // system("clear");
     // cout <<"注销函数 :" << endl;
     // cout<<"确定要退出帐号吗(Y/N) :";
@@ -220,7 +220,7 @@ void quit_account(int sock,MenuState& state,std::atomic<bool>& login_success,str
     json j;
     j["type"]="quit_account";
     j["token"]=token;
-    send(sock,j);
+    send_json(sock,j);
 
 
     // login_success.store(false);
@@ -234,7 +234,7 @@ void username_view(int sock,string token,sem_t sem){
     json j;
     j["type"]="username_view";
     j["token"]=token;
-    send(sock,j);
+    send_json(sock,j);
     // 传递token来获取
     sem_wait(&sem); // 等待信号量
     
@@ -252,7 +252,7 @@ void username_change(int sock,string token,sem_t sem){
     j["type"]="username_change";
     j["token"]=token;
     j["username"]=username;
-    send(sock,j);
+    send_json(sock,j);
     // 传递token来获取
     sem_wait(&sem); // 等待信号量
 
@@ -264,8 +264,8 @@ void password_change(int sock,string token,sem_t sem){
 
     string password_new,password_old;
 
-    password_old = get_password("请输入密码   :");
-    password_new = get_password("请再次输入密码:");
+    password_old = get_password("请输入旧密码   :");
+    password_new = get_password("请再次新密码:");
 
     json j;
     j["type"]="password_change";
@@ -274,7 +274,7 @@ void password_change(int sock,string token,sem_t sem){
     j["new_password"]=password_new;
 
 
-    send(sock,j);
+    send_json(sock,j);
     // 传递token来获取
     sem_wait(&sem); // 等待信号量
     

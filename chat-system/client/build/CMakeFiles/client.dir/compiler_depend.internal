@@ -1678,6 +1678,7 @@ CMakeFiles/client.dir/main.cpp.o
  /home/kong/plan/chartroom/chat-system/log/logger.hpp
  /home/kong/plan/chartroom/chat-system/threadpool/threadpool.hpp
  /home/kong/plan/chartroom/chat-system/client/client.hpp
+ /home/kong/plan/chartroom/chat-system/client/menu.hpp
  /usr/include/alloca.h
  /usr/include/arpa/inet.h
  /usr/include/asm-generic/bitsperlong.h

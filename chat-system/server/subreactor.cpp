@@ -90,6 +90,10 @@ void SubReactor::run() {
 
 
 
+
+
+
+
 // 去掉redis中的缓存来消除上线状态
 
 
@@ -109,9 +113,9 @@ void SubReactor::run() {
             
             
             if(type=="destory_account"){
-                // thread_pool->enqueue([fd, request]() {
-                //     destory_account_msg(fd,request);
-                // });
+                thread_pool->enqueue([fd, request]() {
+                    destory_account_msg(fd,request);
+                });
 
 
 
@@ -121,7 +125,9 @@ void SubReactor::run() {
                 continue;
 
             }else if(type=="quit_account"){
-
+                thread_pool->enqueue([fd, request]() {
+                    quit_account_msg(fd,request);
+                });
 
 
 
@@ -132,7 +138,9 @@ void SubReactor::run() {
                 continue;
 
             }else if(type=="username_view"){
-
+                thread_pool->enqueue([fd, request]() {
+                    username_view_msg(fd,request);
+                });
 
 
 
@@ -141,7 +149,9 @@ void SubReactor::run() {
                 continue;
 
             }else if(type=="username_change"){
-
+                thread_pool->enqueue([fd, request]() {
+                    username_change_msg(fd,request);
+                });
 
 
 
@@ -150,29 +160,31 @@ void SubReactor::run() {
                 continue;
 
             }else if(type=="password_change"){
+                thread_pool->enqueue([fd, request]() {
+                    password_change_msg(fd,request);
+                });
 
 
 
 
 
-
-            continue;
-
-            }else if(type==""){
-
-
-
-
-
-
-            continue;
+                continue;
 
             }else if(type==""){
 
 
 
 
-            continue;
+
+
+                continue;
+
+            }else if(type==""){
+
+
+
+
+                continue;
 
             }else if(type==""){
 

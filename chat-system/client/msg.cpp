@@ -51,7 +51,40 @@ void sign_up_msg(const json &response) {
     }
 }
 
-void destory_account_msg(){
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void destory_account_msg(const json &response){
     std::string status = response.value("status", "error");
     std::string msg = response.value("msg", "未知错误");
 
@@ -59,29 +92,68 @@ void destory_account_msg(){
         std::cout << "[注销成功] " << msg << std::endl;
         
     } else if (status == "fail") {
-        std::cout << "[注册失败] " << msg << std::endl;
+        std::cout << "[注销失败] " << msg << std::endl;
     } else {
         std::cerr << "[注册错误] " << msg << std::endl;
     }
 
 }
-void quit_account_msg(){
+void quit_account_msg(const json &response){
+    std::string status = response.value("status", "error");
+    std::string msg = response.value("msg", "未知错误");
+
+    if (status == "success") {
+        std::cout << "[退出成功] " << msg << std::endl;
+    } else if (status == "fail") {
+        std::cout << "[退出失败] " << msg << std::endl;
+    } else {
+        std::cerr << "[退出错误] " << msg << std::endl;
+    }
 
 
 }
-void username_view_msg(){
+void username_view_msg(const json &response){
+    std::string status = response.value("status", "error");
+    std::string msg = response.value("msg", "未知错误");
+    std::string username = response.value("username", "error");
 
+
+    if (status == "success") {
+        std::cout << "[查询成功] 帐号名为 :" << username << std::endl;
+    } else if (status == "fail") {
+        std::cout << "[查询失败] " << msg << std::endl;
+    } else {
+        std::cerr << "[查询错误] " << msg << std::endl;
+    }
 
 }
-void username_change_msg(){
+void username_change_msg(const json &response){
+    std::string status = response.value("status", "error");
+    std::string msg = response.value("msg", "未知错误");
 
+    if (status == "success") {
+        std::cout << "[修改成功] " << msg << std::endl;
+    } else if (status == "fail") {
+        std::cout << "[修改失败] " << msg << std::endl;
+    } else {
+        std::cerr << "[修改错误] " << msg << std::endl;
+    }
 
 }
-void password_change_msg(){
+void password_change_msg(const json &response){
+    std::string status = response.value("status", "error");
+    std::string msg = response.value("msg", "未知错误");
 
+    if (status == "success") {
+        std::cout << "[修改成功] " << msg << std::endl;
+    } else if (status == "fail") {
+        std::cout << "[修改失败] " << msg << std::endl;
+    } else {
+        std::cerr << "[修改错误] " << msg << std::endl;
+    }
 
 }
 
-resp["type"] = type;
-resp["status"] = "error";
-resp["msg"] = "Invalid or expired token.";
+// resp["type"] = type;
+// resp["status"] = "error";
+// resp["msg"] = "Invalid or expired token.";

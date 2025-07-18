@@ -29,3 +29,8 @@ void log_in_msg(int fd, const json &request);
 
 
 
+void destory_account_msg(int fd, const json &request);
+void quit_account_msg(int fd, const json &request);
+void username_view_msg(int fd, const json &request);
+void username_change_msg(int fd, const json &request);
+void password_change_msg(int fd, const json &request);

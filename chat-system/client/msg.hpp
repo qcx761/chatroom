@@ -22,8 +22,8 @@ bool log_in_msg(const json &request,std::string& token);
 
 
 
-void destory_account_msg();
-void quit_account_msg();
-void username_view_msg();
-void username_change_msg();
-void password_change_msg();
+void destory_account_msg(const json &response);
+void quit_account_msg(const json &response);
+void username_view_msg(const json &response);
+void username_change_msg(const json &response);
+void password_change_msg(const json &response);
