@@ -10,6 +10,7 @@
         next2_menu,   // 通讯录
         next21_menu,  // 好友
         next22_menu,  // 群聊
+        next4_menu,   // 消息
 
 
 

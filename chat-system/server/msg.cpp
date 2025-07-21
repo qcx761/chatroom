@@ -905,8 +905,19 @@ void remove_friend_msg(int fd, const json& request) {
 
 
 
+// -- 1. 检查是否已发过好友请求
+// SELECT id FROM friend_requests
+// WHERE sender = 'alice' AND receiver = 'bob';
 
+// -- 2. 更新请求状态为已接受
+// UPDATE friend_requests
+// SET status = 'accepted'
+// WHERE sender = 'alice' AND receiver = 'bob';
 
+// -- 3. 查询某用户所有未处理请求
+// SELECT * FROM friend_requests
+// WHERE receiver = 'bob' AND status = 'pending'
+// ORDER BY timestamp DESC;
 
 
 
@@ -923,11 +934,6 @@ void remove_friend_msg(int fd, const json& request) {
 //     INDEX idx_sender_receiver (sender, receiver),              -- 联合索引，便于查重、更新状态
 //     INDEX idx_receiver_status (receiver, status)               -- 索引，便于查找所有待处理请求
 // );
-
-
-
-
-
 
 
 void add_friend_msg(int fd, const json& request) {
@@ -998,6 +1004,12 @@ void add_friend_msg(int fd, const json& request) {
 
     send_json(fd, response);
 }
+
+
+
+
+
+
 
 void get_friend_requests_msg(int fd, const json& request) {
     json response;

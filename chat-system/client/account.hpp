@@ -59,4 +59,5 @@ void unmute_friend(int sock,string token,sem_t& sem);
 void mute_friend(int sock,string token,sem_t& sem);
 
 
-handle_friend_request_msg(int sock,string token,sem_t& sem);
+void handle_friend_request_msg(int sock,string token,sem_t& sem);
+void show_friend_msg(int sock,string token,sem_t& sem);

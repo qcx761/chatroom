@@ -247,27 +247,41 @@ void Client::epoll_thread_func(){
 
 
 
-                    if(type==""){
+                    if(type=="handle_friend_request"){
                         thread_pool.enqueue([this,j]() {
-                            //_msg(j);
-                            //state=main_menu;
-                            //login_success.store(false);
-                            //token.clear();
+                            handle_friend_request_msg(j);
                             sem_post(&this->sem);
                         });
                         continue;
                     }
                 
-                    if(type==""){
+                    if(type=="show_friend_msg"){
                         thread_pool.enqueue([this,j]() {
-                            //_msg(j);
-                            //state=main_menu;
-                            //login_success.store(false);
-                            //token.clear();
+                            show_friend_msg_msg(j);
                             sem_post(&this->sem);
                         });
                         continue;
                     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                     if(type==""){
                         thread_pool.enqueue([this,j]() {
@@ -457,7 +471,7 @@ void Client::user_thread_func() {
 
 
                 case 3: 
-                case 4: 
+                case 4: state=next4_menu; break;
 
 
 
@@ -599,6 +613,30 @@ void Client::user_thread_func() {
                 case 10: 
                 case 11: 
                 case 12: 
+                default:
+                    cout << "无效数字" << endl;
+                    flushInput(); // 去除数字后面的换行符
+                    waiting();
+                }
+                break;
+            }
+
+            case next4_menu:
+            {
+                int m;
+                show_next4_menu();
+                if (!(cin >> m)) {
+                    flushInput();
+                    cout << "无效的输入，请输入数字。" << endl;
+                    waiting();
+                    continue;
+                }
+                switch (m)
+                {
+                case 1: show_friend_msg(sock,token,sem); break;
+                case 2: 
+                case 3: 
+                case 4: state=next_menu; break;
                 default:
                     cout << "无效数字" << endl;
                     flushInput(); // 去除数字后面的换行符

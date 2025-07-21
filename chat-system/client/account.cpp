@@ -340,25 +340,12 @@ void mute_friend(int sock,string token,sem_t& sem){
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-handle_friend_request_msg(int sock,string token,sem_t& sem){
+void handle_friend_request_msg(int sock,string token,sem_t& sem){
     system("clear");
-    
-// 再直接处理吗
+
+    json j;
+    j["type"]="handle_friend_request_msg";
+    j["token"]=token;
 
 
 
@@ -366,6 +353,25 @@ handle_friend_request_msg(int sock,string token,sem_t& sem){
 
 
     send_json(sock,j);
+    sem_wait(&sem);
+    // flushInput();
+    waiting();
+}
+
+
+
+void show_friend_msg(int sock,string token,sem_t& sem){
+    system("clear");
+
+    json j;
+    j["type"]="show_friend_msg";
+    j["token"]=token;
+
+
+
+
+
+        send_json(sock,j);
     sem_wait(&sem);
     // flushInput();
     waiting();

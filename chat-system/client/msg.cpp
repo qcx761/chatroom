@@ -178,7 +178,7 @@ void show_friend_list_msg(const json &response){
 }
 
 
-void add_friend(const json &response){
+void add_friend_msg(const json &response){
     // 可以列出好友列表
     
 
@@ -198,7 +198,8 @@ void add_friend(const json &response){
 
     ;
 }
-void remove_friend(const json &response){
+
+void remove_friend_msg(const json &response){
     std::string status = response.value("status", "error");
     std::string msg = response.value("msg", "未知错误");
 
@@ -211,7 +212,7 @@ void remove_friend(const json &response){
     }
 }
 
-void mute_friend(const json &response){
+void mute_friend_msg(const json &response){
     std::string status = response.value("status", "error");
     std::string msg = response.value("msg", "未知错误");
 
@@ -223,7 +224,8 @@ void mute_friend(const json &response){
         std::cerr << "[屏蔽错误] " << msg << std::endl;
     }
 }
-void unmute_friend(const json &response){
+
+void unmute_friend_msg(const json &response){
     std::string status = response.value("status", "error");
     std::string msg = response.value("msg", "未知错误");
 
@@ -242,7 +244,15 @@ void unmute_friend(const json &response){
 
 
 
+void handle_friend_request_msg_msg(const json &response){
+    ;
+}
 
+
+
+void show_friend_msg_msg(const json &response){
+    ;
+}
 
 
 

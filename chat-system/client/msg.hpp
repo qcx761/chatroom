@@ -32,8 +32,15 @@ void password_change_msg(const json &response);
 
 
 
-void show_friend_list_msg(const json &response);
-void add_friend(const json &response);
-void remove_friend(const json &response);
-void mute_friend(const json &response);
-void unmute_friend(const json &response);
+void show_friend_list_msg_msg(const json &response);
+void add_friend_msg(const json &response);
+void remove_friend_msg(const json &response);
+void mute_friend_msg(const json &response);
+void unmute_friend_msg(const json &response);
+
+
+
+
+
+void handle_friend_request_msg_msg(const json &response);
+void show_friend_msg_msg(const json &response);
