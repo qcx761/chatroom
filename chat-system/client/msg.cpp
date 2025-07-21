@@ -80,14 +80,6 @@ void quit_account_msg(const json &response){
 
 }
 
-
-
-
-
-
-
-
-
 void username_view_msg(const json &response){
     std::string status = response.value("status", "error");
     std::string msg = response.value("msg", "未知错误");
@@ -135,6 +127,114 @@ void password_change_msg(const json &response){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void show_friend_list_msg(const json &response){
+    std::string status = response.value("status", "error");
+    std::string msg = response.value("msg", "未知错误");
+
+    if (status == "success") {
+        // nlohmann::json 支持隐式把 STL 容器转换为 JSON 数组
+        auto friends = response["friends"];
+        for (const auto& f : friends) {
+            std::string account = f["account"];
+            std::string username = f["username"];
+            bool is_online = f["online"];
+            bool is_muted = f["muted"];
+
+
+            std::cout << username << " (" << account << ") is "
+            << (is_online ? " online" : "offline")
+            << (is_muted ? " [muted]" : "") << std::endl;
+        }
+    }else{
+        std::cerr << "[列出错误] " << msg << std::endl;
+    }
+
+}
+
+
+void add_friend(const json &response){
+    // 可以列出好友列表
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    ;
+}
+void remove_friend(const json &response){
+    std::string status = response.value("status", "error");
+    std::string msg = response.value("msg", "未知错误");
+
+    if (status == "success") {
+        std::cout << "[删除成功] " << msg << std::endl;
+    } else if (status == "fail") {
+        std::cout << "[删除失败] " << msg << std::endl;
+    } else {
+        std::cerr << "[删除错误] " << msg << std::endl;
+    }
+}
+
+void mute_friend(const json &response){
+    std::string status = response.value("status", "error");
+    std::string msg = response.value("msg", "未知错误");
+
+    if (status == "success") {
+        std::cout << "[屏蔽成功] " << msg << std::endl;
+    } else if (status == "fail") {
+        std::cout << "[屏蔽失败] " << msg << std::endl;
+    } else {
+        std::cerr << "[屏蔽错误] " << msg << std::endl;
+    }
+}
+void unmute_friend(const json &response){
+    std::string status = response.value("status", "error");
+    std::string msg = response.value("msg", "未知错误");
+
+    if (status == "success") {
+        std::cout << "[解除屏蔽成功] " << msg << std::endl;
+    } else if (status == "fail") {
+        std::cout << "[解除屏蔽失败] " << msg << std::endl;
+    } else {
+        std::cerr << "[解除屏蔽错误] " << msg << std::endl;
+    }
+}
 
 
 

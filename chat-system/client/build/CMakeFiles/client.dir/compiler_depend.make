@@ -1836,12 +1836,14 @@ CMakeFiles/client.dir/main.cpp.o: /home/kong/plan/chartroom/chat-system/client/m
   /usr/include/pthread.h \
   /usr/include/sched.h \
   /usr/include/semaphore.h \
+  /usr/include/signal.h \
   /usr/include/stdc-predef.h \
   /usr/include/stdint.h \
   /usr/include/stdio.h \
   /usr/include/stdlib.h \
   /usr/include/string.h \
   /usr/include/strings.h \
+  /usr/include/termios.h \
   /usr/include/time.h \
   /usr/include/unistd.h \
   /usr/include/wchar.h \
@@ -1879,9 +1881,22 @@ CMakeFiles/client.dir/main.cpp.o: /home/kong/plan/chartroom/chat-system/client/m
   /usr/include/x86_64-linux-gnu/bits/select.h \
   /usr/include/x86_64-linux-gnu/bits/semaphore.h \
   /usr/include/x86_64-linux-gnu/bits/setjmp.h \
+  /usr/include/x86_64-linux-gnu/bits/sigaction.h \
+  /usr/include/x86_64-linux-gnu/bits/sigcontext.h \
+  /usr/include/x86_64-linux-gnu/bits/sigevent-consts.h \
+  /usr/include/x86_64-linux-gnu/bits/siginfo-arch.h \
+  /usr/include/x86_64-linux-gnu/bits/siginfo-consts-arch.h \
+  /usr/include/x86_64-linux-gnu/bits/siginfo-consts.h \
+  /usr/include/x86_64-linux-gnu/bits/signal_ext.h \
+  /usr/include/x86_64-linux-gnu/bits/signum-arch.h \
+  /usr/include/x86_64-linux-gnu/bits/signum-generic.h \
+  /usr/include/x86_64-linux-gnu/bits/sigstack.h \
+  /usr/include/x86_64-linux-gnu/bits/sigstksz.h \
+  /usr/include/x86_64-linux-gnu/bits/sigthread.h \
   /usr/include/x86_64-linux-gnu/bits/sockaddr.h \
   /usr/include/x86_64-linux-gnu/bits/socket.h \
   /usr/include/x86_64-linux-gnu/bits/socket_type.h \
+  /usr/include/x86_64-linux-gnu/bits/ss_flags.h \
   /usr/include/x86_64-linux-gnu/bits/stat.h \
   /usr/include/x86_64-linux-gnu/bits/stdint-intn.h \
   /usr/include/x86_64-linux-gnu/bits/stdint-least.h \
@@ -1891,6 +1906,16 @@ CMakeFiles/client.dir/main.cpp.o: /home/kong/plan/chartroom/chat-system/client/m
   /usr/include/x86_64-linux-gnu/bits/struct_mutex.h \
   /usr/include/x86_64-linux-gnu/bits/struct_rwlock.h \
   /usr/include/x86_64-linux-gnu/bits/struct_stat.h \
+  /usr/include/x86_64-linux-gnu/bits/termios-baud.h \
+  /usr/include/x86_64-linux-gnu/bits/termios-c_cc.h \
+  /usr/include/x86_64-linux-gnu/bits/termios-c_cflag.h \
+  /usr/include/x86_64-linux-gnu/bits/termios-c_iflag.h \
+  /usr/include/x86_64-linux-gnu/bits/termios-c_lflag.h \
+  /usr/include/x86_64-linux-gnu/bits/termios-c_oflag.h \
+  /usr/include/x86_64-linux-gnu/bits/termios-misc.h \
+  /usr/include/x86_64-linux-gnu/bits/termios-struct.h \
+  /usr/include/x86_64-linux-gnu/bits/termios-tcflow.h \
+  /usr/include/x86_64-linux-gnu/bits/termios.h \
   /usr/include/x86_64-linux-gnu/bits/thread-shared-types.h \
   /usr/include/x86_64-linux-gnu/bits/time.h \
   /usr/include/x86_64-linux-gnu/bits/time64.h \
@@ -1904,19 +1929,26 @@ CMakeFiles/client.dir/main.cpp.o: /home/kong/plan/chartroom/chat-system/client/m
   /usr/include/x86_64-linux-gnu/bits/types/__locale_t.h \
   /usr/include/x86_64-linux-gnu/bits/types/__mbstate_t.h \
   /usr/include/x86_64-linux-gnu/bits/types/__sigset_t.h \
+  /usr/include/x86_64-linux-gnu/bits/types/__sigval_t.h \
   /usr/include/x86_64-linux-gnu/bits/types/clock_t.h \
   /usr/include/x86_64-linux-gnu/bits/types/clockid_t.h \
   /usr/include/x86_64-linux-gnu/bits/types/cookie_io_functions_t.h \
   /usr/include/x86_64-linux-gnu/bits/types/error_t.h \
   /usr/include/x86_64-linux-gnu/bits/types/locale_t.h \
   /usr/include/x86_64-linux-gnu/bits/types/mbstate_t.h \
+  /usr/include/x86_64-linux-gnu/bits/types/sig_atomic_t.h \
+  /usr/include/x86_64-linux-gnu/bits/types/sigevent_t.h \
+  /usr/include/x86_64-linux-gnu/bits/types/siginfo_t.h \
   /usr/include/x86_64-linux-gnu/bits/types/sigset_t.h \
+  /usr/include/x86_64-linux-gnu/bits/types/sigval_t.h \
+  /usr/include/x86_64-linux-gnu/bits/types/stack_t.h \
   /usr/include/x86_64-linux-gnu/bits/types/struct_FILE.h \
   /usr/include/x86_64-linux-gnu/bits/types/struct___jmp_buf_tag.h \
   /usr/include/x86_64-linux-gnu/bits/types/struct_iovec.h \
   /usr/include/x86_64-linux-gnu/bits/types/struct_itimerspec.h \
   /usr/include/x86_64-linux-gnu/bits/types/struct_osockaddr.h \
   /usr/include/x86_64-linux-gnu/bits/types/struct_sched_param.h \
+  /usr/include/x86_64-linux-gnu/bits/types/struct_sigstack.h \
   /usr/include/x86_64-linux-gnu/bits/types/struct_timespec.h \
   /usr/include/x86_64-linux-gnu/bits/types/struct_timeval.h \
   /usr/include/x86_64-linux-gnu/bits/types/struct_tm.h \
@@ -1949,7 +1981,9 @@ CMakeFiles/client.dir/main.cpp.o: /home/kong/plan/chartroom/chat-system/client/m
   /usr/include/x86_64-linux-gnu/sys/select.h \
   /usr/include/x86_64-linux-gnu/sys/single_threaded.h \
   /usr/include/x86_64-linux-gnu/sys/socket.h \
+  /usr/include/x86_64-linux-gnu/sys/ttydefaults.h \
   /usr/include/x86_64-linux-gnu/sys/types.h \
+  /usr/include/x86_64-linux-gnu/sys/ucontext.h \
   /usr/lib/gcc/x86_64-linux-gnu/13/include/stdarg.h \
   /usr/lib/gcc/x86_64-linux-gnu/13/include/stddef.h \
   /usr/lib/gcc/x86_64-linux-gnu/13/include/stdint.h
@@ -2572,6 +2606,26 @@ CMakeFiles/client.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/client/ms
 
 /home/kong/plan/chartroom/chat-system/client/menu.cpp:
 
+/usr/include/x86_64-linux-gnu/sys/ucontext.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/stack_t.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/siginfo_t.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/sig_atomic_t.h:
+
+/usr/include/x86_64-linux-gnu/bits/ss_flags.h:
+
+/usr/include/x86_64-linux-gnu/bits/sigthread.h:
+
+/usr/include/x86_64-linux-gnu/bits/sigstack.h:
+
+/usr/include/x86_64-linux-gnu/bits/siginfo-consts-arch.h:
+
+/usr/include/x86_64-linux-gnu/bits/siginfo-arch.h:
+
+/usr/include/x86_64-linux-gnu/bits/sigevent-consts.h:
+
 /home/kong/plan/chartroom/chat-system/client/json.cpp:
 
 /usr/include/x86_64-linux-gnu/c++/13/bits/basic_file.h:
@@ -2610,6 +2664,8 @@ CMakeFiles/client.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/client/ms
 
 /usr/include/x86_64-linux-gnu/bits/struct_stat.h:
 
+/usr/include/x86_64-linux-gnu/bits/sigstksz.h:
+
 /usr/local/include/sw/redis++/sentinel.h:
 
 /usr/include/x86_64-linux-gnu/bits/stat.h:
@@ -2631,6 +2687,8 @@ CMakeFiles/client.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/client/ms
 /usr/include/c++/13/mutex:
 
 /usr/include/c++/13/deque:
+
+/usr/include/x86_64-linux-gnu/bits/types/__sigval_t.h:
 
 /usr/include/c++/13/bits/unordered_set.h:
 
@@ -2705,6 +2763,8 @@ CMakeFiles/client.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/client/ms
 /usr/include/x86_64-linux-gnu/bits/uintn-identity.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/timer_t.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/sigevent_t.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/struct_osockaddr.h:
 
@@ -2886,6 +2946,8 @@ CMakeFiles/client.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/client/ms
 
 /home/kong/plan/chartroom/chat-system/client/account.cpp:
 
+/usr/include/x86_64-linux-gnu/bits/types/sigval_t.h:
+
 /usr/include/c++/13/bits/stl_map.h:
 
 /usr/include/c++/13/locale:
@@ -2923,6 +2985,8 @@ CMakeFiles/client.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/client/ms
 /usr/include/c++/13/bits/uses_allocator.h:
 
 /usr/include/c++/13/bits/postypes.h:
+
+/usr/include/signal.h:
 
 /usr/include/strings.h:
 
@@ -2978,6 +3042,8 @@ CMakeFiles/client.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/client/ms
 
 /usr/include/c++/13/bits/memoryfwd.h:
 
+/usr/include/x86_64-linux-gnu/bits/sigaction.h:
+
 /usr/include/c++/13/bits/fs_fwd.h:
 
 /usr/include/c++/13/bits/shared_ptr_atomic.h:
@@ -3018,6 +3084,8 @@ CMakeFiles/client.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/client/ms
 
 /usr/include/nlohmann/detail/macro_unscope.hpp:
 
+/usr/include/x86_64-linux-gnu/bits/types/struct_sigstack.h:
+
 /usr/include/x86_64-linux-gnu/bits/types/__locale_t.h:
 
 /usr/include/c++/13/bits/stl_multimap.h:
@@ -3048,6 +3116,8 @@ CMakeFiles/client.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/client/ms
 
 /usr/include/c++/13/bits/predefined_ops.h:
 
+/usr/include/x86_64-linux-gnu/bits/signum-generic.h:
+
 /usr/include/c++/13/iosfwd:
 
 /usr/include/wchar.h:
@@ -3074,7 +3144,11 @@ CMakeFiles/client.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/client/ms
 
 /usr/include/asm-generic/posix_types.h:
 
+/usr/include/x86_64-linux-gnu/bits/sigcontext.h:
+
 /usr/include/c++/13/tr1/special_function_util.h:
+
+/usr/include/x86_64-linux-gnu/bits/signum-arch.h:
 
 /usr/include/x86_64-linux-gnu/bits/errno.h:
 
@@ -3205,6 +3279,8 @@ CMakeFiles/client.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/client/ms
 /usr/include/nlohmann/detail/input/binary_reader.hpp:
 
 /usr/include/c++/13/bits/invoke.h:
+
+/usr/include/x86_64-linux-gnu/bits/signal_ext.h:
 
 /usr/include/x86_64-linux-gnu/c++/13/bits/ctype_inline.h:
 
@@ -3381,6 +3457,8 @@ CMakeFiles/client.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/client/ms
 /usr/include/nlohmann/detail/conversions/to_json.hpp:
 
 /usr/include/c++/13/memory:
+
+/usr/include/x86_64-linux-gnu/bits/siginfo-consts.h:
 
 /usr/lib/gcc/x86_64-linux-gnu/13/include/stdarg.h:
 

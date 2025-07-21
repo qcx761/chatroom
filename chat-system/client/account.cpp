@@ -227,4 +227,147 @@ void password_change(int sock,string token,sem_t& sem){
 
 
 
+
+
+
+
+
+
+
+
+
+
+void show_friend_list(int sock,string token,sem_t& sem){
+    system("clear");
+    cout <<"好友列表 :" << endl;
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    json j;
+    j["type"]="show_friend_list";
+    j["token"]=token;
+    send_json(sock,j);
+
+
+    sem_wait(&sem); // 等待信号量
+    // flushInput();
+    waiting();
+
+}
+
+void add_friend(int sock,string token,sem_t& sem){
+    system("clear");
+    cout <<"添加用户 :" << endl;
+    string target_username;
+    cout << "请输入想添加的用户名  :";
+    cin >> target_username;
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+    json j;
+    j["type"]="add_friend";
+    j["token"]=token;
+    j["target_username"]=target_username;
+
+
+    send_json(sock,j);
+    sem_wait(&sem);
+    // flushInput();
+    waiting();
+}
+
+
+
+void remove_friend(int sock,string token,sem_t& sem){
+    system("clear");
+    cout <<"删除用户 :" << endl;
+    string username;
+    cout << "请输入想删除的用户名  :";
+    cin >> username;
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+    json j;
+    j["type"]="remove_friend";
+    j["token"]=token;
+    j["target_username"]=username;
+
+
+
+
+    send_json(sock,j);
+    sem_wait(&sem);
+    // flushInput();
+    waiting();
+}
+
+
+void unmute_friend(int sock,string token,sem_t& sem){
+    system("clear");
+    cout <<"解除屏蔽用户 :" << endl;
+    string target_username;
+    cout << "请输入想解除屏蔽的用户名  :";
+    cin >> target_username;
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+    json j;
+    j["type"]="unmute_friend";
+    j["token"]=token;
+    j["target_username"]=target_username;
+
+
+    send_json(sock,j);
+    sem_wait(&sem);
+    // flushInput();
+    waiting();
+}
+
+
+void mute_friend(int sock,string token,sem_t& sem){
+    system("clear");
+    cout <<"屏蔽用户 :" << endl;
+    string target_username;
+    cout << "请输入想屏蔽的用户名  :";
+    cin >> target_username;
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+    json j;
+    j["type"]="mute_friend";
+    j["token"]=token;
+    j["target_username"]=target_username;
+
+
+    send_json(sock,j);
+    sem_wait(&sem);
+    // flushInput();
+    waiting();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+handle_friend_request_msg(int sock,string token,sem_t& sem){
+    system("clear");
+    
+// 再直接处理吗
+
+
+
+
+
+
+    send_json(sock,j);
+    sem_wait(&sem);
+    // flushInput();
+    waiting();
+}
 // 清屏，token，state，login——success，return返回，发送send，信号量

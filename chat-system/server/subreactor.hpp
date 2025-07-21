@@ -26,14 +26,14 @@ public:
 
 private:
     void run();
-    void heartbeatCheck();
+    // void heartbeatCheck();
 
     threadpool *thread_pool;
     
 
     int epfd;
     std::thread event_thread;
-    std::thread heartbeat_thread;
+    // std::thread heartbeat_thread;
     std::atomic<bool> running; // 原子
     std::mutex conn_mtx;
     std::unordered_map<int, std::chrono::steady_clock::time_point> heartbeats;

@@ -13,7 +13,7 @@ using namespace sw::redis;
 // CREATE TABLE friends (
 //     account VARCHAR(64) PRIMARY KEY,     -- 当前用户账号，主键
 //     friends JSON NOT NULL                -- 好友列表，JSON数组，每个元素是一个好友的账号和用户名
-// );                                       -- { "account": "xxx", "muted": false } 不存储用户名
+// );                                       -- { "account": "xxx", "username": "xxx", "muted": false }
 
 
 // CREATE TABLE friend_requests (
@@ -202,7 +202,7 @@ void log_in_msg(int fd, const json &request) {
         redis.set(token_key, token_info.dump());
         redis.expire(token_key, 3600);  // 1小时有效期 如果异常退出会在1个小时后过期
 
-        redis.setex("online:" + account, 3600, "1");
+redis.setex("online:" + account, 3600, "1");
 
         response["type"] = "log_in";
         response["status"] = "success";
@@ -220,7 +220,6 @@ void log_in_msg(int fd, const json &request) {
     } while (n != 0);
 }
 
-// 注销帐号处理函数
 void destory_account_msg(int fd, const json &request){
     json response;
     std::string token = request.value("token", "");
@@ -237,8 +236,6 @@ void destory_account_msg(int fd, const json &request){
     }
 
     try{
-        Redis redis("tcp://127.0.0.1:6379");
-
         auto conn = get_mysql_connection();
         auto stmt = std::unique_ptr<sql::PreparedStatement>(
             conn->prepareStatement("SELECT id, info FROM users WHERE JSON_EXTRACT(info, '$.account') = ?"));
@@ -263,37 +260,10 @@ void destory_account_msg(int fd, const json &request){
                 del_stmt->setInt(1, id); // 返回查询到的行
                 del_stmt->executeUpdate(); // 删除信息
 
-     
+                Redis redis("tcp://127.0.0.1:6379");
+                redis.del("token:" + token); // 删除 Redis key
 
-
-
-
-
-
-
-
-
-
-
-
-
-// 要删除所有和这个用户有关的表
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+redis.del("online:" + account);
 
                 response["type"] = "destory_account";
                 response["status"] = "success";
@@ -305,33 +275,18 @@ void destory_account_msg(int fd, const json &request){
         response["status"] = "error";
         response["msg"] = e.what();
     }
-    
-    redis.del("token:" + token);
-    redis.del("online:" + account);
-
     send_json(fd, response);
 }
 
-// 退出帐号处理函数
 void quit_account_msg(int fd, const json &request){
     json response;
     std::string token = request.value("token", "");
-    std::string account;
-
-    if (!verify_token(token, account)) {
-        response["type"] = "username_view";
-        response["status"] = "error";
-        response["msg"] = "Invalid or expired token";
-        send_json(fd, response);
-        return;
-    }
-
 
     try {
         Redis redis("tcp://127.0.0.1:6379");
         redis.del("token:" + token);
 
-        redis.del("online:" + account);
+redis.del("online:" + account);
 
         response["type"] = "quit_account";
         response["status"] = "success";
@@ -346,7 +301,6 @@ void quit_account_msg(int fd, const json &request){
 
 }
 
-// 显示用户名处理函数
 void username_view_msg(int fd, const json &request){
     json response;
     std::string token = request.value("token", "");
@@ -391,7 +345,7 @@ void username_view_msg(int fd, const json &request){
 
 
 
-// 改变用户名处理函数
+
 void username_change_msg(int fd, const json &request){
     json response;
     std::string token = request.value("token", "");
@@ -473,7 +427,7 @@ void username_change_msg(int fd, const json &request){
     send_json(fd, response);
 }
 
-// 修改密码处理函数
+
 void password_change_msg(int fd, const json &request){
     
         json response;
@@ -491,8 +445,6 @@ void password_change_msg(int fd, const json &request){
     }
 
     try {
-        auto redis = sw::redis::Redis("tcp://127.0.0.1:6379");
-        
         auto conn = get_mysql_connection();
         auto select_stmt = std::unique_ptr<sql::PreparedStatement>(
             conn->prepareStatement("SELECT id, info FROM users WHERE JSON_EXTRACT(info, '$.account') = ?"));
@@ -531,8 +483,6 @@ void password_change_msg(int fd, const json &request){
         response["msg"] = e.what();
     }
 
-redis.del("token:" + token); // 删除 Redis key
-redis.del("online:" + account);
     send_json(fd, response);
 }
 
@@ -600,6 +550,8 @@ void show_friend_list_msg(int fd, const json& request) {
         return;
     }
 
+
+
     try {
         auto conn = get_mysql_connection();
         auto stmt = std::unique_ptr<sql::PreparedStatement>(
@@ -614,40 +566,17 @@ void show_friend_list_msg(int fd, const json& request) {
 
             Redis redis("tcp://127.0.0.1:6379");
 
-            // 遍历好友，查询 Redis 是否在线
+            // 3. 遍历好友，查询 Redis 是否在线
             for (const auto& f : friends) {
                 std::string friend_account = f.value("account", "");
-                // std::string friend_username = f.value("username", "");
-                bool friend_is_muted = f.value("muted", "");
+                std::string friend_username = f.value("username", "");
 
                 bool is_online = redis.exists("online:" + friend_account);
-
-                // 查用户名
-                std::string friend_username;
-                {
-                    auto user_stmt = conn->prepareStatement(
-                        "SELECT JSON_EXTRACT(info, '$.username') AS username FROM users WHERE JSON_EXTRACT(info, '$.account') = ?");
-                    user_stmt->setString(1, friend_account);
-                    auto user_res = user_stmt->executeQuery();
-                    if (user_res->next()) {
-                        friend_username = user_res->getString("username");
-                        // username 可能带双引号，去掉
-
-                        
-                        // if (!friend_username.empty() && friend_username.front() == '"' && friend_username.back() == '"')
-                        // friend_username = friend_username.substr(1, friend_username.size() - 2);
-                    
-                    
-                    } else {
-                        friend_username = "";
-                    }
-                }
-
+                
                 json friend_info;
                 friend_info["account"] = friend_account;
                 friend_info["username"] = friend_username;
                 friend_info["online"] = is_online;
-                friend_info["muted"] = friend_is_muted;
 
                 friend_list.push_back(friend_info);
             }
@@ -663,14 +592,23 @@ void show_friend_list_msg(int fd, const json& request) {
     send_json(fd, response);
 }
 
-void mute_friend_msg(int fd, const json& request) {
+
+
+
+
+
+
+
+
+void add_friend_msg(int fd, const json& request) {
     json response;
-    response["type"] = "mute_friend";
+    response["type"] = "add_friend";
+
     std::string token = request.value("token", "");
     std::string target_username = request.value("target_username", "");
-    std::string user;
+    std::string sender;
 
-    if (!verify_token(token, user)) {
+    if (!verify_token(token, sender)) {
         response["status"] = "fail";
         response["msg"] = "Invalid token";
         send_json(fd, response);
@@ -680,17 +618,16 @@ void mute_friend_msg(int fd, const json& request) {
     try {
         auto conn = get_mysql_connection();
 
-        // 找到目标账号,获取帐号
+        // 查找对方账号
+        auto user_stmt = conn->prepareStatement("SELECT info FROM users");
+        auto user_res = user_stmt->executeQuery();
+
         std::string target_account;
-        {
-            auto stmt = conn->prepareStatement("SELECT info FROM users");
-            auto res = stmt->executeQuery();
-            while (res->next()) {
-                json info = json::parse(res->getString("info"));
-                if (info["username"] == target_username) {
-                    target_account = info["account"];
-                    break;
-                }
+        while (user_res->next()) {
+            json info = json::parse(user_res->getString("info"));
+            if (info["username"] == target_username) {
+                target_account = info["account"];
+                break;
             }
         }
 
@@ -701,134 +638,36 @@ void mute_friend_msg(int fd, const json& request) {
             return;
         }
 
-        // 获取当前用户的 friends 列
+        // 检查是否已经是好友
         auto stmt = conn->prepareStatement("SELECT friends FROM friends WHERE account = ?");
-        stmt->setString(1, user);
+        stmt->setString(1, sender);
         auto res = stmt->executeQuery();
 
-        if (!res->next()) {
-            response["status"] = "fail";
-            response["msg"] = "Friend list not found";
-            send_json(fd, response);
-            return;
-        }
-
-        std::string friends_str = res->getString("friends");
-        json friends_json = json::parse(friends_str);
-
-
-        // 设置指定好友的 muted = true
-        bool found = false;
-        for (auto& f : friends_json) {
-            if (f["account"] == target_account) {
-                f["muted"] = true;
-                found = true;
-                break;
-            }
-        }
-
-        if (!found) {
-            response["status"] = "fail";
-            response["msg"] = "Friend not found in friend list";
-            send_json(fd, response);
-            return;
-        }
-
-        // 更新数据库
-        auto update_stmt = conn->prepareStatement("UPDATE friends SET friends = ? WHERE account = ?");
-        update_stmt->setString(1, friends_json.dump());
-        update_stmt->setString(2, user);
-        update_stmt->execute();
-
-        response["status"] = "success";
-        response["msg"] = "muted successfully";
-    } catch (const std::exception& e) {
-        response["status"] = "error";
-        response["msg"] = e.what();
-    }
-
-    send_json(fd, response);
-}
-
-void unmute_friend_msg(int fd, const json& request) {
-    json response;
-    response["type"] = "unmute_friend";
-    std::string token = request.value("token", "");
-    std::string target_username = request.value("target_username", "");
-    std::string user;
-
-    if (!verify_token(token, user)) {
-        response["status"] = "fail";
-        response["msg"] = "Invalid token";
-        send_json(fd, response);
-        return;
-    }
-
-    try {
-        auto conn = get_mysql_connection();
-
-        std::string target_account;
-        {
-            auto stmt = conn->prepareStatement("SELECT info FROM users");
-            auto res = stmt->executeQuery();
-            while (res->next()) {
-                json info = json::parse(res->getString("info"));
-                if (info["username"] == target_username) {
-                    target_account = info["account"];
-                    break;
+        if (res->next()) {
+            json friends = json::parse(res->getString("friends"));
+            for (auto& f : friends) {
+                if (f.value("account", "") == target_account) {
+                    response["status"] = "fail";
+                    response["msg"] = "Already friends";
+                    send_json(fd, response);
+                    return;
                 }
             }
         }
 
-        if (target_account.empty()) {
-            response["status"] = "fail";
-            response["msg"] = "User not found";
-            send_json(fd, response);
-            return;
-        }
-
-        auto stmt = conn->prepareStatement("SELECT friends FROM friends WHERE account = ?");
-        stmt->setString(1, user);
-        auto res = stmt->executeQuery();
-
-        if (!res->next()) {
-            response["status"] = "fail";
-            response["msg"] = "Friend list not found";
-            send_json(fd, response);
-            return;
-        }
-
-        std::string friends_str = res->getString("friends");
-        json friends_json = json::parse(friends_str);
-
-        bool found = false;
-        for (auto& f : friends_json) {
-            if (f["account"] == target_account) {
-                f["muted"] = false;
-                found = true;
-                break;
-            }
-        }
-
-        if (!found) {
-            response["status"] = "fail";
-            response["msg"] = "Friend not found in friend list";
-            send_json(fd, response);
-            return;
-        }
-
-        auto update_stmt = conn->prepareStatement("UPDATE friends SET friends = ? WHERE account = ?");
-        update_stmt->setString(1, friends_json.dump());
-        update_stmt->setString(2, user);
-        update_stmt->execute();
+        // 插入好友请求
+        auto insert = conn->prepareStatement(
+            "INSERT INTO friend_requests(sender, receiver, status, timestamp) VALUES (?, ?, 'pending', NOW())");
+        insert->setString(1, sender);
+        insert->setString(2, target_account);
+        insert->execute();
 
         response["status"] = "success";
-        response["msg"] = "Unmuted successfully";
+        response["msg"] = "Friend request sent";
     } catch (const std::exception& e) {
         response["status"] = "error";
         response["msg"] = e.what();
     }
-
     send_json(fd, response);
 }
 
@@ -869,18 +708,15 @@ void remove_friend_msg(int fd, const json& request) {
             return;
         }
 
-
         auto remove = [&](const std::string& owner, const std::string& remove_account) {
             auto stmt = conn->prepareStatement("SELECT friends FROM friends WHERE account = ?");
             stmt->setString(1, owner);
             auto res = stmt->executeQuery();
-            // 初始化一个 JSON 类型的空数组
             json fs = json::array();
             if (res->next()) fs = json::parse(res->getString("friends"));
             json new_fs = json::array();
             for (auto& f : fs) {
-                if (f.value("account", "") != remove_account) 
-                    new_fs.push_back(f); // 保留没有删除的好友
+                if (f.value("account", "") != remove_account) new_fs.push_back(f);
             }
             auto update = conn->prepareStatement("REPLACE INTO friends(account, friends) VALUES (?, ?)");
             update->setString(1, owner);
@@ -899,46 +735,14 @@ void remove_friend_msg(int fd, const json& request) {
     }
     send_json(fd, response);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-// CREATE TABLE friend_requests (
-//     id INT PRIMARY KEY AUTO_INCREMENT,                         -- 主键ID，自动递增
-//     sender VARCHAR(64) NOT NULL,                               -- 发起请求的用户账号
-//     receiver VARCHAR(64) NOT NULL,                             -- 接收请求的用户账号
-//     status ENUM('pending', 'accepted', 'rejected') NOT NULL    -- 当前状态（待处理 / 接受 / 拒绝）
-//         DEFAULT 'pending',
-//     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,              -- 请求的时间
-
-//     INDEX idx_sender_receiver (sender, receiver),              -- 联合索引，便于查重、更新状态
-//     INDEX idx_receiver_status (receiver, status)               -- 索引，便于查找所有待处理请求
-// );
-
-
-
-
-
-
-
-void add_friend_msg(int fd, const json& request) {
+void mute_friend_msg(int fd, const json& request) {
     json response;
-    response["type"] = "add_friend";
-
+    response["type"] = "mute_friend";
     std::string token = request.value("token", "");
     std::string target_username = request.value("target_username", "");
-    std::string sender;
+    std::string user;
 
-    if (!verify_token(token, sender)) {
+    if (!verify_token(token, user)) {
         response["status"] = "fail";
         response["msg"] = "Invalid token";
         send_json(fd, response);
@@ -948,15 +752,69 @@ void add_friend_msg(int fd, const json& request) {
     try {
         auto conn = get_mysql_connection();
 
-        // 查找对方账号
-        std::string target_account;
-        auto stmt = conn->prepareStatement(
-            "SELECT JSON_UNQUOTE(JSON_EXTRACT(info, '$.account')) AS account "
-            "FROM users WHERE JSON_UNQUOTE(JSON_EXTRACT(info, '$.username')) = ?");
-        stmt->setString(1, target_username);
+        // 查找目标账号
+        auto stmt = conn->prepareStatement("SELECT info FROM users");
         auto res = stmt->executeQuery();
-        if (res->next()) {
-            target_account = res->getString("account");
+
+        std::string mute_account;
+        while (res->next()) {
+            json info = json::parse(res->getString("info"));
+            if (info["username"] == target_username) {
+                mute_account = info["account"];
+                break;
+            }
+        }
+
+        if (mute_account.empty()) {
+            response["status"] = "fail";
+            response["msg"] = "User not found";
+            send_json(fd, response);
+            return;
+        }
+
+        auto update_stmt = conn->prepareStatement(
+            "REPLACE INTO mutes(user, muted) VALUES (?, ?)");
+        update_stmt->setString(1, user);
+        update_stmt->setString(2, mute_account);
+        update_stmt->execute();
+
+        response["status"] = "success";
+        response["msg"] = "Muted successfully";
+    } catch (const std::exception& e) {
+        response["status"] = "error";
+        response["msg"] = e.what();
+    }
+
+    send_json(fd, response);
+}
+
+void unmute_friend_msg(int fd, const json& request) {
+    json response;
+    response["type"] = "unmute_friend";
+    std::string token = request.value("token", "");
+    std::string target_username = request.value("target_username", "");
+    std::string user;
+
+    if (!verify_token(token, user)) {
+        response["status"] = "fail";
+        response["msg"] = "Invalid token";
+        send_json(fd, response);
+        return;
+    }
+
+    try {
+        auto conn = get_mysql_connection();
+
+        auto stmt = conn->prepareStatement("SELECT info FROM users");
+        auto res = stmt->executeQuery();
+
+        std::string target_account;
+        while (res->next()) {
+            json info = json::parse(res->getString("info"));
+            if (info["username"] == target_username) {
+                target_account = info["account"];
+                break;
+            }
         }
 
         if (target_account.empty()) {
@@ -966,31 +824,14 @@ void add_friend_msg(int fd, const json& request) {
             return;
         }
 
-        // 检查是否已是好友
-        stmt = conn->prepareStatement("SELECT friends FROM friends WHERE account = ?");
-        stmt->setString(1, sender);
-        res = stmt->executeQuery();
-        if (res->next()) {
-            json friends = json::parse(res->getString("friends"));
-            for (auto& f : friends) {
-                if (f.value("account", "") == target_account) {
-                    response["status"] = "fail";
-                    response["msg"] = "Already friends";
-                    send_json(fd, response);
-                    return;
-                }
-            }
-        }
-
-        // 插入好友请求
-        stmt = conn->prepareStatement(
-            "INSERT INTO friend_requests(sender, receiver, status, timestamp) VALUES (?, ?, 'pending', NOW())");
-        stmt->setString(1, sender);
-        stmt->setString(2, target_account);
-        stmt->execute();
+        auto del_stmt = conn->prepareStatement(
+            "DELETE FROM mutes WHERE user = ? AND muted = ?");
+        del_stmt->setString(1, user);
+        del_stmt->setString(2, target_account);
+        del_stmt->execute();
 
         response["status"] = "success";
-        response["msg"] = "Friend request sent";
+        response["msg"] = "Unmuted successfully";
     } catch (const std::exception& e) {
         response["status"] = "error";
         response["msg"] = e.what();
@@ -999,10 +840,18 @@ void add_friend_msg(int fd, const json& request) {
     send_json(fd, response);
 }
 
+
+
+
+
+
+
+
+
+
 void get_friend_requests_msg(int fd, const json& request) {
     json response;
     response["type"] = "get_friend_requests";
-
     std::string token = request.value("token", "");
     std::string receiver;
 
@@ -1015,47 +864,36 @@ void get_friend_requests_msg(int fd, const json& request) {
 
     try {
         auto conn = get_mysql_connection();
-        auto stmt = conn->prepareStatement(
-            "SELECT sender FROM friend_requests WHERE receiver = ? AND status = 'pending'");
+        auto stmt = conn->prepareStatement("SELECT sender FROM friend_requests WHERE receiver = ? AND status = 'pending'");
         stmt->setString(1, receiver);
         auto res = stmt->executeQuery();
 
         json requests = json::array();
-
         while (res->next()) {
             std::string sender_account = res->getString("sender");
-
-            auto uname_stmt = conn->prepareStatement(
-                "SELECT JSON_UNQUOTE(JSON_EXTRACT(info, '$.username')) AS username "
-                "FROM users WHERE JSON_UNQUOTE(JSON_EXTRACT(info, '$.account')) = ?");
-            uname_stmt->setString(1, sender_account);
-            auto uname_res = uname_stmt->executeQuery();
-
-            std::string sender_username = "";
-            if (uname_res->next()) {
-                sender_username = uname_res->getString("username");
+            auto info_stmt = conn->prepareStatement("SELECT info FROM users WHERE JSON_EXTRACT(info, '$.account') = ?");
+            info_stmt->setString(1, sender_account);
+            auto info_res = info_stmt->executeQuery();
+            if (info_res->next()) {
+                json info = json::parse(info_res->getString("info"));
+                requests.push_back({
+                    {"account", sender_account},
+                    {"username", info.value("username", "")}
+                });
             }
-
-            requests.push_back({
-                {"account", sender_account},
-                {"username", sender_username}
-            });
         }
-
         response["status"] = "success";
         response["requests"] = requests;
     } catch (const std::exception& e) {
         response["status"] = "error";
         response["msg"] = e.what();
     }
-
     send_json(fd, response);
 }
 
 void handle_friend_request_msg(int fd, const json& request) {
     json response;
     response["type"] = "handle_friend_request";
-
     std::string token = request.value("token", "");
     std::string from_username = request.value("from_username", "");
     std::string action = request.value("action", ""); // "accept" or "reject"
@@ -1071,15 +909,17 @@ void handle_friend_request_msg(int fd, const json& request) {
     try {
         auto conn = get_mysql_connection();
 
-        // 查 sender 账号
-        std::string sender;
-        auto stmt = conn->prepareStatement(
-            "SELECT JSON_UNQUOTE(JSON_EXTRACT(info, '$.account')) AS account "
-            "FROM users WHERE JSON_UNQUOTE(JSON_EXTRACT(info, '$.username')) = ?");
-        stmt->setString(1, from_username);
+        // 查找发起请求者账号
+        auto stmt = conn->prepareStatement("SELECT info FROM users");
         auto res = stmt->executeQuery();
-        if (res->next()) {
-            sender = res->getString("account");
+
+        std::string sender;
+        while (res->next()) {
+            json info = json::parse(res->getString("info"));
+            if (info["username"] == from_username) {
+                sender = info["account"];
+                break;
+            }
         }
 
         if (sender.empty()) {
@@ -1089,15 +929,24 @@ void handle_friend_request_msg(int fd, const json& request) {
             return;
         }
 
+        // 检查请求是否存在
         auto check_stmt = conn->prepareStatement(
             "SELECT status FROM friend_requests WHERE sender = ? AND receiver = ?");
         check_stmt->setString(1, sender);
         check_stmt->setString(2, receiver);
         auto check_res = check_stmt->executeQuery();
 
-        if (!check_res->next() || check_res->getString("status") != "pending") {
+        if (!check_res->next()) {
             response["status"] = "fail";
-            response["msg"] = "Invalid or already handled request";
+            response["msg"] = "Friend request not found";
+            send_json(fd, response);
+            return;
+        }
+
+        std::string current_status = check_res->getString("status");
+        if (current_status != "pending") {
+            response["status"] = "fail";
+            response["msg"] = "Request already handled";
             send_json(fd, response);
             return;
         }
@@ -1110,10 +959,10 @@ void handle_friend_request_msg(int fd, const json& request) {
             update_stmt->setString(2, receiver);
             update_stmt->execute();
 
-            // 添加好友（只存账号）
-            auto add_friend = [&](const std::string& owner, const std::string& other) {
+            // 添加双方为好友
+            auto add_friend = [&](const std::string& self, const std::string& other_account, const std::string& other_username) {
                 auto stmt = conn->prepareStatement("SELECT friends FROM friends WHERE account = ?");
-                stmt->setString(1, owner);
+                stmt->setString(1, self);
                 auto res = stmt->executeQuery();
 
                 json friends = json::array();
@@ -1121,20 +970,44 @@ void handle_friend_request_msg(int fd, const json& request) {
                     friends = json::parse(res->getString("friends"));
                 }
 
+                // 避免重复添加
+                bool exists = false;
                 for (auto& f : friends) {
-                    if (f.value("account", "") == other) return; // 已存在
+                    if (f["account"] == other_account) {
+                        exists = true;
+                        break;
+                    }
                 }
 
-                friends.push_back({{"account", other}, {"muted", false}});
-                auto update = conn->prepareStatement(
-                    "REPLACE INTO friends(account, friends) VALUES (?, ?)");
-                update->setString(1, owner);
-                update->setString(2, friends.dump());
-                update->execute();
+                if (!exists) {
+                    json new_friend;
+                    new_friend["account"] = other_account;
+                    new_friend["username"] = other_username;
+                    friends.push_back(new_friend);
+
+                    auto update = conn->prepareStatement(
+                        "REPLACE INTO friends(account, friends) VALUES (?, ?)");
+                    update->setString(1, self);
+                    update->setString(2, friends.dump());
+                    update->execute();
+                }
             };
 
-            add_friend(receiver, sender);
-            add_friend(sender, receiver);
+            // 获取 sender 的用户名
+            std::string sender_username, receiver_username;
+            {
+                auto stmt = conn->prepareStatement("SELECT info FROM users");
+                auto res = stmt->executeQuery();
+                while (res->next()) {
+                    json info = json::parse(res->getString("info"));
+                    std::string acc = info["account"];
+                    if (acc == sender) sender_username = info["username"];
+                    if (acc == receiver) receiver_username = info["username"];
+                }
+            }
+
+            add_friend(receiver, sender, sender_username);
+            add_friend(sender, receiver, receiver_username);
 
             response["status"] = "success";
             response["msg"] = "Friend request accepted";
@@ -1158,7 +1031,6 @@ void handle_friend_request_msg(int fd, const json& request) {
 
     send_json(fd, response);
 }
-
 
 
 

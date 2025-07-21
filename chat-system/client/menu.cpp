@@ -38,26 +38,15 @@ void show_next11_menu(){
         std::cout << "请输入你的选项：";
 }
 
-
-
-
-
-
-
-
-
-
-
-
 // 好友与群聊管理
 void show_next2_menu(){
         system("clear");
-        //std::cout << "1. 好友管理" << std::endl;
+        std::cout << "1. 好友管理" << std::endl;
         //std::cout << "2. 群管理" << std::endl;
-        //std::cout << "3. 好友申请" << std::endl;
+        std::cout << "3. 好友申请" << std::endl;
         //std::cout << "4. 群申请" << std::endl;
         //std::cout << "5. 历史记录查询" << std::endl;
-        //std::cout << "6. 返回" << std::endl;
+        std::cout << "6. 返回" << std::endl;
         //std::cout << "7. " << std::endl;
         //std::cout << "8. " << std::endl;
         std::cout << "请输入你的选项：";
@@ -66,14 +55,14 @@ void show_next2_menu(){
 // 好友管理
 void show_next21_menu(){
         system("clear");
-        //std::cout << "1. 好友列表" << std::endl; // 要实现好友查询，显示在线状态
-        //std::cout << "2. 添加好友" << std::endl;
-        //std::cout << "3. 删除好友" << std::endl;
+        std::cout << "1. 好友列表" << std::endl; // 要实现好友查询，显示在线状态
+        std::cout << "2. 添加好友" << std::endl;
+        std::cout << "3. 删除好友" << std::endl;
         //std::cout << "4. 私聊好友" << std::endl; // 必须是好友
-        //std::cout << "5. 解除屏蔽好友" << std::endl;
-        //std::cout << "6. 屏蔽好友" << std::endl; // 屏蔽信息
-        //std::cout << "7. 返回" << std::endl;
-        //std::cout << "8. " << std::endl;
+        std::cout << "5. 解除屏蔽好友" << std::endl;
+        std::cout << "6. 屏蔽好友" << std::endl; // 屏蔽信息
+        //std::cout << "7. 文件发送" << std::endl;
+        std::cout << "8. 返回" << std::endl;
         std::cout << "请输入你的选项：";
 }
 
@@ -91,7 +80,8 @@ void show_next22_menu(){
         //std::cout << "9. 移除成员" << std::endl; // 群主 管理员
         //std::cout << "10. 添加成员" << std::endl; // 群主 管理员
         //std::cout << "11. 解散群" << std::endl; // 群主
-        //std::cout << "12. 返回" << std::endl;
+        //std::cout << "12. 群聊" << std::endl;
+        //std::cout << "13. 返回" << std::endl;
         std::cout << "请输入你的选项：";
 }
 
@@ -114,6 +104,7 @@ void show_next4_menu(){
         //std::cout << "5. 返回" << std::endl;
         std::cout << "请输入你的选项：";
 }
+
 
 
 // 退出登录，私聊，发送和查看好友请求，接收文件，黑名单，查询好友，删除好友，      

@@ -109,15 +109,14 @@ void Client::epoll_thread_func(){
 
                 if (ret == 0) {
 
-
-        // 超时登录记得测试一下可能有点问题
-
                     // 超时登录处理
-                    if(j["msg"]=="Invalid or expired token."){
+                    if(j["msg"]=="Invalid or expired token"){
                         cout <<"登录超时请重新登录。"<<endl;
-                        waiting();
                         login_success.store(false);  // 判断登录
-                        // sem_post(&sem);  
+                        token.clear();
+                        state=main_menu;
+                        //waiting();
+                        sem_post(&sem);  
                         continue;
                     }
                     
@@ -133,7 +132,7 @@ void Client::epoll_thread_func(){
                         thread_pool.enqueue([this,j]() {
                             bool success_if = log_in_msg(j,this->token);
                             this->login_success.store(success_if);
-                            sem_post(&this->sem);  // 通过 this 访问成员变量
+                            sem_post(&this->sem);
                         });
                         continue;
                     }
@@ -171,7 +170,7 @@ void Client::epoll_thread_func(){
                     if(type=="username_change"){
                         thread_pool.enqueue([this, j]() {
                             username_change_msg(j);
-                            sem_post(&this->sem);  // 通过 this 访问成员变量
+                            sem_post(&this->sem);
                         });
                         continue;
                     }
@@ -182,7 +181,7 @@ void Client::epoll_thread_func(){
                             state=main_menu;
                             login_success.store(false);
                             token.clear();
-                            sem_post(&this->sem);  // 通过 this 访问成员变量
+                            sem_post(&this->sem);
                         });
                         continue;
                     }
@@ -199,35 +198,76 @@ void Client::epoll_thread_func(){
 
 
 
-
-
-
-
-
-
-
-
-                    if(type==""){
+                    if(type=="show_friend_list"){
                         thread_pool.enqueue([this,j]() {
-                            //_msg(j);
-                            //state=main_menu;
-                            //login_success.store(false);
-                            //token.clear();
-                            sem_post(&this->sem);  // 通过 this 访问成员变量
+                            show_friend_list_msg(j);
+                            sem_post(&this->sem);
                         });
                         continue;
                     }    
                     
+                    if(type=="add_friend"){
+                        thread_pool.enqueue([this,j]() {
+                            add_friend_msg(j);
+                            sem_post(&this->sem);
+                        });
+                        continue;
+                    } 
+
+                    if(type=="remove_friend"){
+                        thread_pool.enqueue([this,j]() {
+                            remove_friend_msg(j);
+                            sem_post(&this->sem);
+                        });
+                        continue;
+                    } 
+
+                    if(type=="mute_friend"){
+                        thread_pool.enqueue([this,j]() {
+                            is_mute_friend_msg(j);
+                            sem_post(&this->sem);
+                        });
+                        continue;
+                    } 
+
+                    if(type=="unmute_friend"){
+                        thread_pool.enqueue([this,j]() {
+                            is_mute_friend_msg(j);
+                            sem_post(&this->sem);
+                        });
+                        continue;
+                    }
+
+
+
+
+
+
+
+
+
+
                     if(type==""){
                         thread_pool.enqueue([this,j]() {
                             //_msg(j);
                             //state=main_menu;
                             //login_success.store(false);
                             //token.clear();
-                            sem_post(&this->sem);  // 通过 this 访问成员变量
+                            sem_post(&this->sem);
                         });
                         continue;
-                    } 
+                    }
+                
+                    if(type==""){
+                        thread_pool.enqueue([this,j]() {
+                            //_msg(j);
+                            //state=main_menu;
+                            //login_success.store(false);
+                            //token.clear();
+                            sem_post(&this->sem);
+                        });
+                        continue;
+                    }
 
                     if(type==""){
                         thread_pool.enqueue([this,j]() {
@@ -235,10 +275,10 @@ void Client::epoll_thread_func(){
                             //state=main_menu;
                             //login_success.store(false);
                             //token.clear();
-                            sem_post(&this->sem);  // 通过 this 访问成员变量
+                            sem_post(&this->sem);
                         });
                         continue;
-                    } 
+                    }
 
                     if(type==""){
                         thread_pool.enqueue([this,j]() {
@@ -246,10 +286,10 @@ void Client::epoll_thread_func(){
                             //state=main_menu;
                             //login_success.store(false);
                             //token.clear();
-                            sem_post(&this->sem);  // 通过 this 访问成员变量
+                            sem_post(&this->sem);
                         });
                         continue;
-                    } 
+                    }
 
                     if(type==""){
                         thread_pool.enqueue([this,j]() {
@@ -257,67 +297,98 @@ void Client::epoll_thread_func(){
                             //state=main_menu;
                             //login_success.store(false);
                             //token.clear();
-                            sem_post(&this->sem);  // 通过 this 访问成员变量
+                            sem_post(&this->sem);
                         });
                         continue;
-                    } 
+                    }
 
                     if(type==""){
-                                        
+                        thread_pool.enqueue([this,j]() {
+                            //_msg(j);
+                            //state=main_menu;
+                            //login_success.store(false);
+                            //token.clear();
+                            sem_post(&this->sem);
+                        });
+                        continue;
+                    }
 
+                    if(type==""){
+                        thread_pool.enqueue([this,j]() {
+                            //_msg(j);
+                            //state=main_menu;
+                            //login_success.store(false);
+                            //token.clear();
+                            sem_post(&this->sem);
+                        });
+                        continue;
+                    }
 
-                    // if(type=="log_in"){
-                    // thread_pool->enqueue([fd, request]() {
-                    // sign_up_msg(fd,request);
-                    // });
+                    if(type==""){
+                        thread_pool.enqueue([this,j]() {
+                            //_msg(j);
+                            //state=main_menu;
+                            //login_success.store(false);
+                            //token.clear();
+                            sem_post(&this->sem);
+                        });
+                        continue;
+                    }
 
-                    // 服务端发来的json好像不一样要修改逻辑
+                    if(type==""){
+                        thread_pool.enqueue([this,j]() {
+                            //_msg(j);
+                            //state=main_menu;
+                            //login_success.store(false);
+                            //token.clear();
+                            sem_post(&this->sem);
+                        });
+                        continue;
+                    }
 
-                    // 这里处理接收到的json消息
-
-
-                    // 例如：
-                    // handle_server_message(j);
-
-                    // 根据协议，处理完毕后可能需要 sem_post() 解锁等待线程
-
-                    // sem_post(&sem);
-
-
-
-
-
+                    if(type==""){
+                        thread_pool.enqueue([this,j]() {
+                            //_msg(j);
+                            //state=main_menu;
+                            //login_success.store(false);
+                            //token.clear();
+                            sem_post(&this->sem);
+                        });
+                        continue;
+                    }
 
 
                     
-                    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                     if(type=="error"){
-
                     // 处理错误信息
-
-
-
                     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+                    
 
 
 
@@ -344,38 +415,12 @@ void Client::epoll_thread_func(){
 
 void Client::user_thread_func() {
 
-  // MenuState state = main_menu; // 初始化界面
-
-
-  state = main_menu; // 初始化界面
-
-    
-    // signal(SIGINT, SIG_IGN);   // 忽略 Ctrl+C (中断信号)
-    // signal(SIGTERM, SIG_IGN);  // 忽略 kill 发送的终止信号
-    // signal(SIGTSTP, SIG_IGN);  // 忽略 Ctrl+Z (挂起/停止信号)
-
-    // struct termios tty;
-    // if (tcgetattr(STDIN_FILENO, &tty) == 0) {
-    //     tty.c_cc[VEOF] = 0;
-    //     tcsetattr(STDIN_FILENO, TCSANOW, &tty);
-    // }
-
-
-    // 交互逻辑，比如说注册函数之类
-    // 也就是客户端怎么发送json到服务端
-    // 记得通过信号量来等待
-
+    state = main_menu; // 初始化界面
     while(running){
 
         // 登录过期检测
         if (!login_success.load() && state != main_menu) {
             std::cout << "请重新登录。" << std::endl;
-
-
-            // 不知道哪里清除
-
-
-            // current_UID.clear();          // 清除登录状态
             token.clear();                   // 清除token
             state = main_menu;               // 返回登录页
             waiting();                       // 等待用户确认
@@ -486,12 +531,12 @@ void Client::user_thread_func() {
                 }
                 switch (m)
                 {
-                case 1: 
+                case 1: state=next21_menu; break;
                 case 2: 
-                case 3: 
+                case 3: handle_friend_request_msg(sock,token,sem); break;
                 case 4: 
                 case 5: 
-                case 6: 
+                case 6: state=next_menu;
                 case 7: 
                 case 8: 
                 default:
@@ -514,14 +559,14 @@ void Client::user_thread_func() {
                 }
                 switch (m)
                 {
-                case 1: 
-                case 2: 
-                case 3: 
+                case 1: show_friend_list(sock,token,sem); break;
+                case 2: add_friend(sock,token,sem); break;
+                case 3: remove_friend(sock,token,sem); break;
                 case 4: 
-                case 5: 
-                case 6: 
+                case 5: unmute_friend(sock,token,sem); break;
+                case 6: mute_friend(sock,token,sem); break;
                 case 7: 
-                case 8: 
+                case 8: state=next2_menu;
                 default:
                     cout << "无效数字" << endl;
                     flushInput(); // 去除数字后面的换行符
@@ -550,6 +595,10 @@ void Client::user_thread_func() {
                 case 6: 
                 case 7: 
                 case 8: 
+                case 9: 
+                case 10: 
+                case 11: 
+                case 12: 
                 default:
                     cout << "无效数字" << endl;
                     flushInput(); // 去除数字后面的换行符

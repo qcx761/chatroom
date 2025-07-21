@@ -12,6 +12,7 @@
 #include <cppconn/resultset.h>
 
 #include <random>
+#include <string.h>
 #include <sstream>
 #include <memory>
 #include <iostream>
@@ -33,3 +34,7 @@ void username_change_msg(int fd, const json &request);
 void password_change_msg(int fd, const json &request);
 
 
+void show_friend_list_msg(int fd, const json &request);
+void add_friend_msg(int fd, const json &request);
+void is_mute_friend_msg_msg(int fd, const json &request);
+void remove_friend_msg(int fd, const json &request);

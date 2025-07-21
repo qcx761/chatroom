@@ -29,15 +29,34 @@ void password_change(int sock,string token,sem_t& sem);
 
 
 
-// void add_friend(const std::string& friend_account);
-// void delete_friend(const std::string& friend_account);
-// void query_friends();
-// void send_private_message(const std::string& friend_account, const std::string& message);
-// void block_friend(const std::string& friend_account, bool block);
-// void create_group(const std::string& group_name);
-// void join_group(const std::string& group_id);
-// void leave_group(const std::string& group_id);
-// void query_group_members(const std::string& group_id);
-// void send_group_message(const std::string& group_id, const std::string& message);
-// void fetch_history(const std::string& chat_id, int offset, int limit);
 
+// void show_friend_list();
+// void add_friend();
+// void delete_friend();
+// void private_chat_friend();
+// void block_friend();
+// void unblock_friend();
+// void show_group_list();
+// void create_group();
+// void join_group();
+// void exit_group();
+// void show_group_members();
+// void send_group_file();
+// void set_group_admin();
+// void remove_group_admin();
+// void remove_group_member();
+// void add_group_member();
+// void dismiss_group();
+// void show_friend_requests();
+// void show_private_messages();
+// void show_group_requests();
+
+
+void show_friend_list(int sock,string token,sem_t& sem);
+void add_friend(int sock,string token,sem_t& sem);
+void remove_friend(int sock,string token,sem_t& sem);
+void unmute_friend(int sock,string token,sem_t& sem);
+void mute_friend(int sock,string token,sem_t& sem);
+
+
+handle_friend_request_msg(int sock,string token,sem_t& sem);

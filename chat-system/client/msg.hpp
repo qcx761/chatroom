@@ -20,10 +20,20 @@ void error_msg(int fd,const json &request);
 void sign_up_msg(const json &request);
 bool log_in_msg(const json &request,std::string& token);
 
-
-
 void destory_account_msg(const json &response);
 void quit_account_msg(const json &response);
 void username_view_msg(const json &response);
 void username_change_msg(const json &response);
 void password_change_msg(const json &response);
+
+
+
+
+
+
+
+void show_friend_list_msg(const json &response);
+void add_friend(const json &response);
+void remove_friend(const json &response);
+void mute_friend(const json &response);
+void unmute_friend(const json &response);
