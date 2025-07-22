@@ -83,21 +83,6 @@ void SubReactor::run() {
                 continue;
             }
             
-// 每次函数之前都验证就好了
-//             // 校验 token
-//             std::string token = request.value("token", "");
-//             std::string username;
-//             if (token.empty() || !verify_token(token, username)) {
-// // 去掉redis中的缓存来消除上线状态
-//                 json resp;
-//                 resp["type"] = type;
-//                 resp["status"] = "error";
-//                 resp["msg"] = "Invalid or expired token.";
-//                 send_json(fd, resp);
-//                 continue;
-//             }
-            
-            
             if(type=="destory_account"){
                 thread_pool->enqueue([fd, request]() {
                     destory_account_msg(fd,request);
@@ -124,20 +109,6 @@ void SubReactor::run() {
                 });
                 continue;
             }else if(type=="show_friend_list"){
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                 thread_pool->enqueue([fd, request]() {
                     show_friend_list_msg(fd,request);
                 });
@@ -162,15 +133,9 @@ void SubReactor::run() {
                     unmute_friend_msg(fd,request);
                 });
                 continue;
-            }else if(type=="show_friend_notifications"){
-
-
-
-    // 还需后续实现
-
-    
+            }else if(type=="get_friend_requests"){
                 thread_pool->enqueue([fd, request]() {
-                  show_friend_notifications_msg(fd,request);
+                  get_friend_requests_msg(fd,request);
                 });
                 continue;
             }else if(type=="handle_friend_request"){
@@ -178,9 +143,9 @@ void SubReactor::run() {
                   handle_friend_request_msg(fd,request);
                 });
                 continue;
-            }else if(type=="get_friend_requests_msg"){
+            }else if(type=="show_friend_notifications"){ // 需要后续添加
                 thread_pool->enqueue([fd, request]() {
-                  get_friend_requests_msg(fd,request);
+                  show_friend_notifications_msg(fd,request);
                 });
                 continue;
             }else if(type==""){
@@ -193,7 +158,106 @@ void SubReactor::run() {
 
 
                 continue;
+            }else if(type==""){
 
+
+
+
+
+                
+
+
+                continue;
+            }else if(type==""){
+
+
+
+
+
+                
+
+
+                continue;
+            }else if(type==""){
+
+
+
+
+
+                
+
+
+                continue;
+            }else if(type==""){
+
+
+
+
+
+                
+
+
+                continue;
+            }else if(type==""){
+
+
+
+
+
+                
+
+
+                continue;
+            }else if(type==""){
+
+
+
+
+
+                
+
+
+                continue;
+            }else if(type==""){
+
+
+
+
+
+                
+
+
+                continue;
+            }else if(type==""){
+
+
+
+
+
+                
+
+
+                continue;
+            }else if(type==""){
+
+
+
+
+
+                
+
+
+                continue;
+            }else if(type==""){
+
+
+
+
+
+                
+
+
+                continue;
             }else if(type==""){
 
 
@@ -215,7 +279,6 @@ void SubReactor::run() {
 
 
                 continue;
-
             }else if(type==""){
 
 
@@ -226,7 +289,6 @@ void SubReactor::run() {
 
 
                 continue;
-
             }else if(type==""){
 
 
@@ -237,7 +299,6 @@ void SubReactor::run() {
 
 
                 continue;
-
             }else if(type==""){
 
 
@@ -248,7 +309,6 @@ void SubReactor::run() {
 
 
                 continue;
-
             }else if(type==""){
 
 
@@ -259,7 +319,6 @@ void SubReactor::run() {
 
 
                 continue;
-
             }else if(type==""){
 
 
@@ -270,7 +329,6 @@ void SubReactor::run() {
 
 
                 continue;
-
             }else if(type==""){
 
 
@@ -281,7 +339,6 @@ void SubReactor::run() {
 
 
                 continue;
-
             }else if(type==""){
 
 
@@ -292,7 +349,6 @@ void SubReactor::run() {
 
 
                 continue;
-
             }else if(type==""){
 
 
@@ -303,117 +359,6 @@ void SubReactor::run() {
 
 
                 continue;
-
-            }else if(type==""){
-
-
-
-
-
-                
-
-
-                continue;
-
-            }else if(type==""){
-
-
-
-
-
-                
-
-
-                continue;
-
-            }else if(type==""){
-
-
-
-
-
-                
-
-
-                continue;
-
-            }else if(type==""){
-
-
-
-
-
-                
-
-
-                continue;
-
-            }else if(type==""){
-
-
-
-
-
-                
-
-
-                continue;
-
-            }else if(type==""){
-
-
-
-
-
-                
-
-
-                continue;
-
-            }else if(type==""){
-
-
-
-
-
-                
-
-
-                continue;
-
-            }else if(type==""){
-
-
-
-
-
-                
-
-
-                continue;
-
-            }else if(type==""){
-
-
-
-
-
-                
-
-
-                continue;
-
-            }else if(type==""){
-
-
-
-
-
-                
-
-
-                continue;
-
             }else{
                 // 处理错误逻辑
                 thread_pool->enqueue([fd, request]() {

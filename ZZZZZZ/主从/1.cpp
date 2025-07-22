@@ -1,60 +1,13 @@
-#include "json.hpp"
-#include "msg.hpp"
-
-using json = nlohmann::json;
-using namespace sw::redis;
-
-
-// 获取MySQL连接
-std::shared_ptr<sql::Connection> get_mysql_connection() {
-    sql::mysql::MySQL_Driver* driver = sql::mysql::get_mysql_driver_instance();
-    auto conn = std::shared_ptr<sql::Connection>(driver->connect("tcp://127.0.0.1:3306", "qcx", "qcx761"));
-    conn->setSchema("chatroom");  // 你的数据库名
-    return conn;
-}
-
-// 生成32位随机Token字符串
-std::string generate_token() {
-    static const char charset[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-    static std::default_random_engine engine(std::random_device{}());
-    static std::uniform_int_distribution<size_t> dist(0, sizeof(charset) - 2);
-
-    std::stringstream ss;   
-    for (int i = 0; i < 32; ++i) {
-        ss << charset[dist(engine)];
-    }
-    return ss.str();
-}
-
-// 验证token是否有效
-bool verify_token(const std::string& token, std::string& out_account) {
-    try {
-        Redis redis("tcp://127.0.0.1:6379");
-        std::string token_key = "token:" + token;
-        auto val = redis.get(token_key);
-        if (val) {
-            out_account = *val;
-            return true;
-        } else {
-            return false; // token 不存在或过期
-        }
-    } catch (const std::exception& e) {
-        std::cerr << "Redis error: " << e.what() << std::endl;
-        return false;
-    }
-}
-
-// 注册处理函数
-void sign_up_msg(int fd, const json &request) {
+void show_friend_notifications_msg(int fd, const json& request) {
     json response;
-    std::string account = request.value("account", "");
-    std::string username = request.value("username", "");
-    std::string password = request.value("password", "");
+    response["type"] = "show_friend_notifications";
 
-    if (account.empty() || username.empty() || password.empty()) {
-        response["type"] = "sign_up";
-        response["status"] = "error";
-        response["msg"] = "Account, username or password cannot be empty";
+    std::string token = request.value("token", "");
+    std::string user_account;
+
+    if (!verify_token(token, user_account)) {
+        response["status"] = "fail";
+        response["msg"] = "Invalid token";
         send_json(fd, response);
         return;
     }
@@ -62,123 +15,96 @@ void sign_up_msg(int fd, const json &request) {
     try {
         auto conn = get_mysql_connection();
 
-        // 检查 account 是否存在
-        auto check_account_stmt = std::unique_ptr<sql::PreparedStatement>(
-            conn->prepareStatement("SELECT COUNT(*) FROM users WHERE account = ?"));
-        check_account_stmt->setString(1, account);
-        auto res_account = check_account_stmt->executeQuery();
-        res_account->next();
+        // 1. 拉取未处理的好友请求（receiver是自己，且状态为pending）
+        std::vector<json> friend_requests;
+        {
+            auto stmt = conn->prepareStatement(
+                "SELECT sender FROM friend_requests WHERE receiver = ? AND status = 'pending'");
+            stmt->setString(1, user_account);
+            auto res = stmt->executeQuery();
 
-        if (res_account->getInt(1) > 0) {
-            response["type"] = "sign_up";
-            response["status"] = "fail";
-            response["msg"] = "Account already exists";
-        } else {
-            // 检查 username 是否存在
-            auto check_username_stmt = std::unique_ptr<sql::PreparedStatement>(
-                conn->prepareStatement("SELECT COUNT(*) FROM users WHERE username = ?"));
-            check_username_stmt->setString(1, username);
-            auto res_username = check_username_stmt->executeQuery();
-            res_username->next();
+            while (res->next()) {
+                std::string sender_account = res->getString("sender");
 
-            if (res_username->getInt(1) > 0) {
-                response["type"] = "sign_up";
-                response["status"] = "fail";
-                response["msg"] = "Username already exists";
-            } else {
-                // 插入新用户
-                auto insert_stmt = std::unique_ptr<sql::PreparedStatement>(
-                    conn->prepareStatement("INSERT INTO users (account, username, password) VALUES (?, ?, ?)"));
-                insert_stmt->setString(1, account);
-                insert_stmt->setString(2, username);
-                insert_stmt->setString(3, password);  // 注意：建议密码哈希存储
-                insert_stmt->executeUpdate();
+                // 查用户名
+                auto uname_stmt = conn->prepareStatement(
+                    "SELECT JSON_UNQUOTE(JSON_EXTRACT(info, '$.username')) AS username FROM users WHERE JSON_UNQUOTE(JSON_EXTRACT(info, '$.account')) = ?");
+                uname_stmt->setString(1, sender_account);
+                auto uname_res = uname_stmt->executeQuery();
 
-                response["type"] = "sign_up";
-                response["status"] = "success";
-                response["msg"] = "Registered successfully";
+                std::string sender_username = "";
+                if (uname_res->next()) {
+                    sender_username = uname_res->getString("username");
+                }
+
+                friend_requests.push_back({
+                    {"account", sender_account},
+                    {"username", sender_username}
+                });
             }
         }
-    } catch (const std::exception &e) {
-        response["type"] = "sign_up";
-        response["status"] = "error";
-        response["msg"] = std::string("Exception: ") + e.what();
-    }
 
-    // 重试发送
-    int n;
-    do {
-        n = send_json(fd, response);
-    } while (n != 0);
-}
+        // 2. 获取好友列表
+        std::vector<json> friends_list;
+        {
+            auto stmt = conn->prepareStatement("SELECT friends FROM friends WHERE account = ?");
+            stmt->setString(1, user_account);
+            auto res = stmt->executeQuery();
 
-// 登录处理函数
-void log_in_msg(int fd, const json &request) {
-    json response;
-    std::string account = request.value("account", "");
-    std::string password = request.value("password", "");
-
-    if (account.empty() || password.empty()) {
-        response["type"] = "log_in";
-        response["status"] = "error";
-        response["msg"] = "Account or password cannot be empty";
-        send_json(fd, response);
-        return;
-    }
-
-    try {
-        auto conn = get_mysql_connection();
-
-        auto stmt = std::unique_ptr<sql::PreparedStatement>(
-            conn->prepareStatement("SELECT password FROM users WHERE account = ?"));
-        stmt->setString(1, account);
-        auto res = stmt->executeQuery();
-
-        if (!res->next()) {
-            response["type"] = "log_in";
-            response["status"] = "fail";
-            response["msg"] = "Account not found";
-            send_json(fd, response);
-            return;
+            if (res->next()) {
+                std::string friends_str = res->getString("friends");
+                friends_list = json::parse(friends_str).get<std::vector<json>>();
+            }
         }
 
-        std::string stored_pass = res->getString("password");
-        if (stored_pass != password) {
-            response["type"] = "log_in";
-            response["status"] = "fail";
-            response["msg"] = "Incorrect password";
-            send_json(fd, response);
-            return;
+        // 3. 获取好友文件信息（如果有相关表，假设是 friend_files 表）
+        // 这里假设你有一张 friend_files 表：owner（账号）、filename、shared(boolean)
+        std::vector<json> friend_files;
+        {
+            // 先取所有好友账号
+            std::vector<std::string> friend_accounts;
+            for (const auto& f : friends_list) {
+                friend_accounts.push_back(f.value("account", ""));
+            }
+
+            if (!friend_accounts.empty()) {
+                // 构造IN查询字符串
+                std::string in_clause = "(";
+                for (size_t i = 0; i < friend_accounts.size(); ++i) {
+                    in_clause += "?";
+                    if (i != friend_accounts.size() - 1) in_clause += ",";
+                }
+                in_clause += ")";
+
+                std::string sql = "SELECT owner, filename, shared FROM friend_files WHERE owner IN " + in_clause;
+
+                auto stmt = conn->prepareStatement(sql);
+                for (size_t i = 0; i < friend_accounts.size(); ++i) {
+                    stmt->setString(i + 1, friend_accounts[i]);
+                }
+                auto res = stmt->executeQuery();
+
+                while (res->next()) {
+                    friend_files.push_back({
+                        {"owner", res->getString("owner")},
+                        {"filename", res->getString("filename")},
+                        {"shared", res->getBoolean("shared")}
+                    });
+                }
+            }
         }
 
-        // 密码正确，生成token，存redis
-        Redis redis("tcp://127.0.0.1:6379");
-        std::string token = generate_token();
-        std::string token_key = "token:" + token;
-        redis.set(token_key, account);
-        redis.expire(token_key, 3600);  // 1小时有效期
-
-        response["type"] = "log_in";
         response["status"] = "success";
-        response["msg"] = "Login successful";
-        response["token"] = token;
-    } catch (const std::exception &e) {
-        response["type"] = "log_in";
+        response["friend_requests"] = friend_requests;
+        response["friends"] = friends_list;
+        response["friend_files"] = friend_files;
+    } catch (const std::exception& e) {
         response["status"] = "error";
-        response["msg"] = std::string("Exception: ") + e.what();
+        response["msg"] = e.what();
     }
 
-
-
-    // 重试发送
-    int n;
-    do {
-        n = send_json(fd, response);
-    } while (n != 0);
+    send_json(fd, response);
 }
-
-
-
 
 
 

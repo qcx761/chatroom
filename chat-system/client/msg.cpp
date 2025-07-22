@@ -125,41 +125,8 @@ void password_change_msg(const json &response){
 
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 void show_friend_list_msg(const json &response){
     std::string status = response.value("status", "error");
-    std::string msg = response.value("msg", "未知错误");
-
     if (status == "success") {
         // nlohmann::json 支持隐式把 STL 容器转换为 JSON 数组
         auto friends = response["friends"];
@@ -173,9 +140,9 @@ void show_friend_list_msg(const json &response){
             << (is_muted ? " [muted]" : "") << std::endl;
         }
     }else{
+        std::string msg = response.value("msg", "未知错误");
         std::cerr << "[列出错误] " << msg << std::endl;
     }
-
 }
 
 void add_friend_msg(const json &response){
@@ -230,14 +197,14 @@ void unmute_friend_msg(const json &response){
     }
 }
 
-void get_friend_request_msg(const json &response){
+void get_friend_requests_msg(const json &response){
     std::lock_guard<std::mutex> lock(friend_requests_mutex);
     global_friend_requests.clear();
     std::string status = response.value("status", "error");
     std::string msg = response.value("msg", "未知错误");
 
     if (status == "success") {
-        std::cout << "[好友列表获取成功] " << msg << std::endl;
+        std::cout << "[好友申请列表获取成功] " << msg << std::endl;
         auto requests = response["requests"];
         if (requests.empty()) {
             std::cout << "暂无待处理的好友请求" << std::endl;
@@ -274,21 +241,12 @@ void handle_friend_request_msg(const json &response){
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 void show_friend_notifications_msg(const json &response){
+    
+    
+    
+    
+    
     ;
 }
 

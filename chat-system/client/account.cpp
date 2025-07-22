@@ -216,27 +216,6 @@ void password_change(int sock,string token,sem_t& sem){
     waiting();
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 void show_friend_list(int sock,string token,sem_t& sem){
     system("clear");
     cout <<"好友列表 :" << endl;
@@ -245,8 +224,6 @@ void show_friend_list(int sock,string token,sem_t& sem){
     j["type"]="show_friend_list";
     j["token"]=token;
     send_json(sock,j);
-
-
     sem_wait(&sem); // 等待信号量
     // flushInput();
     waiting();
@@ -265,7 +242,6 @@ void add_friend(int sock,string token,sem_t& sem){
     j["type"]="add_friend";
     j["token"]=token;
     j["target_username"]=target_username;
-
 
     send_json(sock,j);
     sem_wait(&sem);
@@ -288,9 +264,6 @@ void remove_friend(int sock,string token,sem_t& sem){
     j["token"]=token;
     j["target_username"]=username;
 
-
-
-
     send_json(sock,j);
     sem_wait(&sem);
     // flushInput();
@@ -310,7 +283,6 @@ void unmute_friend(int sock,string token,sem_t& sem){
     j["type"]="unmute_friend";
     j["token"]=token;
     j["target_username"]=target_username;
-
 
     send_json(sock,j);
     sem_wait(&sem);
@@ -332,7 +304,6 @@ void mute_friend(int sock,string token,sem_t& sem){
     j["token"]=token;
     j["target_username"]=target_username;
 
-
     send_json(sock,j);
     sem_wait(&sem);
     // flushInput();
@@ -349,6 +320,11 @@ void getandhandle_friend_request(int sock,string token,sem_t& sem){
     send_json(sock,j);
     sem_wait(&sem);
 
+    if(global_friend_requests.size()==0){
+        flushInput();
+        waiting();
+        return;
+    }
 
     std::cout << "输入处理编号(0 退出): ";
     int choice;
@@ -406,15 +382,29 @@ void getandhandle_friend_request(int sock,string token,sem_t& sem){
 
 
 void show_friend_notifications(int sock,string token,sem_t& sem){
-    // system("clear");
-    // json j;
-    // j["type"]="show_friend_notifications";
-    // j["token"]=token;
-    // send_json(sock,j);
-    // sem_wait(&sem);
-    // flushInput();
-    // waiting();
-    ;
+    system("clear");
+    json j;
+    j["type"]="show_friend_notifications";
+    j["token"]=token;
+    send_json(sock,j);
+    sem_wait(&sem);
+    flushInput();
+    waiting();
+
+
+
+
+// 信息处理
+
+
+
+
+
+
+
+
+
+
 }
 
 

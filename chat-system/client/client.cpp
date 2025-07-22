@@ -186,18 +186,6 @@ void Client::epoll_thread_func(){
                         continue;
                     }
 
-
-
-
-
-
-
-
-
-
-
-
-
                     if(type=="show_friend_list"){
                         thread_pool.enqueue([this,j]() {
                             show_friend_list_msg(j);
@@ -238,6 +226,13 @@ void Client::epoll_thread_func(){
                         continue;
                     }
 
+                    if(type=="get_friend_requests"){
+                        thread_pool.enqueue([this,j]() {
+                            get_friend_requests_msg(j);
+                            sem_post(&this->sem);
+                        });
+                        continue;
+                    }
 
 
                     if(type=="handle_friend_request"){
@@ -253,22 +248,14 @@ void Client::epoll_thread_func(){
                             show_friend_notifications_msg(j);
                             sem_post(&this->sem);
                         });
+
+
+
+// 信号处理后面还要添加
+
+
                         continue;
                     }
-
-                    if(type=="get_friend_request_msg"){
-                        thread_pool.enqueue([this,j]() {
-                            get_friend_request_msg(j);
-                            sem_post(&this->sem);
-                        });
-                        continue;
-                    }
-
-
-
-
-
-
 
 
 
@@ -542,11 +529,11 @@ void Client::user_thread_func() {
                 switch (m)
                 {
                 case 1: state=next21_menu; break;
-                case 2: 
+                case 2: state=next22_menu; break;
                 case 3: getandhandle_friend_request(sock,token,sem); break;
                 case 4: 
                 case 5: 
-                case 6: state=next_menu;
+                case 6: state=next_menu; break;
                 case 7: 
                 case 8: 
                 default:
@@ -576,7 +563,7 @@ void Client::user_thread_func() {
                 case 5: unmute_friend(sock,token,sem); break;
                 case 6: mute_friend(sock,token,sem); break;
                 case 7: 
-                case 8: state=next2_menu;
+                case 8: state=next2_menu; break;
                 default:
                     cout << "无效数字" << endl;
                     flushInput(); // 去除数字后面的换行符
@@ -609,6 +596,7 @@ void Client::user_thread_func() {
                 case 10: 
                 case 11: 
                 case 12: 
+                case 12: state=next2_menu; break;
                 default:
                     cout << "无效数字" << endl;
                     flushInput(); // 去除数字后面的换行符

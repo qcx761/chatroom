@@ -6,16 +6,16 @@
 
 int main(int argc, char* argv[]) {
 
-    signal(SIGINT, SIG_IGN);   // 忽略 Ctrl+C (中断信号)
-    signal(SIGTERM, SIG_IGN);  // 忽略 kill 发送的终止信号
-    signal(SIGTSTP, SIG_IGN);  // 忽略 Ctrl+Z (挂起/停止信号)
+    // signal(SIGINT, SIG_IGN);   // 忽略 Ctrl+C (中断信号)
+    // signal(SIGTERM, SIG_IGN);  // 忽略 kill 发送的终止信号
+    // signal(SIGTSTP, SIG_IGN);  // 忽略 Ctrl+Z (挂起/停止信号)
 
-    // 忽略 Ctrl+D
-    struct termios tty;
-    if (tcgetattr(STDIN_FILENO, &tty) == 0) {
-        tty.c_cc[VEOF] = 0;
-        tcsetattr(STDIN_FILENO, TCSANOW, &tty);
-    }
+    // // 忽略 Ctrl+D
+    // struct termios tty;
+    // if (tcgetattr(STDIN_FILENO, &tty) == 0) {
+    //     tty.c_cc[VEOF] = 0;
+    //     tcsetattr(STDIN_FILENO, TCSANOW, &tty);
+    // }
 
     std::string ip = argv[1];
 

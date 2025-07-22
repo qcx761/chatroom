@@ -42,7 +42,7 @@ void show_next11_menu(){
 void show_next2_menu(){
         system("clear");
         std::cout << "1. 好友管理" << std::endl;
-        //std::cout << "2. 群管理" << std::endl;
+        std::cout << "2. 群管理" << std::endl;
         std::cout << "3. 好友申请" << std::endl;
         //std::cout << "4. 群申请" << std::endl;
         //std::cout << "5. 历史记录查询" << std::endl;
@@ -81,13 +81,14 @@ void show_next22_menu(){
         //std::cout << "10. 添加成员" << std::endl; // 群主 管理员
         //std::cout << "11. 解散群" << std::endl; // 群主
         //std::cout << "12. 群聊" << std::endl;
-        //std::cout << "13. 返回" << std::endl;
+        std::cout << "13. 返回" << std::endl;
         std::cout << "请输入你的选项：";
 }
 
 // 文件接收
 void show_next3_menu(){
-;
+        // system("clear");
+        ;
 }
 
 // 信息通知
