@@ -1112,12 +1112,12 @@ void handle_friend_request_msg(int fd, const json& request) {
 
 
 
-void error_msg(int fd, const nlohmann::json &request){
-    json response;
-    response["type"] = "error";
-    response["msg"] = "Unrecognized request type";
-    send_json(fd, response);
-}
+// void error_msg(int fd, const nlohmann::json &request){
+//     json response;
+//     response["type"] = "error";
+//     response["msg"] = "Unrecognized request type";
+//     send_json(fd, response);
+// }
 
 
 

@@ -3,6 +3,9 @@
 
 using json = nlohmann::json;
 
+std::vector<json> global_friend_requests;
+std::mutex friend_requests_mutex;
+
 // 处理服务端返回的错误消息
 void error_msg(int fd, const json &response) {
     
@@ -165,8 +168,6 @@ void show_friend_list_msg(const json &response){
             std::string username = f["username"];
             bool is_online = f["online"];
             bool is_muted = f["muted"];
-
-
             std::cout << username << " (" << account << ") is "
             << (is_online ? " online" : "offline")
             << (is_muted ? " [muted]" : "") << std::endl;
@@ -177,26 +178,17 @@ void show_friend_list_msg(const json &response){
 
 }
 
-
 void add_friend_msg(const json &response){
-    // 可以列出好友列表
-    
+    std::string status = response.value("status", "error");
+    std::string msg = response.value("msg", "未知错误");
 
-
-
-
-
-
-
-
-
-
-
-
-
-    
-
-    ;
+    if (status == "success") {
+        std::cout << "[发送请求成功] " << msg << std::endl;
+    } else if (status == "fail") {
+        std::cout << "[发送请求失败] " << msg << std::endl;
+    } else {
+        std::cerr << "[发送请求错误] " << msg << std::endl;
+    }
 }
 
 void remove_friend_msg(const json &response){
@@ -238,19 +230,65 @@ void unmute_friend_msg(const json &response){
     }
 }
 
+void get_friend_request_msg(const json &response){
+    std::lock_guard<std::mutex> lock(friend_requests_mutex);
+    global_friend_requests.clear();
+    std::string status = response.value("status", "error");
+    std::string msg = response.value("msg", "未知错误");
 
+    if (status == "success") {
+        std::cout << "[好友列表获取成功] " << msg << std::endl;
+        auto requests = response["requests"];
+        if (requests.empty()) {
+            std::cout << "暂无待处理的好友请求" << std::endl;
+        }else{
 
+            int index = 0;
+            for (const auto& r : requests) {
+                global_friend_requests.push_back(r);
+                std::cout << ++index << ". 用户名: " << r["username"]
+                        << "(账号: " << r["account"] << ")" << std::endl;
+            }
 
+        }
+    } else if (status == "fail") {
+        std::cout << "[好友列表获取失败] " << msg << std::endl;
+    } else {
+        std::cerr << "[好友列表获取错误] " << msg << std::endl;
+    }
+}
 
-
-
-void handle_friend_request_msg_msg(const json &response){
-    ;
+void handle_friend_request_msg(const json &response){
+    std::string status = response.value("status", "");
+    std::string msg = response.value("msg", "未知错误");
+    if (status == "success") {
+        std::cout << "处理成功: " << msg << std::endl;
+    } else {
+        std::cout << "处理失败: " << msg << std::endl;
+    }
 }
 
 
 
-void show_friend_msg_msg(const json &response){
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void show_friend_notifications_msg(const json &response){
     ;
 }
 

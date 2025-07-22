@@ -1,14 +1,18 @@
 #include "json.hpp"
 #include "msg.hpp"
 
-using json = nlohmann::json;
-using namespace sw::redis;
+Redis redis("tcp://127.0.0.1:6379");
+
 
 // 用户表：users
+
 // CREATE TABLE users (
 //     id INT PRIMARY KEY AUTO_INCREMENT,  -- 主键，自动递增的整数ID
 //     info JSON                           -- 一个JSON类型的字段，用来存储结构化的JSON数据
 // );
+
+
+// 好友表：friends
 
 // CREATE TABLE friends (
 //     account VARCHAR(64) PRIMARY KEY,     -- 当前用户账号，主键
@@ -16,19 +20,20 @@ using namespace sw::redis;
 // );                                       -- { "account": "xxx", "muted": false } 不存储用户名
 
 
+// 好友请求表：friend_requests
+
 // CREATE TABLE friend_requests (
 //     id INT PRIMARY KEY AUTO_INCREMENT,                         -- 主键ID，自动递增
 //     sender VARCHAR(64) NOT NULL,                               -- 发起请求的用户账号
 //     receiver VARCHAR(64) NOT NULL,                             -- 接收请求的用户账号
 //     status ENUM('pending', 'accepted', 'rejected') NOT NULL    -- 当前状态（待处理 / 接受 / 拒绝）
 //         DEFAULT 'pending',
-//     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,              -- 请求的时间
-
-//     INDEX idx_sender_receiver (sender, receiver),              -- 联合索引，便于查重、更新状态
-//     INDEX idx_receiver_status (receiver, status)               -- 索引，便于查找所有待处理请求
+//     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP               -- 请求的时间
 // );
 
 
+//     INDEX idx_sender_receiver (sender, receiver),              -- 联合索引，便于查重、更新状态
+//     INDEX idx_receiver_status (receiver, status),              -- 索引，便于查找所有待处理请求
 
 
 // 获取MySQL连接
@@ -55,7 +60,7 @@ std::string generate_token() {
 // 验证token是否有效（读取redis的json），用token获取account
 bool verify_token(const std::string& token, std::string& out_account) {
     try {
-        Redis redis("tcp://127.0.0.1:6379");
+        // Redis redis("tcp://127.0.0.1:6379");
         std::string token_key = "token:" + token;
         auto val = redis.get(token_key);
         if (val) {
@@ -189,7 +194,7 @@ void log_in_msg(int fd, const json &request) {
         }
 
         // 密码正确，生成token，存redis，存JSON字符串
-        Redis redis("tcp://127.0.0.1:6379");
+        // Redis redis("tcp://127.0.0.1:6379");
         std::string token = generate_token();
         std::string token_key = "token:" + token;
 
@@ -237,7 +242,7 @@ void destory_account_msg(int fd, const json &request){
     }
 
     try{
-        Redis redis("tcp://127.0.0.1:6379");
+        // Redis redis("tcp://127.0.0.1:6379");
 
         auto conn = get_mysql_connection();
         auto stmt = std::unique_ptr<sql::PreparedStatement>(
@@ -305,7 +310,7 @@ void destory_account_msg(int fd, const json &request){
         response["status"] = "error";
         response["msg"] = e.what();
     }
-    
+    // Redis redis("tcp://127.0.0.1:6379");
     redis.del("token:" + token);
     redis.del("online:" + account);
 
@@ -328,7 +333,7 @@ void quit_account_msg(int fd, const json &request){
 
 
     try {
-        Redis redis("tcp://127.0.0.1:6379");
+        // Redis redis("tcp://127.0.0.1:6379");
         redis.del("token:" + token);
 
         redis.del("online:" + account);
@@ -584,7 +589,7 @@ redis.del("online:" + account);
 
 
 
-
+// 展示好友列表，包括在线状态和是否屏蔽
 void show_friend_list_msg(int fd, const json& request) {
     json response;
     response["type"] = "show_friend_list";
@@ -612,14 +617,16 @@ void show_friend_list_msg(int fd, const json& request) {
             std::string friends_json = res->getString("friends");
             json friends = json::parse(friends_json); 
 
-            Redis redis("tcp://127.0.0.1:6379");
+            // Redis redis("tcp://127.0.0.1:6379");
 
             // 遍历好友，查询 Redis 是否在线
             for (const auto& f : friends) {
                 std::string friend_account = f.value("account", "");
                 // std::string friend_username = f.value("username", "");
-                bool friend_is_muted = f.value("muted", "");
+                // bool friend_is_muted = f.value("muted", "");
+                // 默认值是 false，而不是空字符串
 
+                bool friend_is_muted = f.value("muted", false);
                 bool is_online = redis.exists("online:" + friend_account);
 
                 // 查用户名
@@ -663,6 +670,7 @@ void show_friend_list_msg(int fd, const json& request) {
     send_json(fd, response);
 }
 
+// 屏蔽好友
 void mute_friend_msg(int fd, const json& request) {
     json response;
     response["type"] = "mute_friend";
@@ -686,7 +694,9 @@ void mute_friend_msg(int fd, const json& request) {
             auto stmt = conn->prepareStatement("SELECT info FROM users");
             auto res = stmt->executeQuery();
             while (res->next()) {
-                json info = json::parse(res->getString("info"));
+                json info = json::parse(std::string(res->getString("info")));
+
+                // json info = json::parse(res->getString("info"));
                 if (info["username"] == target_username) {
                     target_account = info["account"];
                     break;
@@ -750,6 +760,7 @@ void mute_friend_msg(int fd, const json& request) {
     send_json(fd, response);
 }
 
+// 解除屏蔽好友
 void unmute_friend_msg(int fd, const json& request) {
     json response;
     response["type"] = "unmute_friend";
@@ -772,7 +783,9 @@ void unmute_friend_msg(int fd, const json& request) {
             auto stmt = conn->prepareStatement("SELECT info FROM users");
             auto res = stmt->executeQuery();
             while (res->next()) {
-                json info = json::parse(res->getString("info"));
+                json info = json::parse(std::string(res->getString("info")));
+
+                // json info = json::parse(res->getString("info"));
                 if (info["username"] == target_username) {
                     target_account = info["account"];
                     break;
@@ -832,6 +845,7 @@ void unmute_friend_msg(int fd, const json& request) {
     send_json(fd, response);
 }
 
+// 删除好友
 void remove_friend_msg(int fd, const json& request) {
     json response;
     response["type"] = "remove_friend";
@@ -855,7 +869,9 @@ void remove_friend_msg(int fd, const json& request) {
 
         std::string target_account;
         while (info_res->next()) {
-            json info = json::parse(info_res->getString("info"));
+            json info = json::parse(std::string(info_res->getString("info")));
+
+            //json info = json::parse(info_res->getString("info"));
             if (info["username"] == target_username) {
                 target_account = info["account"];
                 break;
@@ -876,7 +892,10 @@ void remove_friend_msg(int fd, const json& request) {
             auto res = stmt->executeQuery();
             // 初始化一个 JSON 类型的空数组
             json fs = json::array();
-            if (res->next()) fs = json::parse(res->getString("friends"));
+            if (res->next()) 
+                fs = json::parse(std::string(res->getString("friends")));
+
+                // fs = json::parse(res->getString("friends"));
             json new_fs = json::array();
             for (auto& f : fs) {
                 if (f.value("account", "") != remove_account) 
@@ -935,7 +954,7 @@ void remove_friend_msg(int fd, const json& request) {
 //     INDEX idx_receiver_status (receiver, status)               -- 索引，便于查找所有待处理请求
 // );
 
-
+// 添加好友
 void add_friend_msg(int fd, const json& request) {
     json response;
     response["type"] = "add_friend";
@@ -977,7 +996,9 @@ void add_friend_msg(int fd, const json& request) {
         stmt->setString(1, sender);
         res = stmt->executeQuery();
         if (res->next()) {
-            json friends = json::parse(res->getString("friends"));
+            json friends = json::parse(std::string(res->getString("friends")));
+
+            // json friends = json::parse(res->getString("friends"));
             for (auto& f : friends) {
                 if (f.value("account", "") == target_account) {
                     response["status"] = "fail";
@@ -1005,12 +1026,7 @@ void add_friend_msg(int fd, const json& request) {
     send_json(fd, response);
 }
 
-
-
-
-
-
-
+// 拉取好友申请
 void get_friend_requests_msg(int fd, const json& request) {
     json response;
     response["type"] = "get_friend_requests";
@@ -1032,7 +1048,7 @@ void get_friend_requests_msg(int fd, const json& request) {
         stmt->setString(1, receiver);
         auto res = stmt->executeQuery();
 
-        json requests = json::array();
+        std::vector<json> requests;
 
         while (res->next()) {
             std::string sender_account = res->getString("sender");
@@ -1055,7 +1071,7 @@ void get_friend_requests_msg(int fd, const json& request) {
         }
 
         response["status"] = "success";
-        response["requests"] = requests;
+        response["requests"] = json(requests);
     } catch (const std::exception& e) {
         response["status"] = "error";
         response["msg"] = e.what();
@@ -1064,6 +1080,7 @@ void get_friend_requests_msg(int fd, const json& request) {
     send_json(fd, response);
 }
 
+// 处理好友申请
 void handle_friend_request_msg(int fd, const json& request) {
     json response;
     response["type"] = "handle_friend_request";
@@ -1130,7 +1147,9 @@ void handle_friend_request_msg(int fd, const json& request) {
 
                 json friends = json::array();
                 if (res->next()) {
-                    friends = json::parse(res->getString("friends"));
+                    friends = json::parse(std::string(res->getString("friends")));
+                    
+                    // friends = json::parse(res->getString("friends"));
                 }
 
                 for (auto& f : friends) {
@@ -1173,7 +1192,44 @@ void handle_friend_request_msg(int fd, const json& request) {
 
 
 
+// 展示所有与好友有关的信息
+void show_friend_notifications_msg(int fd, const json& request){
+    // 要有所有和好友有关的信息
 
+// 好友请求，好友信息，好友文件
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+}
 
 
 
@@ -1258,18 +1314,5 @@ void error_msg(int fd, const nlohmann::json &request){
     response["msg"] = "Unrecognized request type";
     send_json(fd, response);
 }
-
-
-
-// // 登出函数
-// void log_out_msg(const std::string& token) {
-//     try {
-//         Redis redis("tcp://127.0.0.1:6379");
-//         std::string token_key = "token:" + token;
-//         redis.del(token_key);
-//     } catch (const std::exception& e) {
-//         std::cerr << "Logout error: " << e.what() << std::endl;
-//     }
-// }
 
 

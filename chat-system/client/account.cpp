@@ -1,6 +1,6 @@
 #include "account.hpp"
 #include "json.hpp"
-
+#include "msg.hpp"
 
 
 void waiting() {
@@ -340,40 +340,92 @@ void mute_friend(int sock,string token,sem_t& sem){
 }
 
 
-void handle_friend_request_msg(int sock,string token,sem_t& sem){
+void getandhandle_friend_request(int sock,string token,sem_t& sem){
     system("clear");
-
+    std::cout << "好友请求列表" << std::endl;
     json j;
-    j["type"]="handle_friend_request_msg";
+    j["type"]="get_friend_requests";
     j["token"]=token;
-
-
-
-
-
-
     send_json(sock,j);
     sem_wait(&sem);
-    // flushInput();
-    waiting();
+
+
+    std::cout << "输入处理编号(0 退出): ";
+    int choice;
+    std::cin >> choice;
+    flushInput();
+    char op;
+    std::string from_username;
+{
+    std::lock_guard<std::mutex> lock(friend_requests_mutex);
+
+    if (choice <= 0 || choice > global_friend_requests.size()) {
+        std::cout << "已取消处理。" << std::endl;
+        waiting();
+        return;
+    }
+
+    from_username = global_friend_requests[choice - 1]["username"];
+
+    std::cout << "你想如何处理 [" << from_username << "] 的请求？(a=接受, r=拒绝): ";
+    std::cin >> op;
+    flushInput();
 }
+    std::string action;
+    if (op == 'a' || op == 'A') {
+        action = "accept";
+    } else if (op == 'r' || op == 'R') {
+        action = "reject";
+    } else {
+        std::cout << "无效操作，已取消处理。" << std::endl;
+        waiting();
+        return;
+    }
 
-
-
-void show_friend_msg(int sock,string token,sem_t& sem){
-    system("clear");
-
-    json j;
-    j["type"]="show_friend_msg";
-    j["token"]=token;
-
-
-
-
-
-        send_json(sock,j);
+    json m;
+    m["type"] = "handle_friend_request";
+    m["token"] = token;
+    m["from_username"] = from_username;
+    m["action"] = action;
+    send_json(sock, m);
     sem_wait(&sem);
+
     // flushInput();
     waiting();
 }
+
+
+
+
+
+
+
+
+
+
+
+
+void show_friend_notifications(int sock,string token,sem_t& sem){
+    // system("clear");
+    // json j;
+    // j["type"]="show_friend_notifications";
+    // j["token"]=token;
+    // send_json(sock,j);
+    // sem_wait(&sem);
+    // flushInput();
+    // waiting();
+    ;
+}
+
+
+
+
+
+
+
+
+
+
+
+
 // 清屏，token，state，login——success，return返回，发送send，信号量

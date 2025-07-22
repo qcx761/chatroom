@@ -224,7 +224,7 @@ void Client::epoll_thread_func(){
 
                     if(type=="mute_friend"){
                         thread_pool.enqueue([this,j]() {
-                            is_mute_friend_msg(j);
+                            mute_friend_msg(j);
                             sem_post(&this->sem);
                         });
                         continue;
@@ -232,18 +232,11 @@ void Client::epoll_thread_func(){
 
                     if(type=="unmute_friend"){
                         thread_pool.enqueue([this,j]() {
-                            is_mute_friend_msg(j);
+                            unmute_friend_msg(j);
                             sem_post(&this->sem);
                         });
                         continue;
                     }
-
-
-
-
-
-
-
 
 
 
@@ -255,18 +248,21 @@ void Client::epoll_thread_func(){
                         continue;
                     }
                 
-                    if(type=="show_friend_msg"){
+                    if(type=="show_friend_notifications"){
                         thread_pool.enqueue([this,j]() {
-                            show_friend_msg_msg(j);
+                            show_friend_notifications_msg(j);
                             sem_post(&this->sem);
                         });
                         continue;
                     }
 
-
-
-
-
+                    if(type=="get_friend_request_msg"){
+                        thread_pool.enqueue([this,j]() {
+                            get_friend_request_msg(j);
+                            sem_post(&this->sem);
+                        });
+                        continue;
+                    }
 
 
 
@@ -547,7 +543,7 @@ void Client::user_thread_func() {
                 {
                 case 1: state=next21_menu; break;
                 case 2: 
-                case 3: handle_friend_request_msg(sock,token,sem); break;
+                case 3: getandhandle_friend_request(sock,token,sem); break;
                 case 4: 
                 case 5: 
                 case 6: state=next_menu;
@@ -633,7 +629,7 @@ void Client::user_thread_func() {
                 }
                 switch (m)
                 {
-                case 1: show_friend_msg(sock,token,sem); break;
+                case 1: show_friend_notifications(sock,token,sem); break;
                 case 2: 
                 case 3: 
                 case 4: state=next_menu; break;

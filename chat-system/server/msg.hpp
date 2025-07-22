@@ -20,6 +20,8 @@
 using json = nlohmann::json;
 using namespace sw::redis;
 
+extern sw::redis::Redis redis;
+
 void error_msg(int fd, const json &request);
 std::shared_ptr<sql::Connection> get_mysql_connection();
 std::string generate_token();
@@ -36,5 +38,12 @@ void password_change_msg(int fd, const json &request);
 
 void show_friend_list_msg(int fd, const json &request);
 void add_friend_msg(int fd, const json &request);
-void is_mute_friend_msg_msg(int fd, const json &request);
+void mute_friend_msg(int fd, const json &request);
+void unmute_friend_msg(int fd, const json &request);
 void remove_friend_msg(int fd, const json &request);
+void add_friend_msg(int fd, const json &request);
+
+
+void handle_friend_request_msg(int fd, const json &request);
+void show_friend_notifications_msg(int fd, const json &request);
+void get_friend_requests_msg(int fd, const json& request);

@@ -5,6 +5,7 @@ CMakeFiles/client.dir/account.cpp.o: /home/kong/plan/chartroom/chat-system/clien
   /home/kong/plan/chartroom/chat-system/client/account.hpp \
   /home/kong/plan/chartroom/chat-system/client/json.hpp \
   /home/kong/plan/chartroom/chat-system/client/menu.hpp \
+  /home/kong/plan/chartroom/chat-system/client/msg.hpp \
   /usr/include/alloca.h \
   /usr/include/arpa/inet.h \
   /usr/include/asm-generic/bitsperlong.h \
@@ -40,6 +41,7 @@ CMakeFiles/client.dir/account.cpp.o: /home/kong/plan/chartroom/chat-system/clien
   /usr/include/c++/13/bits/cpp_type_traits.h \
   /usr/include/c++/13/bits/cxxabi_forced.h \
   /usr/include/c++/13/bits/cxxabi_init_exception.h \
+  /usr/include/c++/13/bits/deque.tcc \
   /usr/include/c++/13/bits/enable_special_members.h \
   /usr/include/c++/13/bits/erase_if.h \
   /usr/include/c++/13/bits/exception.h \
@@ -62,6 +64,7 @@ CMakeFiles/client.dir/account.cpp.o: /home/kong/plan/chartroom/chat-system/clien
   /usr/include/c++/13/bits/invoke.h \
   /usr/include/c++/13/bits/ios_base.h \
   /usr/include/c++/13/bits/istream.tcc \
+  /usr/include/c++/13/bits/list.tcc \
   /usr/include/c++/13/bits/locale_classes.h \
   /usr/include/c++/13/bits/locale_classes.tcc \
   /usr/include/c++/13/bits/locale_conv.h \
@@ -84,6 +87,8 @@ CMakeFiles/client.dir/account.cpp.o: /home/kong/plan/chartroom/chat-system/clien
   /usr/include/c++/13/bits/predefined_ops.h \
   /usr/include/c++/13/bits/ptr_traits.h \
   /usr/include/c++/13/bits/quoted_string.h \
+  /usr/include/c++/13/bits/random.h \
+  /usr/include/c++/13/bits/random.tcc \
   /usr/include/c++/13/bits/range_access.h \
   /usr/include/c++/13/bits/refwrap.h \
   /usr/include/c++/13/bits/requires_hosted.h \
@@ -95,15 +100,19 @@ CMakeFiles/client.dir/account.cpp.o: /home/kong/plan/chartroom/chat-system/clien
   /usr/include/c++/13/bits/sstream.tcc \
   /usr/include/c++/13/bits/std_abs.h \
   /usr/include/c++/13/bits/std_function.h \
+  /usr/include/c++/13/bits/std_mutex.h \
+  /usr/include/c++/13/bits/std_thread.h \
   /usr/include/c++/13/bits/stl_algo.h \
   /usr/include/c++/13/bits/stl_algobase.h \
   /usr/include/c++/13/bits/stl_bvector.h \
   /usr/include/c++/13/bits/stl_construct.h \
+  /usr/include/c++/13/bits/stl_deque.h \
   /usr/include/c++/13/bits/stl_function.h \
   /usr/include/c++/13/bits/stl_heap.h \
   /usr/include/c++/13/bits/stl_iterator.h \
   /usr/include/c++/13/bits/stl_iterator_base_funcs.h \
   /usr/include/c++/13/bits/stl_iterator_base_types.h \
+  /usr/include/c++/13/bits/stl_list.h \
   /usr/include/c++/13/bits/stl_map.h \
   /usr/include/c++/13/bits/stl_multimap.h \
   /usr/include/c++/13/bits/stl_numeric.h \
@@ -119,9 +128,12 @@ CMakeFiles/client.dir/account.cpp.o: /home/kong/plan/chartroom/chat-system/clien
   /usr/include/c++/13/bits/streambuf_iterator.h \
   /usr/include/c++/13/bits/string_view.tcc \
   /usr/include/c++/13/bits/stringfwd.h \
+  /usr/include/c++/13/bits/this_thread_sleep.h \
   /usr/include/c++/13/bits/uniform_int_dist.h \
+  /usr/include/c++/13/bits/unique_lock.h \
   /usr/include/c++/13/bits/unique_ptr.h \
   /usr/include/c++/13/bits/unordered_map.h \
+  /usr/include/c++/13/bits/unordered_set.h \
   /usr/include/c++/13/bits/uses_allocator.h \
   /usr/include/c++/13/bits/uses_allocator_args.h \
   /usr/include/c++/13/bits/utility.h \
@@ -133,10 +145,12 @@ CMakeFiles/client.dir/account.cpp.o: /home/kong/plan/chartroom/chat-system/clien
   /usr/include/c++/13/cassert \
   /usr/include/c++/13/cctype \
   /usr/include/c++/13/cerrno \
+  /usr/include/c++/13/chrono \
   /usr/include/c++/13/clocale \
   /usr/include/c++/13/cmath \
   /usr/include/c++/13/codecvt \
   /usr/include/c++/13/compare \
+  /usr/include/c++/13/condition_variable \
   /usr/include/c++/13/cstddef \
   /usr/include/c++/13/cstdint \
   /usr/include/c++/13/cstdio \
@@ -147,6 +161,7 @@ CMakeFiles/client.dir/account.cpp.o: /home/kong/plan/chartroom/chat-system/clien
   /usr/include/c++/13/cwctype \
   /usr/include/c++/13/debug/assertions.h \
   /usr/include/c++/13/debug/debug.h \
+  /usr/include/c++/13/deque \
   /usr/include/c++/13/exception \
   /usr/include/c++/13/ext/aligned_buffer.h \
   /usr/include/c++/13/ext/alloc_traits.h \
@@ -166,17 +181,21 @@ CMakeFiles/client.dir/account.cpp.o: /home/kong/plan/chartroom/chat-system/clien
   /usr/include/c++/13/istream \
   /usr/include/c++/13/iterator \
   /usr/include/c++/13/limits \
+  /usr/include/c++/13/list \
   /usr/include/c++/13/locale \
   /usr/include/c++/13/map \
   /usr/include/c++/13/memory \
+  /usr/include/c++/13/mutex \
   /usr/include/c++/13/new \
   /usr/include/c++/13/numeric \
+  /usr/include/c++/13/optional \
   /usr/include/c++/13/ostream \
   /usr/include/c++/13/pstl/execution_defs.h \
   /usr/include/c++/13/pstl/glue_algorithm_defs.h \
   /usr/include/c++/13/pstl/glue_memory_defs.h \
   /usr/include/c++/13/pstl/glue_numeric_defs.h \
   /usr/include/c++/13/pstl/pstl_config.h \
+  /usr/include/c++/13/random \
   /usr/include/c++/13/ratio \
   /usr/include/c++/13/sstream \
   /usr/include/c++/13/stdexcept \
@@ -184,6 +203,7 @@ CMakeFiles/client.dir/account.cpp.o: /home/kong/plan/chartroom/chat-system/clien
   /usr/include/c++/13/string \
   /usr/include/c++/13/string_view \
   /usr/include/c++/13/system_error \
+  /usr/include/c++/13/thread \
   /usr/include/c++/13/tr1/bessel_function.tcc \
   /usr/include/c++/13/tr1/beta_function.tcc \
   /usr/include/c++/13/tr1/ell_integral.tcc \
@@ -200,8 +220,10 @@ CMakeFiles/client.dir/account.cpp.o: /home/kong/plan/chartroom/chat-system/clien
   /usr/include/c++/13/type_traits \
   /usr/include/c++/13/typeinfo \
   /usr/include/c++/13/unordered_map \
+  /usr/include/c++/13/unordered_set \
   /usr/include/c++/13/utility \
   /usr/include/c++/13/valarray \
+  /usr/include/c++/13/variant \
   /usr/include/c++/13/vector \
   /usr/include/c++/13/version \
   /usr/include/ctype.h \
@@ -209,6 +231,10 @@ CMakeFiles/client.dir/account.cpp.o: /home/kong/plan/chartroom/chat-system/clien
   /usr/include/errno.h \
   /usr/include/features-time64.h \
   /usr/include/features.h \
+  /usr/include/hiredis/alloc.h \
+  /usr/include/hiredis/hiredis.h \
+  /usr/include/hiredis/read.h \
+  /usr/include/hiredis/sds.h \
   /usr/include/libintl.h \
   /usr/include/linux/close_range.h \
   /usr/include/linux/errno.h \
@@ -386,6 +412,7 @@ CMakeFiles/client.dir/account.cpp.o: /home/kong/plan/chartroom/chat-system/clien
   /usr/include/x86_64-linux-gnu/c++/13/bits/gthr-default.h \
   /usr/include/x86_64-linux-gnu/c++/13/bits/gthr.h \
   /usr/include/x86_64-linux-gnu/c++/13/bits/messages_members.h \
+  /usr/include/x86_64-linux-gnu/c++/13/bits/opt_random.h \
   /usr/include/x86_64-linux-gnu/c++/13/bits/os_defines.h \
   /usr/include/x86_64-linux-gnu/c++/13/bits/time_members.h \
   /usr/include/x86_64-linux-gnu/gnu/stubs-64.h \
@@ -394,11 +421,37 @@ CMakeFiles/client.dir/account.cpp.o: /home/kong/plan/chartroom/chat-system/clien
   /usr/include/x86_64-linux-gnu/sys/select.h \
   /usr/include/x86_64-linux-gnu/sys/single_threaded.h \
   /usr/include/x86_64-linux-gnu/sys/socket.h \
+  /usr/include/x86_64-linux-gnu/sys/time.h \
   /usr/include/x86_64-linux-gnu/sys/ttydefaults.h \
   /usr/include/x86_64-linux-gnu/sys/types.h \
   /usr/lib/gcc/x86_64-linux-gnu/13/include/stdarg.h \
   /usr/lib/gcc/x86_64-linux-gnu/13/include/stddef.h \
-  /usr/lib/gcc/x86_64-linux-gnu/13/include/stdint.h
+  /usr/lib/gcc/x86_64-linux-gnu/13/include/stdint.h \
+  /usr/local/include/sw/redis++/command.h \
+  /usr/local/include/sw/redis++/command_args.h \
+  /usr/local/include/sw/redis++/command_options.h \
+  /usr/local/include/sw/redis++/connection.h \
+  /usr/local/include/sw/redis++/connection_pool.h \
+  /usr/local/include/sw/redis++/cxx_utils.h \
+  /usr/local/include/sw/redis++/errors.h \
+  /usr/local/include/sw/redis++/hiredis_features.h \
+  /usr/local/include/sw/redis++/pipeline.h \
+  /usr/local/include/sw/redis++/queued_redis.h \
+  /usr/local/include/sw/redis++/queued_redis.hpp \
+  /usr/local/include/sw/redis++/redis++.h \
+  /usr/local/include/sw/redis++/redis.h \
+  /usr/local/include/sw/redis++/redis.hpp \
+  /usr/local/include/sw/redis++/redis_cluster.h \
+  /usr/local/include/sw/redis++/redis_cluster.hpp \
+  /usr/local/include/sw/redis++/redis_uri.h \
+  /usr/local/include/sw/redis++/reply.h \
+  /usr/local/include/sw/redis++/sentinel.h \
+  /usr/local/include/sw/redis++/shards.h \
+  /usr/local/include/sw/redis++/shards_pool.h \
+  /usr/local/include/sw/redis++/subscriber.h \
+  /usr/local/include/sw/redis++/tls.h \
+  /usr/local/include/sw/redis++/transaction.h \
+  /usr/local/include/sw/redis++/utils.h
 
 CMakeFiles/client.dir/client.cpp.o: /home/kong/plan/chartroom/chat-system/client/client.cpp \
   /home/kong/plan/chartroom/chat-system/log/logger.hpp \
@@ -2630,6 +2683,24 @@ CMakeFiles/client.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/client/ms
 
 /usr/include/x86_64-linux-gnu/c++/13/bits/basic_file.h:
 
+/usr/include/x86_64-linux-gnu/bits/struct_stat.h:
+
+/usr/include/x86_64-linux-gnu/bits/fcntl.h:
+
+/usr/include/x86_64-linux-gnu/bits/fcntl-linux.h:
+
+/usr/include/c++/13/queue:
+
+/usr/include/c++/13/bits/stl_queue.h:
+
+/usr/include/c++/13/bits/atomic_futex.h:
+
+/home/kong/plan/chartroom/chat-system/threadpool/threadpool.hpp:
+
+/home/kong/plan/chartroom/chat-system/log/logger.hpp:
+
+/home/kong/plan/chartroom/chat-system/client/client.cpp:
+
 /usr/local/include/sw/redis++/utils.h:
 
 /usr/local/include/sw/redis++/transaction.h:
@@ -2639,6 +2710,12 @@ CMakeFiles/client.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/client/ms
 /home/kong/plan/chartroom/chat-system/log/logger.cpp:
 
 /usr/local/include/sw/redis++/shards.h:
+
+/usr/include/x86_64-linux-gnu/bits/sigstksz.h:
+
+/usr/include/x86_64-linux-gnu/bits/stat.h:
+
+/usr/local/include/sw/redis++/sentinel.h:
 
 /usr/local/include/sw/redis++/reply.h:
 
@@ -2662,67 +2739,7 @@ CMakeFiles/client.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/client/ms
 
 /usr/local/include/sw/redis++/command_args.h:
 
-/usr/include/x86_64-linux-gnu/bits/struct_stat.h:
-
-/usr/include/x86_64-linux-gnu/bits/sigstksz.h:
-
-/usr/local/include/sw/redis++/sentinel.h:
-
-/usr/include/x86_64-linux-gnu/bits/stat.h:
-
-/usr/include/x86_64-linux-gnu/bits/fcntl.h:
-
-/usr/include/x86_64-linux-gnu/bits/fcntl-linux.h:
-
-/usr/include/hiredis/sds.h:
-
-/usr/include/hiredis/alloc.h:
-
-/usr/include/c++/13/variant:
-
-/usr/include/c++/13/thread:
-
-/usr/include/c++/13/queue:
-
-/usr/include/c++/13/mutex:
-
-/usr/include/c++/13/deque:
-
-/usr/include/x86_64-linux-gnu/bits/types/__sigval_t.h:
-
-/usr/include/c++/13/bits/unordered_set.h:
-
-/usr/include/c++/13/bits/unique_lock.h:
-
-/usr/include/c++/13/bits/this_thread_sleep.h:
-
-/usr/include/c++/13/bits/stl_queue.h:
-
-/usr/include/c++/13/bits/stl_deque.h:
-
-/usr/include/c++/13/bits/std_mutex.h:
-
-/usr/include/c++/13/random:
-
-/usr/include/c++/13/bits/random.tcc:
-
-/usr/include/c++/13/bits/random.h:
-
-/usr/include/c++/13/bits/atomic_futex.h:
-
-/home/kong/plan/chartroom/chat-system/threadpool/threadpool.hpp:
-
-/home/kong/plan/chartroom/chat-system/log/logger.hpp:
-
-/home/kong/plan/chartroom/chat-system/client/client.cpp:
-
 /usr/lib/gcc/x86_64-linux-gnu/13/include/stdint.h:
-
-/usr/local/include/sw/redis++/command.h:
-
-/usr/include/c++/13/unordered_set:
-
-/usr/include/x86_64-linux-gnu/sys/types.h:
 
 /usr/include/x86_64-linux-gnu/sys/single_threaded.h:
 
@@ -2782,10 +2799,6 @@ CMakeFiles/client.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/client/ms
 
 /usr/include/x86_64-linux-gnu/bits/types/__fpos_t.h:
 
-/usr/include/hiredis/hiredis.h:
-
-/usr/include/x86_64-linux-gnu/bits/types/__fpos64_t.h:
-
 /usr/include/x86_64-linux-gnu/bits/types/FILE.h:
 
 /usr/include/x86_64-linux-gnu/bits/types.h:
@@ -2796,10 +2809,6 @@ CMakeFiles/client.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/client/ms
 
 /usr/include/x86_64-linux-gnu/bits/termios-misc.h:
 
-/usr/include/c++/13/bits/deque.tcc:
-
-/usr/include/x86_64-linux-gnu/bits/termios-c_lflag.h:
-
 /usr/include/x86_64-linux-gnu/bits/termios-c_iflag.h:
 
 /usr/include/x86_64-linux-gnu/bits/termios-baud.h:
@@ -2807,10 +2816,6 @@ CMakeFiles/client.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/client/ms
 /usr/include/x86_64-linux-gnu/bits/struct_rwlock.h:
 
 /usr/include/x86_64-linux-gnu/bits/struct_mutex.h:
-
-/usr/include/c++/13/condition_variable:
-
-/usr/include/x86_64-linux-gnu/bits/stdlib-float.h:
 
 /usr/include/x86_64-linux-gnu/bits/timex.h:
 
@@ -2854,9 +2859,9 @@ CMakeFiles/client.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/client/ms
 
 /usr/include/x86_64-linux-gnu/bits/libc-header-start.h:
 
-/usr/local/include/sw/redis++/redis.h:
-
 /usr/include/linux/falloc.h:
+
+/usr/local/include/sw/redis++/redis.h:
 
 /usr/include/x86_64-linux-gnu/bits/mathcalls-narrow.h:
 
@@ -2910,39 +2915,51 @@ CMakeFiles/client.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/client/ms
 
 /usr/include/pthread.h:
 
-/usr/include/c++/13/chrono:
-
-/usr/include/nlohmann/thirdparty/hedley/hedley.hpp:
-
 /usr/include/c++/13/bits/fstream.tcc:
 
 /usr/include/nlohmann/json_fwd.hpp:
 
-/usr/include/x86_64-linux-gnu/bits/pthreadtypes-arch.h:
+/usr/include/nlohmann/detail/value_t.hpp:
 
-/usr/include/c++/13/bits/utility.h:
+/usr/include/nlohmann/detail/string_escape.hpp:
 
-/usr/include/c++/13/bits/stl_function.h:
+/usr/include/nlohmann/detail/output/serializer.hpp:
 
-/usr/include/c++/13/tr1/beta_function.tcc:
+/usr/include/nlohmann/detail/output/output_adapters.hpp:
 
-/usr/include/c++/13/bits/atomic_base.h:
+/usr/include/x86_64-linux-gnu/asm/errno.h:
 
-/usr/include/x86_64-linux-gnu/bits/types/mbstate_t.h:
+/usr/include/nlohmann/detail/meta/type_traits.hpp:
 
-/usr/include/c++/13/bits/unique_ptr.h:
+/usr/include/nlohmann/detail/meta/is_sax.hpp:
 
-/usr/include/c++/13/bits/align.h:
+/usr/include/c++/13/fstream:
+
+/usr/include/nlohmann/detail/meta/detected.hpp:
+
+/usr/include/nlohmann/detail/macro_unscope.hpp:
+
+/usr/include/nlohmann/detail/macro_scope.hpp:
+
+/usr/include/nlohmann/detail/json_pointer.hpp:
+
+/usr/include/x86_64-linux-gnu/bits/types/__mbstate_t.h:
+
+/usr/include/nlohmann/detail/iterators/primitive_iterator.hpp:
+
+/usr/include/nlohmann/detail/iterators/json_reverse_iterator.hpp:
+
+/usr/local/include/sw/redis++/subscriber.h:
+
+/usr/include/x86_64-linux-gnu/bits/typesizes.h:
+
+/usr/include/nlohmann/detail/iterators/iteration_proxy.hpp:
+
+/usr/include/nlohmann/detail/iterators/iter_impl.hpp:
 
 /usr/include/stdint.h:
 
 /usr/include/endian.h:
-
-/usr/include/c++/13/bits/unordered_map.h:
-
-/usr/include/c++/13/bits/new_allocator.h:
-
-/usr/include/c++/13/bits/stl_uninitialized.h:
 
 /home/kong/plan/chartroom/chat-system/client/account.cpp:
 
@@ -2958,6 +2975,10 @@ CMakeFiles/client.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/client/ms
 
 /usr/include/c++/13/bits/stl_numeric.h:
 
+/usr/include/nlohmann/detail/meta/identity_tag.hpp:
+
+/usr/include/c++/13/debug/assertions.h:
+
 /usr/include/stdio.h:
 
 /usr/include/c++/13/bits/stl_iterator_base_types.h:
@@ -2970,21 +2991,21 @@ CMakeFiles/client.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/client/ms
 
 /usr/include/c++/13/bits/stl_algobase.h:
 
-/usr/include/c++/13/fstream:
-
-/usr/include/nlohmann/detail/meta/detected.hpp:
-
 /usr/include/c++/13/bits/stl_algo.h:
 
 /usr/include/c++/13/cstddef:
 
 /usr/include/c++/13/valarray:
 
-/usr/include/nlohmann/detail/string_escape.hpp:
+/usr/include/c++/13/cstdint:
 
-/usr/include/c++/13/bits/uses_allocator.h:
+/usr/include/nlohmann/detail/meta/cpp_future.hpp:
+
+/usr/include/c++/13/cstdlib:
 
 /usr/include/c++/13/bits/postypes.h:
+
+/usr/include/c++/13/bits/uses_allocator.h:
 
 /usr/include/signal.h:
 
@@ -2992,11 +3013,9 @@ CMakeFiles/client.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/client/ms
 
 /usr/include/c++/13/iomanip:
 
-/usr/include/c++/13/cstdint:
+/usr/include/nlohmann/detail/output/binary_writer.hpp:
 
-/usr/include/x86_64-linux-gnu/bits/types/__mbstate_t.h:
-
-/usr/include/nlohmann/detail/iterators/primitive_iterator.hpp:
+/usr/include/c++/13/bits/sstream.tcc:
 
 /usr/include/x86_64-linux-gnu/asm/posix_types.h:
 
@@ -3004,15 +3023,19 @@ CMakeFiles/client.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/client/ms
 
 /usr/include/c++/13/ratio:
 
-/usr/include/c++/13/bits/stringfwd.h:
-
-/usr/include/c++/13/bits/valarray_before.h:
-
 /usr/include/c++/13/bits/shared_ptr.h:
 
 /usr/include/x86_64-linux-gnu/bits/thread-shared-types.h:
 
 /usr/include/c++/13/bits/string_view.tcc:
+
+/usr/include/c++/13/bits/stl_deque.h:
+
+/usr/include/x86_64-linux-gnu/bits/floatn-common.h:
+
+/usr/include/nlohmann/detail/string_concat.hpp:
+
+/usr/include/c++/13/bits/requires_hosted.h:
 
 /usr/include/c++/13/bits/locale_facets.tcc:
 
@@ -3020,11 +3043,11 @@ CMakeFiles/client.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/client/ms
 
 /usr/include/c++/13/bits/gslice.h:
 
-/usr/include/x86_64-linux-gnu/bits/floatn-common.h:
+/usr/include/nlohmann/detail/iterators/iterator_traits.hpp:
 
-/usr/include/c++/13/bits/requires_hosted.h:
+/usr/include/c++/13/bits/quoted_string.h:
 
-/usr/include/nlohmann/detail/string_concat.hpp:
+/usr/include/c++/13/bits/unordered_map.h:
 
 /usr/include/c++/13/bits/std_abs.h:
 
@@ -3035,6 +3058,14 @@ CMakeFiles/client.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/client/ms
 /usr/include/c++/13/bits/ostream_insert.h:
 
 /usr/include/c++/13/bits/ostream.tcc:
+
+/usr/include/c++/13/bits/stl_function.h:
+
+/usr/include/x86_64-linux-gnu/bits/pthreadtypes-arch.h:
+
+/usr/include/c++/13/bits/utility.h:
+
+/usr/include/c++/13/tr1/beta_function.tcc:
 
 /usr/include/c++/13/bits/move.h:
 
@@ -3048,9 +3079,9 @@ CMakeFiles/client.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/client/ms
 
 /usr/include/c++/13/bits/shared_ptr_atomic.h:
 
-/usr/include/c++/13/bits/stl_list.h:
-
 /usr/include/x86_64-linux-gnu/bits/termios-c_oflag.h:
+
+/usr/include/c++/13/bits/stl_list.h:
 
 /usr/include/c++/13/bits/erase_if.h:
 
@@ -3078,11 +3109,15 @@ CMakeFiles/client.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/client/ms
 
 /usr/include/nlohmann/detail/iterators/internal_iterator.hpp:
 
+/usr/include/c++/13/clocale:
+
+/usr/include/c++/13/bits/this_thread_sleep.h:
+
+/usr/include/c++/13/bits/invoke.h:
+
 /usr/include/c++/13/bits/valarray_array.h:
 
 /usr/include/c++/13/bits/atomic_lockfree_defines.h:
-
-/usr/include/nlohmann/detail/macro_unscope.hpp:
 
 /usr/include/x86_64-linux-gnu/bits/types/struct_sigstack.h:
 
@@ -3096,13 +3131,19 @@ CMakeFiles/client.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/client/ms
 
 /usr/include/c++/13/bits/istream.tcc:
 
-/usr/include/c++/13/bits/uniform_int_dist.h:
+/usr/include/c++/13/bits/stringfwd.h:
 
 /usr/include/c++/13/bits/locale_classes.tcc:
 
+/usr/include/c++/13/bits/uniform_int_dist.h:
+
+/usr/include/c++/13/bits/valarray_before.h:
+
 /usr/include/c++/13/backward/binders.h:
 
-/usr/include/c++/13/clocale:
+/usr/include/c++/13/bits/std_mutex.h:
+
+/usr/include/c++/13/bits/stl_construct.h:
 
 /usr/include/x86_64-linux-gnu/bits/long-double.h:
 
@@ -3116,9 +3157,19 @@ CMakeFiles/client.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/client/ms
 
 /usr/include/c++/13/bits/predefined_ops.h:
 
+/usr/include/x86_64-linux-gnu/bits/stdlib-float.h:
+
+/usr/include/c++/13/condition_variable:
+
 /usr/include/x86_64-linux-gnu/bits/signum-generic.h:
 
 /usr/include/c++/13/iosfwd:
+
+/usr/include/c++/13/bits/align.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/mbstate_t.h:
+
+/usr/include/c++/13/bits/unique_ptr.h:
 
 /usr/include/wchar.h:
 
@@ -3140,13 +3191,17 @@ CMakeFiles/client.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/client/ms
 
 /usr/include/nlohmann/detail/hash.hpp:
 
-/usr/include/c++/13/bits/stl_construct.h:
-
 /usr/include/asm-generic/posix_types.h:
 
 /usr/include/x86_64-linux-gnu/bits/sigcontext.h:
 
 /usr/include/c++/13/tr1/special_function_util.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/__sigset_t.h:
+
+/usr/include/nlohmann/detail/json_ref.hpp:
+
+/usr/include/c++/13/bits/charconv.h:
 
 /usr/include/x86_64-linux-gnu/bits/signum-arch.h:
 
@@ -3166,11 +3221,43 @@ CMakeFiles/client.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/client/ms
 
 /usr/include/c++/13/bits/stream_iterator.h:
 
+/usr/include/x86_64-linux-gnu/sys/socket.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/struct_iovec.h:
+
+/usr/include/c++/13/bits/stl_vector.h:
+
+/usr/local/include/sw/redis++/command.h:
+
+/usr/include/x86_64-linux-gnu/sys/types.h:
+
+/usr/include/c++/13/unordered_set:
+
+/usr/include/c++/13/bits/stl_tempbuf.h:
+
+/usr/include/c++/13/bits/random.h:
+
+/usr/include/c++/13/bits/stl_tree.h:
+
+/usr/include/c++/13/bits/codecvt.h:
+
+/usr/include/assert.h:
+
+/usr/include/c++/13/backward/auto_ptr.h:
+
+/usr/include/nlohmann/detail/json_custom_base_class.hpp:
+
+/usr/include/c++/13/bits/stl_raw_storage_iter.h:
+
 /usr/include/c++/13/algorithm:
 
 /home/kong/plan/chartroom/chat-system/client/menu.hpp:
 
 /usr/include/c++/13/pstl/glue_numeric_defs.h:
+
+/usr/include/c++/13/bits/random.tcc:
+
+/usr/include/c++/13/random:
 
 /usr/include/x86_64-linux-gnu/bits/socket_type.h:
 
@@ -3198,33 +3285,23 @@ CMakeFiles/client.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/client/ms
 
 /usr/include/c++/13/bits/concept_check.h:
 
+/usr/include/nlohmann/detail/meta/std_fs.hpp:
+
+/usr/include/arpa/inet.h:
+
+/usr/include/c++/13/bits/atomic_base.h:
+
+/usr/include/c++/13/bits/stl_uninitialized.h:
+
+/usr/include/c++/13/bits/new_allocator.h:
+
 /usr/include/x86_64-linux-gnu/bits/endianness.h:
 
 /usr/include/c++/13/bits/chrono.h:
 
-/usr/include/c++/13/bits/stl_raw_storage_iter.h:
-
-/usr/include/nlohmann/detail/json_custom_base_class.hpp:
-
 /usr/include/x86_64-linux-gnu/c++/13/bits/ctype_base.h:
 
 /usr/include/c++/13/any:
-
-/usr/local/include/sw/redis++/subscriber.h:
-
-/usr/include/x86_64-linux-gnu/bits/typesizes.h:
-
-/usr/include/nlohmann/detail/iterators/iteration_proxy.hpp:
-
-/usr/include/c++/13/bits/valarray_array.tcc:
-
-/usr/include/c++/13/bits/functional_hash.h:
-
-/usr/include/c++/13/bits/indirect_array.h:
-
-/usr/include/errno.h:
-
-/usr/include/nlohmann/detail/iterators/iter_impl.hpp:
 
 /usr/include/c++/13/array:
 
@@ -3234,21 +3311,9 @@ CMakeFiles/client.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/client/ms
 
 /usr/include/asm-generic/errno-base.h:
 
-/usr/include/c++/13/backward/auto_ptr.h:
+/usr/include/x86_64-linux-gnu/bits/termios-c_lflag.h:
 
-/usr/include/assert.h:
-
-/usr/include/x86_64-linux-gnu/sys/socket.h:
-
-/usr/include/x86_64-linux-gnu/bits/types/struct_iovec.h:
-
-/usr/include/c++/13/bits/stl_vector.h:
-
-/usr/include/c++/13/bits/stl_tempbuf.h:
-
-/usr/include/c++/13/bits/stl_tree.h:
-
-/usr/include/c++/13/bits/codecvt.h:
+/usr/include/c++/13/bits/deque.tcc:
 
 /home/kong/plan/chartroom/chat-system/client/json.hpp:
 
@@ -3259,6 +3324,10 @@ CMakeFiles/client.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/client/ms
 /usr/include/c++/13/bits/streambuf.tcc:
 
 /usr/include/c++/13/bits/specfun.h:
+
+/usr/include/nlohmann/detail/meta/void_t.hpp:
+
+/usr/include/c++/13/atomic:
 
 /usr/include/x86_64-linux-gnu/sys/epoll.h:
 
@@ -3277,8 +3346,6 @@ CMakeFiles/client.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/client/ms
 /usr/include/x86_64-linux-gnu/bits/termios-struct.h:
 
 /usr/include/nlohmann/detail/input/binary_reader.hpp:
-
-/usr/include/c++/13/bits/invoke.h:
 
 /usr/include/x86_64-linux-gnu/bits/signal_ext.h:
 
@@ -3320,17 +3387,25 @@ CMakeFiles/client.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/client/ms
 
 /usr/include/c++/13/typeinfo:
 
-/usr/include/nlohmann/detail/output/output_adapters.hpp:
-
 /usr/include/c++/13/bits/exception.h:
 
-/usr/include/nlohmann/adl_serializer.hpp:
+/usr/include/c++/13/bits/indirect_array.h:
 
-/usr/include/c++/13/bits/valarray_after.h:
+/usr/include/c++/13/bits/functional_hash.h:
 
-/usr/include/c++/13/bits/memory_resource.h:
+/usr/include/c++/13/bits/valarray_array.tcc:
 
-/usr/include/c++/13/streambuf:
+/usr/include/errno.h:
+
+/usr/include/x86_64-linux-gnu/c++/13/bits/cpu_defines.h:
+
+/usr/include/c++/13/bits/forward_list.tcc:
+
+/usr/include/x86_64-linux-gnu/bits/types/__sigval_t.h:
+
+/usr/include/c++/13/bits/unordered_set.h:
+
+/usr/include/hiredis/alloc.h:
 
 /usr/include/x86_64-linux-gnu/bits/confname.h:
 
@@ -3348,15 +3423,23 @@ CMakeFiles/client.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/client/ms
 
 /usr/include/c++/13/bits/forward_list.h:
 
-/usr/include/x86_64-linux-gnu/c++/13/bits/cpu_defines.h:
+/usr/include/c++/13/bits/unique_lock.h:
 
-/usr/include/c++/13/bits/forward_list.tcc:
+/usr/include/c++/13/mutex:
 
-/usr/include/nlohmann/detail/meta/is_sax.hpp:
+/usr/include/nlohmann/adl_serializer.hpp:
+
+/usr/include/c++/13/bits/memory_resource.h:
+
+/usr/include/c++/13/streambuf:
+
+/usr/include/c++/13/bits/valarray_after.h:
 
 /usr/include/c++/13/optional:
 
 /usr/include/c++/13/bits/vector.tcc:
+
+/usr/include/c++/13/variant:
 
 /usr/include/c++/13/bits/cpp_type_traits.h:
 
@@ -3368,11 +3451,17 @@ CMakeFiles/client.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/client/ms
 
 /usr/include/c++/13/cerrno:
 
+/usr/include/nlohmann/thirdparty/hedley/hedley.hpp:
+
+/usr/include/c++/13/chrono:
+
 /usr/include/c++/13/cmath:
 
 /usr/include/c++/13/codecvt:
 
 /usr/include/c++/13/ctime:
+
+/usr/include/c++/13/deque:
 
 /usr/include/x86_64-linux-gnu/bits/posix_opt.h:
 
@@ -3394,19 +3483,21 @@ CMakeFiles/client.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/client/ms
 
 /usr/include/c++/13/cwchar:
 
-/usr/include/c++/13/cstdlib:
+/usr/include/c++/13/pstl/glue_memory_defs.h:
 
-/usr/include/nlohmann/detail/meta/cpp_future.hpp:
+/usr/include/c++/13/exception:
+
+/usr/include/x86_64-linux-gnu/sys/time.h:
+
+/usr/include/nlohmann/detail/meta/call_std/begin.hpp:
+
+/usr/include/hiredis/read.h:
 
 /usr/include/nlohmann/json.hpp:
 
 /usr/include/c++/13/ext/aligned_buffer.h:
 
 /usr/include/locale.h:
-
-/usr/include/c++/13/list:
-
-/usr/include/c++/13/ext/alloc_traits.h:
 
 /home/kong/plan/chartroom/chat-system/client/msg.hpp:
 
@@ -3456,6 +3547,10 @@ CMakeFiles/client.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/client/ms
 
 /usr/include/nlohmann/detail/conversions/to_json.hpp:
 
+/usr/include/c++/13/ext/alloc_traits.h:
+
+/usr/include/c++/13/list:
+
 /usr/include/c++/13/memory:
 
 /usr/include/x86_64-linux-gnu/bits/siginfo-consts.h:
@@ -3464,21 +3559,11 @@ CMakeFiles/client.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/client/ms
 
 /usr/include/c++/13/numeric:
 
-/usr/include/c++/13/exception:
-
-/usr/include/c++/13/pstl/glue_memory_defs.h:
-
 /usr/include/c++/13/bits/mask_array.h:
 
 /usr/include/c++/13/pstl/pstl_config.h:
 
 /usr/include/c++/13/stdexcept:
-
-/usr/include/x86_64-linux-gnu/bits/types/__sigset_t.h:
-
-/usr/include/c++/13/bits/charconv.h:
-
-/usr/include/nlohmann/detail/json_ref.hpp:
 
 /usr/include/x86_64-linux-gnu/bits/stdint-intn.h:
 
@@ -3492,9 +3577,7 @@ CMakeFiles/client.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/client/ms
 
 /usr/include/features-time64.h:
 
-/usr/include/x86_64-linux-gnu/asm/errno.h:
-
-/usr/include/nlohmann/detail/meta/type_traits.hpp:
+/usr/include/c++/13/thread:
 
 /usr/include/c++/13/tr1/ell_integral.tcc:
 
@@ -3536,7 +3619,19 @@ CMakeFiles/client.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/client/ms
 
 /usr/include/features.h:
 
-/usr/include/nlohmann/detail/iterators/json_reverse_iterator.hpp:
+/usr/include/x86_64-linux-gnu/bits/types/__fpos64_t.h:
+
+/usr/include/hiredis/hiredis.h:
+
+/usr/include/hiredis/sds.h:
+
+/usr/local/include/sw/redis++/redis_cluster.hpp:
+
+/usr/include/nlohmann/detail/meta/call_std/end.hpp:
+
+/usr/include/c++/13/bits/functexcept.h:
+
+/usr/include/nlohmann/detail/input/json_sax.hpp:
 
 /usr/include/linux/close_range.h:
 
@@ -3556,48 +3651,6 @@ CMakeFiles/client.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/client/ms
 
 /usr/include/nlohmann/detail/exceptions.hpp:
 
-/usr/local/include/sw/redis++/redis_cluster.hpp:
-
-/usr/include/c++/13/bits/functexcept.h:
-
-/usr/include/nlohmann/detail/meta/call_std/end.hpp:
-
-/usr/include/nlohmann/detail/input/json_sax.hpp:
-
 /usr/include/c++/13/cstdio:
 
 /usr/include/nlohmann/detail/input/parser.hpp:
-
-/usr/include/c++/13/bits/quoted_string.h:
-
-/usr/include/nlohmann/detail/iterators/iterator_traits.hpp:
-
-/usr/include/nlohmann/detail/json_pointer.hpp:
-
-/usr/include/nlohmann/detail/macro_scope.hpp:
-
-/usr/include/x86_64-linux-gnu/sys/time.h:
-
-/usr/include/hiredis/read.h:
-
-/usr/include/nlohmann/detail/meta/call_std/begin.hpp:
-
-/usr/include/c++/13/atomic:
-
-/usr/include/nlohmann/detail/meta/void_t.hpp:
-
-/usr/include/c++/13/debug/assertions.h:
-
-/usr/include/nlohmann/detail/meta/identity_tag.hpp:
-
-/usr/include/arpa/inet.h:
-
-/usr/include/nlohmann/detail/meta/std_fs.hpp:
-
-/usr/include/c++/13/bits/sstream.tcc:
-
-/usr/include/nlohmann/detail/output/binary_writer.hpp:
-
-/usr/include/nlohmann/detail/output/serializer.hpp:
-
-/usr/include/nlohmann/detail/value_t.hpp:

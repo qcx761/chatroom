@@ -162,40 +162,27 @@ void SubReactor::run() {
                     unmute_friend_msg(fd,request);
                 });
                 continue;
-
-            }else if(type==""){
-
+            }else if(type=="show_friend_notifications"){
 
 
 
+    // 还需后续实现
 
-                
-
-
+    
+                thread_pool->enqueue([fd, request]() {
+                  show_friend_notifications_msg(fd,request);
+                });
                 continue;
-
-            }else if(type==""){
-
-
-
-
-
-                
-
-
+            }else if(type=="handle_friend_request"){
+                thread_pool->enqueue([fd, request]() {
+                  handle_friend_request_msg(fd,request);
+                });
                 continue;
-
-            }else if(type==""){
-
-
-
-
-
-                
-
-
+            }else if(type=="get_friend_requests_msg"){
+                thread_pool->enqueue([fd, request]() {
+                  get_friend_requests_msg(fd,request);
+                });
                 continue;
-
             }else if(type==""){
 
 
