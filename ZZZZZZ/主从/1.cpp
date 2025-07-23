@@ -114,12 +114,127 @@ void show_friend_notifications_msg(int fd, const json& request) {
 
 
 
+CREATE TABLE private_messages (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    sender VARCHAR(64) NOT NULL,
+    receiver VARCHAR(64) NOT NULL,
+    content TEXT NOT NULL,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+);
 
 
 
 
 
 
+
+
+
+
+
+
+
+#include <iostream>
+#include <string>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
+#include <nlohmann/json.hpp>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <fcntl.h>
+
+using json = nlohmann::json;
+using namespace std;
+
+#define MAXBUF 1024
+
+// 简单打印和刷新，模拟rl_on_new_line和rl_redisplay功能
+void print_message(const string& msg) {
+    cout << "\r\033[K"; // 清除当前行
+    cout << msg << endl;
+    cout << "> " << flush; // 打印提示符并刷新
+}
+
+// 收消息线程函数
+void recv_thread_func(int sockfd, atomic<bool>& running) {
+    char buf[MAXBUF];
+    string buffer;
+
+    while (running) {
+        ssize_t n = recv(sockfd, buf, MAXBUF, 0);
+        if (n > 0) {
+            buffer.append(buf, n);
+
+            // 简单假设消息以'\n'分割（实际你用长度前缀包更好）
+            size_t pos;
+            while ((pos = buffer.find('\n')) != string::npos) {
+                string line = buffer.substr(0, pos);
+                buffer.erase(0, pos + 1);
+
+                try {
+                    json recvjson = json::parse(line);
+                    if (recvjson["sort"] == "MESSAGE" && recvjson["request"] == "PEER_CHAT") {
+                        string sender = recvjson["sender"];
+                        string message = recvjson["message"];
+                        print_message("[" + sender + "]: " + message);
+                    }
+                } catch (...) {
+                    cerr << "JSON parse error\n";
+                }
+            }
+        } else if (n == 0) {
+            cout << "Server closed connection\n";
+            running = false;
+        } else {
+            perror("recv");
+            running = false;
+        }
+    }
+}
+
+// 发送私聊消息函数
+void send_peer_chat(int sockfd, const string& sender, const string& receiver, const string& message) {
+    json sendjson = {
+        {"sort", "MESSAGE"},
+        {"request", "PEER_CHAT"},
+        {"sender", sender},
+        {"receiver", receiver},
+        {"message", message}
+    };
+    string sendstr = sendjson.dump() + "\n"; // 以换行符结束
+    send(sockfd, sendstr.c_str(), sendstr.size(), 0);
+}
+
+int main() {
+    // 伪代码示例，假设已连接服务器sockfd
+    int sockfd = /* connect to server socket */;
+    atomic<bool> running(true);
+
+    // 开收消息线程
+    thread recv_thread(recv_thread_func, sockfd, std::ref(running));
+
+    string username = "alice";  // 本人名字
+    string chat_with = "bob";   // 聊天对象
+
+    while (running) {
+        cout << "> " << flush;
+        string line;
+        if (!getline(cin, line)) break;
+
+        if (line == "/quit") break;
+
+        send_peer_chat(sockfd, username, chat_with, line);
+    }
+
+    running = false;
+    shutdown(sockfd, SHUT_RDWR);
+    close(sockfd);
+    recv_thread.join();
+
+    return 0;
+}
 
 
 
@@ -177,3 +292,58 @@ void log_out_msg(const std::string& token) {
 }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+try {
+        auto redis = sw::redis::Redis("tcp://127.0.0.1:6379");
+        
+        auto conn = get_mysql_connection();
+        auto select_stmt = std::unique_ptr<sql::PreparedStatement>(
+            conn->prepareStatement("SELECT id, info FROM users WHERE JSON_EXTRACT(info, '$.account') = ?"));
+        select_stmt->setString(1, account);
+        auto res = select_stmt->executeQuery();
+
+        if (res->next()) {
+            int id = res->getInt("id");
+            json info = json::parse(std::string(res->getString("info")));
+
+            // json info = json::parse(res->getString("info"));
+            if (info["password"] != old_pass) {
+                response["type"] = "password_change";
+                response["status"] = "fail";
+                response["msg"] = "Old password incorrect";
+            } else {
+                info["password"] = new_pass;
+                auto update_stmt = std::unique_ptr<sql::PreparedStatement>(
+                    conn->prepareStatement("UPDATE users SET info = ? WHERE id = ?"));
+                update_stmt->setString(1, info.dump());
+                update_stmt->setInt(2, id);
+                update_stmt->executeUpdate();
+
+                response["type"] = "password_change";
+                response["status"] = "success";
+                response["msg"] = "Password changed";
+            }
+        } else {
+            response["type"] = "password_change";
+            response["status"] = "fail";
+            response["msg"] = "Account not found";
+        }
+    } catch (const std::exception &e) {
+        response["type"] = "password_change";
+        response["status"] = "error";
+        response["msg"] = e.what();
+    }

@@ -178,9 +178,6 @@ void Client::epoll_thread_func(){
                     if(type=="password_change"){
                         thread_pool.enqueue([this,j]() {
                             password_change_msg(j);
-                            state=main_menu;
-                            login_success.store(false);
-                            token.clear();
                             sem_post(&this->sem);
                         });
                         continue;
@@ -242,73 +239,98 @@ void Client::epoll_thread_func(){
                         });
                         continue;
                     }
+
+                    if(type=="get_friend_info"){
+                        thread_pool.enqueue([this,j]() {
+                            get_friend_info_msg(j);
+                            sem_post(&this->sem);
+                        });
+                        continue;
+                    }
                 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                     if(type=="show_friend_notifications"){
                         thread_pool.enqueue([this,j]() {
                             show_friend_notifications_msg(j);
                             sem_post(&this->sem);
                         });
-
-
-
 // 信号处理后面还要添加
-
-
                         continue;
                     }
 
-
-
-
-
-
-
-
-
-
-                    if(type==""){
+                    if(type=="get_private_history"){
                         thread_pool.enqueue([this,j]() {
-                            //_msg(j);
-                            //state=main_menu;
-                            //login_success.store(false);
-                            //token.clear();
+                            get_private_history_msg(j);
                             sem_post(&this->sem);
                         });
                         continue;
                     }
 
-                    if(type==""){
+                    if(type=="send_private_message"){
                         thread_pool.enqueue([this,j]() {
-                            //_msg(j);
-                            //state=main_menu;
-                            //login_success.store(false);
-                            //token.clear();
+                            send_private_message_msg(j);
                             sem_post(&this->sem);
                         });
                         continue;
                     }
 
-                    if(type==""){
+                    if(type=="receive_private_message"){
                         thread_pool.enqueue([this,j]() {
-                            //_msg(j);
-                            //state=main_menu;
-                            //login_success.store(false);
-                            //token.clear();
-                            sem_post(&this->sem);
+                            receive_private_message_msg(j);
+                            // sem_post(&this->sem);
                         });
                         continue;
                     }
 
-                    if(type==""){
-                        thread_pool.enqueue([this,j]() {
-                            //_msg(j);
-                            //state=main_menu;
-                            //login_success.store(false);
-                            //token.clear();
-                            sem_post(&this->sem);
-                        });
-                        continue;
-                    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                     if(type==""){
                         thread_pool.enqueue([this,j]() {
@@ -559,11 +581,12 @@ void Client::user_thread_func() {
                 case 1: show_friend_list(sock,token,sem); break;
                 case 2: add_friend(sock,token,sem); break;
                 case 3: remove_friend(sock,token,sem); break;
-                case 4: 
+                case 4: send_private_message(sock,token,sem); break;
                 case 5: unmute_friend(sock,token,sem); break;
                 case 6: mute_friend(sock,token,sem); break;
                 case 7: 
-                case 8: state=next2_menu; break;
+                case 8: get_friend_info(sock,token,sem); break;
+                case 9: state=next2_menu; break;
                 default:
                     cout << "无效数字" << endl;
                     flushInput(); // 去除数字后面的换行符
@@ -596,7 +619,7 @@ void Client::user_thread_func() {
                 case 10: 
                 case 11: 
                 case 12: 
-                case 12: state=next2_menu; break;
+                case 13: state=next2_menu; break;
                 default:
                     cout << "无效数字" << endl;
                     flushInput(); // 去除数字后面的换行符

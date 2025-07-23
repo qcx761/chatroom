@@ -201,8 +201,7 @@ void password_change(int sock,string token,sem_t& sem){
 
     if(password_new!=password_new1){
         cout<<"两次密码不一样"<<endl;
-     waiting();
-
+        waiting();
         return;
     }
     json j;
@@ -370,6 +369,260 @@ void getandhandle_friend_request(int sock,string token,sem_t& sem){
     waiting();
 }
 
+void get_friend_info(int sock,const string& token,sem_t& sem){
+    system("clear");
+    cout <<"好友信息查询 :" << endl;
+    string target_username;
+    cout <<"输入查找的好友名 :";
+    cin >> target_username;
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    json j;
+    j["type"]="get_friend_info";
+    j["token"]=token;
+    j["target_username"]=target_username;
+    send_json(sock,j);
+    sem_wait(&sem); // 等待信号量
+    waiting();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void send_private_message(int sock, const string& token, sem_t& sem) {
+    system("clear");
+    cout << "========== 私聊 ==========" << endl;
+
+    string target_username;
+    cout << "请输入想私聊的用户名(必须是好友否则无法发送成功) : ";
+    cin >> target_username;
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+    // json j;
+    // j["type"]="send_private_message";
+    // j["target_username"]=target_username;
+
+    cout << "进入与 [" << target_username << "] 的私聊模式" << endl;
+    cout << "输入消息并回车发送，输入 /exit 退出，/history [数量] 查看历史记录" << endl;
+
+    string message;
+    while (true) {
+        cout << "> ";
+        getline(cin, message);
+
+        if (message == "/exit") {
+            cout << "[系统] 已退出私聊模式。" << endl;
+            break;
+        }
+
+        if (message.rfind("/history", 0) == 0) {
+            int count = 10;
+            std::istringstream iss(message);
+            string cmd;
+            iss >> cmd >> count;
+
+            json history;
+            history["type"]="get_private_history";
+            history["token"]=token;
+            history["target_username"]=target_username;
+            history["count"]=count;
+            send_json(sock, history);
+            sem_wait(&sem);  
+            
+
+
+
+
+            
+            // 要区分接收者是在线还是离线状态   
+
+
+            // 等待服务端响应，offline_pri 会被填充
+            };
+
+
+
+
+
+        json msg;
+        msg["type"]= "send_private_message";
+        msg["token"]=token;
+        msg["target_username"]=target_username;
+        msg["message"]=message;
+
+    //     send_json(sock, msg);
+    //        sem_wait(&sem);  
+
+    }
+}
+
+
+
+// // 私聊
+// void send_private_message(int sock,string token,sem_t& sem){
+//     system("clear");
+//     cout <<"私聊 :" << endl;
+//     string target_username;
+//     cout << "请输入想私聊的用户名  :";
+//     cin >> target_username;
+//     cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+//     json j;
+//     j["type"]="send_private_message";
+//     j["token"]=token;
+//     j["target_username"]=target_username;
+
+
+
+
+//  string message;
+//     cout << "进入私聊模式，与 [" << fri_user << "] 聊天，输入 /exit 退出，/history 查看历史记录" << endl;
+
+//     while (true) {
+//         cout << "> ";
+//         getline(cin, message);
+
+//         // ===== ✅ 1. 退出指令 =====
+//         if (message == "/exit")
+//             break;
+
+//         // ===== ✅ 2. 查看历史记录 =====
+//         if (message == "/history") {
+//             json history_req = {
+//                 {"username", username},
+//                 {"fri_user", fri_user},
+//                 {"request", GET_HISTORY_PRI}
+//             };
+//             sendjson(history_req, cfd);
+
+//             // 等待返回（由接收线程 signal）
+//             handle_pthread_wait(*end_flag, cond, mutex);
+//             *end_flag = false;
+
+//             if ((*offline_pri).contains("elements")) {
+//                 json history = (*offline_pri)["elements"];
+//                 cout << "---- 与 [" << fri_user << "] 的历史记录 ----" << endl;
+//                 for (auto& item : history) {
+//                     cout << "[" << item["from"] << "]: " << item["message"] << endl;
+//                 }
+//                 cout << "------------------------------" << endl;
+//             } else {
+//                 cout << "[系统] 暂无历史记录。" << endl;
+//             }
+//             continue;  // 不发消息
+//         }
+
+//         // ===== ✅ 3. 正常消息发送 =====
+//         *pri_chat_send = {
+//             {"request", PRIVATE_CHAT},
+//             {"from", username},
+//             {"to", fri_user},
+//             {"file_flag", false},
+//             {"message", message}
+//         };
+
+//         sendjson(*pri_chat_send, cfd);
+//     }
+
+//     cout << "[系统] 已退出私聊。" << endl;
+
+
+
+
+
+
+
+// if (message.rfind("/history", 0) == 0) {
+//     // 解析用户输入的条数字，默认返回 10 条
+//     int count = 10;
+//     std::istringstream iss(message);
+//     string cmd;
+//     iss >> cmd >> count;
+
+//     // 构造请求
+//     json history_req = {
+//         {"username", username},
+//         {"fri_user", fri_user},
+//         {"request", GET_HISTORY_PRI},
+//         {"count", count}
+//     };
+
+
+//     send_json(sock,history_req);
+
+//     // 等待服务器响应
+//     handle_pthread_wait(*end_flag, cond, mutex);
+//     *end_flag = false;
+
+//     // 打印结果
+//     if ((*offline_pri).contains("elements")) {
+//         json history = (*offline_pri)["elements"];
+//         cout << "---- 最近 " << count << " 条历史记录 ----" << endl;
+//         for (auto& item : history) {
+//             cout << "[" << item["from"] << "]: " << item["message"] << endl;
+//         }
+//         cout << "------------------------------" << endl;
+//     } else {
+//         cout << "[系统] 暂无历史记录。" << endl;
+//     }
+//     continue;
+// }
+
+
+
+
+
+
+//     send_json(sock,j);
+//     sem_wait(&sem);
+//     // flushInput();
+//     waiting();
+// }
+
+
+
+
+
+
 
 
 
@@ -392,19 +645,7 @@ void show_friend_notifications(int sock,string token,sem_t& sem){
     waiting();
 
 
-
-
 // 信息处理
-
-
-
-
-
-
-
-
-
-
 }
 
 

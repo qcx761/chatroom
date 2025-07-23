@@ -82,7 +82,7 @@ void SubReactor::run() {
                 });
                 continue;
             }
-            
+
             if(type=="destory_account"){
                 thread_pool->enqueue([fd, request]() {
                     destory_account_msg(fd,request);
@@ -148,15 +148,30 @@ void SubReactor::run() {
                   show_friend_notifications_msg(fd,request);
                 });
                 continue;
-            }else if(type==""){
+            }else if(type=="get_friend_info"){
+                thread_pool->enqueue([fd, request]() {
+                  get_friend_info_msg(fd,request);
+                });
+                continue;
+            }else if(type=="send_private_message"){
 
 
 
 
 
-                
 
 
+
+
+
+                thread_pool->enqueue([fd, request]() {
+                  send_private_message_msg(fd,request);
+                });
+                continue;
+            }else if(type=="get_chat_history"){
+                thread_pool->enqueue([fd, request]() {
+                  get_chat_history_msg(fd,request);
+                });
                 continue;
             }else if(type==""){
 
@@ -248,27 +263,6 @@ void SubReactor::run() {
 
 
                 continue;
-            }else if(type==""){
-
-
-
-
-
-                
-
-
-                continue;
-            }else if(type==""){
-
-
-
-
-
-                
-
-
-                continue;
-
             }else if(type==""){
 
 

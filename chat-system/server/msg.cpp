@@ -3,6 +3,8 @@
 
 Redis redis("tcp://127.0.0.1:6379");
 
+std::unordered_map<std::string, int> account_fd_map;
+std::mutex fd_mutex;
 
 // 用户表：users
 
@@ -35,6 +37,27 @@ Redis redis("tcp://127.0.0.1:6379");
 // //    INDEX idx_sender_receiver (sender, receiver),              -- 联合索引，便于查重、更新状态
 // //    INDEX idx_receiver_status (receiver, status),              -- 索引，便于查找所有待处理请求
 
+// 好友私聊
+
+// CREATE TABLE messages (
+//     id INT AUTO_INCREMENT PRIMARY KEY,
+//     sender VARCHAR(64),
+//     receiver VARCHAR(64),
+//     content TEXT,
+//     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+//     is_offline BOOLEAN DEFAULT TRUE,
+//     is_read BOOLEAN DEFAULT FALSE
+// );
+
+//通过account获取fd
+int get_fd_by_account(const std::string& account) {
+    std::lock_guard<std::mutex> lock(fd_mutex);  // 加锁保护
+    auto it = account_fd_map.find(account);
+    if (it != account_fd_map.end()) {
+        return it->second;  // 找到返回fd
+    }
+    return -1;  // 没有找到
+}
 
 // 获取MySQL连接
 std::shared_ptr<sql::Connection> get_mysql_connection() {
@@ -198,11 +221,15 @@ void log_in_msg(int fd, const json &request) {
         std::string token = generate_token();
         std::string token_key = "token:" + token;
 
-        
         json token_info = {
             {"account", user_info["account"]},
             {"username", user_info["username"]}
         };
+
+        {
+        std::lock_guard<std::mutex> lock(fd_mutex);
+        account_fd_map[account] = fd;
+        }
 
         redis.set(token_key, token_info.dump());
         redis.expire(token_key, 3600);  // 1小时有效期 如果异常退出会在1个小时后过期
@@ -264,55 +291,69 @@ void destory_account_msg(int fd, const json &request){
             }else{
                 int id = res->getInt("id");
 
-                // 删除 users 表记录
-                auto del_stmt = std::unique_ptr<sql::PreparedStatement>(
-                    conn->prepareStatement("DELETE FROM users WHERE id = ?"));
-                del_stmt->setInt(1, id);
-                del_stmt->executeUpdate();
+                // // 删除 users 表记录
+                // auto del_stmt = std::unique_ptr<sql::PreparedStatement>(
+                //     conn->prepareStatement("DELETE FROM users WHERE id = ?"));
+                // del_stmt->setInt(1, id);
+                // del_stmt->executeUpdate();
 
-                // 删除该账号在 friends 表中的记录（自己为主账号）
-                auto del_friends_stmt = std::unique_ptr<sql::PreparedStatement>(
-                    conn->prepareStatement("DELETE FROM friends WHERE account = ?"));
-                del_friends_stmt->setString(1, account);
-                del_friends_stmt->executeUpdate();
+                // // 删除该账号在 friends 表中的记录（自己为主账号）
+                // auto del_friends_stmt = std::unique_ptr<sql::PreparedStatement>(
+                //     conn->prepareStatement("DELETE FROM friends WHERE account = ?"));
+                // del_friends_stmt->setString(1, account);
+                // del_friends_stmt->executeUpdate();
 
-                // 删除出现在他人好友列表中的该账号
-                auto get_all_stmt = std::unique_ptr<sql::PreparedStatement>(
-                    conn->prepareStatement("SELECT account, friends FROM friends"));
-                auto all_res = get_all_stmt->executeQuery();
+                // // 删除出现在他人好友列表中的该账号
+                // auto get_all_stmt = std::unique_ptr<sql::PreparedStatement>(
+                //     conn->prepareStatement("SELECT account, friends FROM friends"));
+                // auto all_res = get_all_stmt->executeQuery();
 
-                while (all_res->next()) {
-                    std::string acc = all_res->getString("account");
-                    std::string friends_str = all_res->getString("friends");
-                    json friends = json::parse(friends_str);
+                // while (all_res->next()) {
+                //     std::string acc = all_res->getString("account");
+                //     std::string friends_str = all_res->getString("friends");
+                //     json friends = json::parse(friends_str);
 
-                    bool changed = false;
-                    json new_friends = json::array();
-                    for (auto& f : friends) {
-                        if (f.value("account", "") != account) {
-                            new_friends.push_back(f);
-                        } else {
-                            changed = true;
-                        }
-                    }
+                //     bool changed = false;
+                //     json new_friends = json::array();
+                //     for (auto& f : friends) {
+                //         if (f.value("account", "") != account) {
+                //             new_friends.push_back(f);
+                //         } else {
+                //             changed = true;
+                //         }
+                //     }
 
-                    if (changed) {
-                        auto update_stmt = std::unique_ptr<sql::PreparedStatement>(
-                            conn->prepareStatement("REPLACE INTO friends(account, friends) VALUES (?, ?)"));
-                        update_stmt->setString(1, acc);
-                        update_stmt->setString(2, new_friends.dump());
-                        update_stmt->execute();
-                    }
-                }
+                //     if (changed) {
+                //         auto update_stmt = std::unique_ptr<sql::PreparedStatement>(
+                //             conn->prepareStatement("REPLACE INTO friends(account, friends) VALUES (?, ?)"));
+                //         update_stmt->setString(1, acc);
+                //         update_stmt->setString(2, new_friends.dump());
+                //         update_stmt->execute();
+                //     }
+                // }
 
-                // 删除与该用户有关的好友请求记录
-                auto del_requests_stmt = std::unique_ptr<sql::PreparedStatement>(
-                    conn->prepareStatement("DELETE FROM friend_requests WHERE sender = ? OR receiver = ?"));
-                del_requests_stmt->setString(1, account);
-                del_requests_stmt->setString(2, account);
-                del_requests_stmt->executeUpdate();
+                // // 删除与该用户有关的好友请求记录
+                // auto del_requests_stmt = std::unique_ptr<sql::PreparedStatement>(
+                //     conn->prepareStatement("DELETE FROM friend_requests WHERE sender = ? OR receiver = ?"));
+                // del_requests_stmt->setString(1, account);
+                // del_requests_stmt->setString(2, account);
+                // del_requests_stmt->executeUpdate();
 // 所有表的注销
      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -343,6 +384,13 @@ void destory_account_msg(int fd, const json &request){
 
 
 
+
+
+
+
+
+
+
                 // 删除成功
                 response["type"] = "destory_account";
                 response["status"] = "success";
@@ -354,7 +402,12 @@ void destory_account_msg(int fd, const json &request){
         response["status"] = "error";
         response["msg"] = e.what();
     }
-    // Redis redis("tcp://127.0.0.1:6379");
+
+    {
+        std::lock_guard<std::mutex> lock(fd_mutex);
+        account_fd_map.erase(account);
+    }
+
     redis.del("token:" + token);
     redis.del("online:" + account);
 
@@ -377,11 +430,6 @@ void quit_account_msg(int fd, const json &request){
 
 
     try {
-        // Redis redis("tcp://127.0.0.1:6379");
-        redis.del("token:" + token);
-
-        redis.del("online:" + account);
-
         response["type"] = "quit_account";
         response["status"] = "success";
         response["msg"] = "Logged out";
@@ -391,6 +439,13 @@ void quit_account_msg(int fd, const json &request){
         response["msg"] = e.what();
     }
 
+    {
+        std::lock_guard<std::mutex> lock(fd_mutex);
+        account_fd_map.erase(account);
+    }
+
+    redis.del("token:" + token);
+    redis.del("online:" + account);
     send_json(fd, response);
 
 }
@@ -579,9 +634,6 @@ void password_change_msg(int fd, const json &request){
         response["status"] = "error";
         response["msg"] = e.what();
     }
-
-redis.del("token:" + token); // 删除 Redis key
-redis.del("online:" + account);
     send_json(fd, response);
 }
 
@@ -1220,6 +1272,263 @@ void handle_friend_request_msg(int fd, const json& request) {
     send_json(fd, response);
 }
 
+void get_friend_info_msg(int fd, const json& request) {
+    json response;
+    response["type"] = "get_friend_info";
+
+    std::string token = request.value("token", "");
+    std::string friend_username = request.value("target_username", "");
+    std::string user_account;
+
+    if (!verify_token(token, user_account)) {
+
+        response["status"] = "fail";
+        response["msg"] = "Invalid token";
+        send_json(fd, response);
+        return;
+    }
+
+    try {
+
+        auto conn = get_mysql_connection();
+
+        // 好友用户名查账号
+        std::string friend_account;
+        {
+            auto stmt = conn->prepareStatement(
+                "SELECT JSON_UNQUOTE(JSON_EXTRACT(info, '$.account')) AS account "
+                "FROM users WHERE JSON_UNQUOTE(JSON_EXTRACT(info, '$.username')) = ?");
+            stmt->setString(1, friend_username);
+            auto res = stmt->executeQuery();
+            if (res->next()) {
+                friend_account = res->getString("account");
+            } else {
+                response["status"] = "fail";
+                response["msg"] = "Friend user not found";
+                send_json(fd, response);
+                return;
+            }
+        }
+
+        // 确认好友关系
+        bool is_friend = false;
+        bool friend_is_muted = false;
+        {
+            auto stmt = conn->prepareStatement("SELECT friends FROM friends WHERE account = ?");
+            stmt->setString(1, user_account);
+            auto res = stmt->executeQuery();
+            if (res->next()) {
+                json friends = json::parse(std::string(res->getString("friends")));
+                for (const auto& f : friends) {
+                    if (f.value("account", "") == friend_account) {
+                        is_friend = true;
+                        friend_is_muted = f.value("muted", false);
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (!is_friend) {
+            response["status"] = "fail";
+            response["msg"] = "This user is not your friend";
+            send_json(fd, response);
+            return;
+        }
+        bool is_online = redis.exists("online:" + friend_account);
+
+        json friend_info;
+        friend_info["account"] = friend_account;
+        friend_info["username"] = friend_username;
+        friend_info["muted"] = friend_is_muted;
+        friend_info["online"] = is_online;
+
+        response["status"] = "success";
+        response["friend_info"] = friend_info;
+        response["msg"] = "Friend info retrieved";
+    } catch (const std::exception& e) {
+        response["status"] = "error";
+        response["msg"] = e.what();
+    }
+    send_json(fd, response);
+}
+
+
+
+
+
+
+
+
+
+
+
+// CREATE TABLE messages (
+//     id INT AUTO_INCREMENT PRIMARY KEY,
+//     sender VARCHAR(64),
+//     receiver VARCHAR(64),
+//     content TEXT,
+//     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+//     is_offline BOOLEAN DEFAULT TRUE,
+//     is_read BOOLEAN DEFAULT FALSE
+// );
+
+
+
+
+void get_chat_history_msg(int fd, const json& request){
+//  json response;
+//     response["type"] = "get_chat_history";
+
+//     std::string token = request.value("token", "");
+//     std::string peer_username = request.value("target_username", "");
+//     std::string before_time = request.value("before", "");  // 可选时间过滤
+//     int limit = request.value("limit", 20);
+
+//     std::string user;
+//     if (!verify_token(token, user)) {
+//         response["status"] = "fail";
+//         response["msg"] = "Invalid token";
+//         send_json(fd, response);
+//         return;
+//     }
+
+//     try {
+//         auto conn = get_mysql_connection();
+
+//         // 查找对方 account
+//         auto stmt = conn->prepareStatement(
+//             "SELECT JSON_UNQUOTE(JSON_EXTRACT(info, '$.account')) AS account "
+//             "FROM users WHERE JSON_UNQUOTE(JSON_EXTRACT(info, '$.username')) = ?");
+//         stmt->setString(1, peer_username);
+//         auto res = stmt->executeQuery();
+
+//         std::string peer_account;
+//         if (res->next()) {
+//             peer_account = res->getString("account");
+//         } else {
+//             response["status"] = "fail";
+//             response["msg"] = "Target user not found";
+//             send_json(fd, response);
+//             return;
+//         }
+
+//         // 检查是否被你屏蔽（你屏蔽了对方 => 不显示对方的消息）
+//         auto f_stmt = conn->prepareStatement("SELECT friends FROM friends WHERE account = ?");
+//         f_stmt->setString(1, user);
+//         auto f_res = f_stmt->executeQuery();
+
+//         bool muted = false;
+//         if (f_res->next()) {
+//             json friends = json::parse(f_res->getString("friends"));
+//             for (auto& f : friends) {
+//                 if (f["account"] == peer_account && f.value("muted", false)) {
+//                     muted = true;
+//                     break;
+//                 }
+//             }
+//         }
+
+//         // 查询消息记录
+//         std::stringstream query;
+//         query << "SELECT sender, receiver, content, timestamp "
+//               << "FROM private_messages "
+//               << "WHERE ((sender = ? AND receiver = ?) OR (sender = ? AND receiver = ?)) ";
+//         if (!before_time.empty()) {
+//             query << "AND timestamp < ? ";
+//         }
+//         query << "ORDER BY timestamp DESC LIMIT ?";
+
+//         auto msg_stmt = conn->prepareStatement(query.str());
+//         msg_stmt->setString(1, user);
+//         msg_stmt->setString(2, peer_account);
+//         msg_stmt->setString(3, peer_account);
+//         msg_stmt->setString(4, user);
+
+//         int param_index = 5;
+//         if (!before_time.empty()) {
+//             msg_stmt->setString(param_index++, before_time);
+//         }
+//         msg_stmt->setInt(param_index, limit);
+
+//         auto msg_res = msg_stmt->executeQuery();
+
+//         json messages = json::array();
+//         while (msg_res->next()) {
+//             std::string sender = msg_res->getString("sender");
+//             std::string receiver = msg_res->getString("receiver");
+
+//             // 如果你屏蔽了对方，忽略他发的消息
+//             if (muted && sender == peer_account) {
+//                 continue;
+//             }
+
+//             messages.push_back({
+//                 {"from", sender},
+//                 {"to", receiver},
+//                 {"content", msg_res->getString("content")},
+//                 {"timestamp", msg_res->getString("timestamp")}
+//             });
+//         }
+
+//         std::reverse(messages.begin(), messages.end()); // 按时间升序返回
+
+//         response["status"] = "success";
+//         response["msg"] = "Chat history fetched";
+//         response["messages"] = messages;
+//     } catch (const std::exception& e) {
+//         response["status"] = "error";
+//         response["msg"] = e.what();
+//     }
+
+//     send_json(fd, response);
+
+
+
+
+;
+
+// {
+//   "type": "get_chat_history",
+//   "token": "xxxxx",
+//   "target_username": "alice",
+//   "before": "2025-07-22 20:00:00",  // 可选
+//   "limit": 20
+// }
+
+
+}
+
+void send_private_message_msg(int fd, const json& request){
+    // 要实现fd的存储，发送到指定用户
+
+
+
+    // 获取fd
+    // int get_fd_by_account(account)
+
+
+
+    //在线：调用 send() 发消息 + 插入到 messages 表，is_offline = FALSE
+
+    //离线：仅插入到 messages 表，is_offline = TRUE
+
+;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1228,7 +1537,7 @@ void handle_friend_request_msg(int fd, const json& request) {
 // 展示所有与好友有关的信息
 void show_friend_notifications_msg(int fd, const json& request){
     // 要有所有和好友有关的信息
-
+;
 // 好友请求，好友信息，好友文件
 
 
