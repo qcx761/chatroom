@@ -14,7 +14,7 @@ void show_next_menu(){
         std::cout << "1. 个人中心" << std::endl;
         std::cout << "2. 好友与群聊管理" << std::endl;
         //std::cout << "3. 文件接收" << std::endl;
-        std::cout << "4. 信息通知" << std::endl;
+// std::cout << "4. 信息通知" << std::endl; 直接实时通知不用实现
         std::cout << "请输入你的选项：";
 }
 
@@ -92,19 +92,23 @@ void show_next3_menu(){
         ;
 }
 
-// 信息通知
-void show_next4_menu(){
-        system("clear");
-        std::cout << "1. 好友信息" << std::endl;
-        //std::cout << "2. 群聊信息" << std::endl;
-        std::cout << "3. 返回" << std::endl;
-        //std::cout << "4. " << std::endl;
 
 
 
 
-        std::cout << "请输入你的选项：";
-}
+// // 信息通知
+// void show_next4_menu(){
+//         system("clear");
+//         std::cout << "1. 好友信息" << std::endl;
+//         //std::cout << "2. 群聊信息" << std::endl;
+//         std::cout << "3. 返回" << std::endl;
+//         //std::cout << "4. " << std::endl;
+
+
+
+
+//         std::cout << "请输入你的选项：";
+// }
 
 
 

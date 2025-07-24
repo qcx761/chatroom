@@ -476,7 +476,7 @@ void Client::user_thread_func() {
 
 
                 case 3: 
-                case 4: state=next4_menu; break;
+                // case 4: state=next4_menu; break;
 
 
 
@@ -628,29 +628,29 @@ void Client::user_thread_func() {
                 break;
             }
 
-            case next4_menu:
-            {
-                int m;
-                show_next4_menu();
-                if (!(cin >> m)) {
-                    flushInput();
-                    cout << "无效的输入，请输入数字。" << endl;
-                    waiting();
-                    continue;
-                }
-                switch (m)
-                {
-                case 1: show_friend_notifications(sock,token,sem); break;
-                case 2: 
-                case 3: 
-                case 4: state=next_menu; break;
-                default:
-                    cout << "无效数字" << endl;
-                    flushInput(); // 去除数字后面的换行符
-                    waiting();
-                }
-                break;
-            }
+            // case next4_menu:
+            // {
+            //     int m;
+            //     show_next4_menu();
+            //     if (!(cin >> m)) {
+            //         flushInput();
+            //         cout << "无效的输入，请输入数字。" << endl;
+            //         waiting();
+            //         continue;
+            //     }
+            //     switch (m)
+            //     {
+            //     case 1: show_friend_notifications(sock,token,sem); break;
+            //     case 2: 
+            //     case 3: 
+            //     case 4: state=next_menu; break;
+            //     default:
+            //         cout << "无效数字" << endl;
+            //         flushInput(); // 去除数字后面的换行符
+            //         waiting();
+            //     }
+            //     break;
+            // }
 
             // case next1_menu:
             // {

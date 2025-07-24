@@ -437,9 +437,18 @@ void send_private_message(int sock, const string& token, sem_t& sem) {
     cin >> target_username;
     cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
-    // json j;
-    // j["type"]="send_private_message";
-    // j["target_username"]=target_username;
+
+
+
+
+// 整个函数来实现并判断是否时好友
+// 设置 current_chat_target = 这个好友的账号，
+// 退出私聊要设置为空数组，我在msg里面定义就好在这个函数里面改变实现
+// 拉历史消息
+// 把之前未读的离线消息标记为已读（可选）
+// 拉取历史消息实现,改为已读
+// 函数实现 get_unread_private_message
+
 
     cout << "进入与 [" << target_username << "] 的私聊模式" << endl;
     cout << "输入消息并回车发送，输入 /exit 退出，/history [数量] 查看历史记录" << endl;
@@ -467,21 +476,14 @@ void send_private_message(int sock, const string& token, sem_t& sem) {
             history["count"]=count;
             send_json(sock, history);
             sem_wait(&sem);  
-            
-
-
-
-
-            
             // 要区分接收者是在线还是离线状态   
 
-
             // 等待服务端响应，offline_pri 会被填充
+
+
+// 在线状态直接实现好友信息时时输出，维护一个变量来知道目前在私聊界面与否
+
             };
-
-
-
-
 
         json msg;
         msg["type"]= "send_private_message";
@@ -489,165 +491,11 @@ void send_private_message(int sock, const string& token, sem_t& sem) {
         msg["target_username"]=target_username;
         msg["message"]=message;
 
-    //     send_json(sock, msg);
-    //        sem_wait(&sem);  
+        send_json(sock, msg);
+        sem_wait(&sem);  
 
     }
 }
-
-
-
-// // 私聊
-// void send_private_message(int sock,string token,sem_t& sem){
-//     system("clear");
-//     cout <<"私聊 :" << endl;
-//     string target_username;
-//     cout << "请输入想私聊的用户名  :";
-//     cin >> target_username;
-//     cin.ignore(numeric_limits<streamsize>::max(), '\n');
-
-//     json j;
-//     j["type"]="send_private_message";
-//     j["token"]=token;
-//     j["target_username"]=target_username;
-
-
-
-
-//  string message;
-//     cout << "进入私聊模式，与 [" << fri_user << "] 聊天，输入 /exit 退出，/history 查看历史记录" << endl;
-
-//     while (true) {
-//         cout << "> ";
-//         getline(cin, message);
-
-//         // ===== ✅ 1. 退出指令 =====
-//         if (message == "/exit")
-//             break;
-
-//         // ===== ✅ 2. 查看历史记录 =====
-//         if (message == "/history") {
-//             json history_req = {
-//                 {"username", username},
-//                 {"fri_user", fri_user},
-//                 {"request", GET_HISTORY_PRI}
-//             };
-//             sendjson(history_req, cfd);
-
-//             // 等待返回（由接收线程 signal）
-//             handle_pthread_wait(*end_flag, cond, mutex);
-//             *end_flag = false;
-
-//             if ((*offline_pri).contains("elements")) {
-//                 json history = (*offline_pri)["elements"];
-//                 cout << "---- 与 [" << fri_user << "] 的历史记录 ----" << endl;
-//                 for (auto& item : history) {
-//                     cout << "[" << item["from"] << "]: " << item["message"] << endl;
-//                 }
-//                 cout << "------------------------------" << endl;
-//             } else {
-//                 cout << "[系统] 暂无历史记录。" << endl;
-//             }
-//             continue;  // 不发消息
-//         }
-
-//         // ===== ✅ 3. 正常消息发送 =====
-//         *pri_chat_send = {
-//             {"request", PRIVATE_CHAT},
-//             {"from", username},
-//             {"to", fri_user},
-//             {"file_flag", false},
-//             {"message", message}
-//         };
-
-//         sendjson(*pri_chat_send, cfd);
-//     }
-
-//     cout << "[系统] 已退出私聊。" << endl;
-
-
-
-
-
-
-
-// if (message.rfind("/history", 0) == 0) {
-//     // 解析用户输入的条数字，默认返回 10 条
-//     int count = 10;
-//     std::istringstream iss(message);
-//     string cmd;
-//     iss >> cmd >> count;
-
-//     // 构造请求
-//     json history_req = {
-//         {"username", username},
-//         {"fri_user", fri_user},
-//         {"request", GET_HISTORY_PRI},
-//         {"count", count}
-//     };
-
-
-//     send_json(sock,history_req);
-
-//     // 等待服务器响应
-//     handle_pthread_wait(*end_flag, cond, mutex);
-//     *end_flag = false;
-
-//     // 打印结果
-//     if ((*offline_pri).contains("elements")) {
-//         json history = (*offline_pri)["elements"];
-//         cout << "---- 最近 " << count << " 条历史记录 ----" << endl;
-//         for (auto& item : history) {
-//             cout << "[" << item["from"] << "]: " << item["message"] << endl;
-//         }
-//         cout << "------------------------------" << endl;
-//     } else {
-//         cout << "[系统] 暂无历史记录。" << endl;
-//     }
-//     continue;
-// }
-
-
-
-
-
-
-//     send_json(sock,j);
-//     sem_wait(&sem);
-//     // flushInput();
-//     waiting();
-// }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-void show_friend_notifications(int sock,string token,sem_t& sem){
-    system("clear");
-    json j;
-    j["type"]="show_friend_notifications";
-    j["token"]=token;
-    send_json(sock,j);
-    sem_wait(&sem);
-    flushInput();
-    waiting();
-
-
-// 信息处理
-}
-
 
 
 

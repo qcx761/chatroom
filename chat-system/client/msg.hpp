@@ -39,14 +39,13 @@ void unmute_friend_msg(const json &response);
 void get_friend_info_msg(const json &response);
 void get_friend_requests_msg(const json &response);
 void handle_friend_request_msg(const json &response);
-void show_friend_notifications_msg(const json &response);
 
 
 
 
 
 
-
+// void show_friend_notifications_msg(const json &response);
 void get_private_history_msg(const json &response);
 void send_private_message_msg(const json &response);
 void receive_private_message_msg(const json &response);

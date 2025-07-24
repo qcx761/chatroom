@@ -3,6 +3,7 @@
 
 using json = nlohmann::json;
 
+// 用来知道非阻塞线程操作的哪个好友
 std::vector<json> global_friend_requests;
 std::mutex friend_requests_mutex;
 
@@ -285,9 +286,25 @@ void get_friend_info_msg(const json &response){
 
 
 
-
+// 其他好友发送
 void receive_private_message_msg(const json &response){
+    // 处理信息通知？
+
     //处理好友发送的消息
+    // 实现发送不打断输入逻辑
+//     void show_incoming_message(const std::string& from, const std::string& message, const std::string& current_input) {
+//     // 清除当前行：先回到行首（\r），再输出空格覆盖
+//     std::cout << "\r"; // 回到行首
+//     std::cout << std::string(100, ' ') << "\r"; // 清除原输入行（假设一行不超过100字符）
+
+//     // 打印好友消息
+//     std::cout << "[好友消息][" << from << "]: " << message << std::endl;
+
+//     // 重新显示提示符 + 输入内容
+//     std::cout << "> " << current_input;
+//     std::fflush(stdout); // 刷新缓冲区，立即显示
+// }
+
 
 
 
@@ -296,41 +313,40 @@ void receive_private_message_msg(const json &response){
 void get_private_history_msg(const json &response){
     std::string status = response.value("status", "error");
     if (status == "success") {
-            // json friends = response["friend_info"];
-            // std::string account = friends["account"];
-            // std::string username = friends["username"];
-            // bool is_online = friends["online"];
-            // bool is_muted = friends["muted"];
-            // std::cout << username << " (" << account << ") is "
-            // << (is_online ? " online" : "offline")
-            // << (is_muted ? " [muted]" : "") << std::endl;
+        auto message = response.value("message","");
+        cout << "------- 最新历史记录 -------" << endl;
+        if(message.empty()){
+            cout<< "暂无历史记录"<<endl;
+        }
+
+        for(const auto&f : message){
+            std::string from = message.value("from","");
+            std::string to = message.value("to","");
+            std::string content = message.value("content","");
+            std::string timestamp = message.value("timestamp","");
+            std::cout << "[" << from << "]: " << " > "<<content << " " << timestamp <<endl;
+        }
+        cout << "--------------------------" << endl;
     }else if(status=="fail"){
-        // std::string msg = response.value("msg", "未知错误");
-        // std::cout <<"[查询失败] " << msg << std::endl;
+        std::string msg = response.value("msg", "未知错误");
+        std::cout <<"[历史记录查询失败] " << msg << std::endl;
     }else{
-        // std::string msg = response.value("msg", "未知错误");
-        // std::cerr << "[查询错误] " << msg << std::endl;
+        std::string msg = response.value("msg", "未知错误");
+        std::cerr << "[历史记录查询错误] " << msg << std::endl;
     }
-    //         if (offline_pri->contains("elements")) {
-    //             cout << "---- 最近 " << count << " 条历史记录 ----" << endl;
-    //             for (auto& item : (*offline_pri)["elements"]) {
-    //                 cout << "[" << item["from"] << "]: " << item["message"] << endl;
-    //             }
-    //             cout << "------------------------------" << endl;
-    //         } else {
-    //             cout << "[系统] 暂无历史记录。" << endl;
-    //         }
-    //         continue;
-    //     }
-
-
-
 }
 
 void send_private_message_msg(const json &response){
-
-
-
+    std::string status = response.value("status", "error");
+    if(status =="success"){
+        ;
+    }else if(status=="fail"){
+        std::string msg = response.value("msg", "未知错误");
+        std::cout <<"[发送失败] " << msg << std::endl;
+    }else{
+        std::string msg = response.value("msg", "未知错误");
+        std::cerr << "[发送错误] " << msg << std::endl;
+    }
 }
 
 
@@ -388,10 +404,18 @@ void send_private_message_msg(const json &response){
 //     return nullptr;
 // }
 
-void show_friend_notifications_msg(const json &response){
+
+
+
+
+
+
+
+
+// void show_friend_notifications_msg(const json &response){
     
-    ;
-}
+//     ;
+// }
 
 
 
