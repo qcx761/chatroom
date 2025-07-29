@@ -325,7 +325,10 @@ CMakeFiles/client.dir/msg.cpp.o: \
  /usr/include/c++/13/unordered_set \
  /usr/include/c++/13/bits/unordered_set.h \
  /usr/local/include/sw/redis++/queued_redis.hpp \
- /usr/include/c++/13/iostream \
+ /usr/include/c++/13/iostream /usr/include/readline/readline.h \
+ /usr/include/readline/rlstdc.h /usr/include/readline/rltypedefs.h \
+ /usr/include/readline/keymaps.h /usr/include/readline/chardefs.h \
+ /usr/include/readline/tilde.h /usr/include/readline/history.h \
  /home/kong/plan/chartroom/chat-system/client/json.hpp \
  /usr/include/x86_64-linux-gnu/sys/socket.h \
  /usr/include/x86_64-linux-gnu/bits/types/struct_iovec.h \

@@ -17,8 +17,11 @@
 
 #include"menu.hpp"
 
+#include <readline/readline.h>   // 主要函数 readline()
+#include <readline/history.h>    // 可选：支持历史记录
+
 #include "../log/logger.hpp"
-#include "../threadpool/threadpool.hpp"
+// #include "../threadpool/threadpool.hpp"
 
 class Client
 {
@@ -71,7 +74,7 @@ std::string token;  // 存储token
     std::thread input_thread;
     std::thread net_thread;
 
-    threadpool thread_pool;
+    // threadpool thread_pool;
     sem_t sem;                      // 信号量，用来同步等待服务器响应
     std::atomic<bool> login_success{false};  // 服务器返回的登录结果
 

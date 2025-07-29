@@ -3,15 +3,23 @@
 #include "msg.hpp"
 
 
-void waiting() {
-    cout << "按 Enter 键继续...";
-    cin.get();  // 等待按回车
+string readline_string(const string& prompt) {
+    char* input = readline(prompt.c_str());
+    if (!input) return "";
+    string result(input);
+    if (!result.empty()) add_history(input);
+    free(input);
+    return result;
 }
 
-void flushInput() {
-    cin.clear();
-    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+void waiting() {
+    readline_string("按 Enter 键继续...");
 }
+
+// void flushInput() {
+//     cin.clear();
+//     cin.ignore(numeric_limits<streamsize>::max(), '\n');
+// }
 
 // 关闭终端回显，读一行密码
 string get_password(const string& prompt) {
@@ -42,9 +50,10 @@ void main_menu_ui(int sock,sem_t& sem,std::atomic<bool>& login_success) {
         show_main_menu();
         int n;
 
-        // cout << "请输入你的选项：";
-        if (!(cin >> n)) {
-            flushInput();
+        string input = readline_string("请输入你的选项：");
+        try {
+            n = stoi(input);
+        } catch (...) {
             cout << "无效的输入，请输入数字。" << endl;
             waiting();
             continue;
@@ -65,12 +74,10 @@ void main_menu_ui(int sock,sem_t& sem,std::atomic<bool>& login_success) {
             exit(0);
         default:
             cout << "无效数字" << endl;
-            flushInput();
             waiting();
             break;
         }
     }
-        // system("clear"); // 清屏
 }
 
 void log_in(int sock,sem_t& sem) {
@@ -79,12 +86,8 @@ void log_in(int sock,sem_t& sem) {
     json j;
     j["type"] = "log_in";
 
-    string account, password;
-    cout << "请输入帐号   :";
-    cin >> account;
-    cin.ignore(numeric_limits<streamsize>::max(), '\n');  // 清理缓冲区换行符
-
-    password = get_password("请输入密码   :");
+    string account = readline_string("请输入帐号   :");
+    string password = get_password("请输入密码   :");
 
     j["account"] = account;
     j["password"] = password;
@@ -97,55 +100,38 @@ void sign_up(int sock,sem_t& sem) {
     cout << "注册" << endl;
     json j;
     j["type"] = "sign_up";
-    string username,account, password_old, password_new;
 
-        cout << "请输入用户名 :";
-        cin >> username;
-        cin.ignore(numeric_limits<streamsize>::max(), '\n'); 
-
-        cout << "请输入帐号  :";
-        cin >> account;
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');  // 防止影响后续 getline
-
-        password_old = get_password("请输入密码   :");
-        password_new = get_password("请再次输入密码:");
+    string username = readline_string("请输入用户名 :");
+    string account = readline_string("请输入帐号  :");
+    string password_old = get_password("请输入密码   :");
+    string password_new = get_password("请再次输入密码:");
 
         if (password_new == password_old) {
             j["account"]  = account;
             j["username"] = username;
             j["password"] = password_old;
-
             send_json(sock, j);
-
             sem_wait(&sem); // 等待信号量
         } else {
             cout << "两次密码不一样" << endl;
-            return;
         }
 }
 
 void destory_account(int sock,string token,sem_t& sem){
     system("clear");
     cout <<"注销函数 :" << endl;
-    cout<<"确定要注销帐号吗(Y/N) :";
-    char a;
-    cin>>a;
-    if(a=='Y'){
-        string account,password;
-        cout << "请输入帐号  :";
-        cin >> account;
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-        password = get_password("请输入密码   :");
+    string a = readline_string("确定要注销帐号吗(Y/N) :");
+    if(a == "Y" || a == "y"){
+        string account = readline_string("请输入帐号  :");
+        string password = get_password("请输入密码   :");
         json j;
         j["type"] = "destory_account";
         j["token"] = token;
         j["account"]=account;
         j["password"]=password;
         send_json(sock, j);
-    }else if(a=='N'){
-        return;
     }else{
-        cout<< "未知输入，取消注销"<< endl;
+        cout<< "已取消注销"<< endl;
         waiting();
         return;
     }
@@ -159,7 +145,7 @@ void quit_account(int sock,string token,sem_t& sem){
     j["token"]=token;
     send_json(sock,j);
     sem_wait(&sem); // 等待信号量
-    flushInput();
+    // flushInput();
     waiting();
 }
 
@@ -169,35 +155,32 @@ void username_view(int sock,string token,sem_t& sem){
     j["token"]=token;
     send_json(sock,j);
     sem_wait(&sem); // 等待信号量
-    flushInput();
+    // flushInput();
     waiting();
 }
 
 void username_change(int sock,string token,sem_t& sem){
     system("clear");
-    cout <<"修改用户名 :" << endl;
-    string username;
-    cout << "请输入想修改的用户名  :";
-    cin >> username;
+    // cout <<"修改用户名 :" << endl;
+    string username = readline_string("请输入想修改的用户名  :");
     json j;
     j["type"]="username_change";
     j["token"]=token;
     j["username"]=username;
     send_json(sock,j);
     sem_wait(&sem); // 等待信号量
-    flushInput();
+    // flushInput();
     waiting();
 }
 
 void password_change(int sock,string token,sem_t& sem){
     system("clear");
-    cout <<"密码修改 :" << endl;
-    cin.ignore(numeric_limits<streamsize>::max(), '\n');
-    string password_new,password_old,password_new1;
+    // cout <<"密码修改 :" << endl;
+    // cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
-    password_old = get_password("请输入旧密码   :");
-    password_new = get_password("请输入新密码   :");
-    password_new1 = get_password("请再次输入新密码:");
+    string password_old = get_password("请输入旧密码   :");
+    string password_new = get_password("请输入新密码   :");
+    string password_new1 = get_password("请再次输入新密码:");
 
     if(password_new!=password_new1){
         cout<<"两次密码不一样"<<endl;
@@ -217,8 +200,8 @@ void password_change(int sock,string token,sem_t& sem){
 
 void show_friend_list(int sock,string token,sem_t& sem){
     system("clear");
-    cout <<"好友列表 :" << endl;
-    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    // cout <<"好友列表 :" << endl;
+    // cin.ignore(numeric_limits<streamsize>::max(), '\n');
     json j;
     j["type"]="show_friend_list";
     j["token"]=token;
@@ -231,12 +214,8 @@ void show_friend_list(int sock,string token,sem_t& sem){
 
 void add_friend(int sock,string token,sem_t& sem){
     system("clear");
-    cout <<"添加用户 :" << endl;
-    string target_username;
-    cout << "请输入想添加的用户名  :";
-    cin >> target_username;
-    cin.ignore(numeric_limits<streamsize>::max(), '\n');
-
+    // cout <<"添加用户 :" << endl;
+    string target_username = readline_string("请输入想添加的用户名  :");
     json j;
     j["type"]="add_friend";
     j["token"]=token;
@@ -252,11 +231,8 @@ void add_friend(int sock,string token,sem_t& sem){
 
 void remove_friend(int sock,string token,sem_t& sem){
     system("clear");
-    cout <<"删除用户 :" << endl;
-    string username;
-    cout << "请输入想删除的用户名  :";
-    cin >> username;
-    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    // cout <<"删除用户 :" << endl;
+    string username = readline_string("请输入想删除的用户名  :");
 
     json j;
     j["type"]="remove_friend";
@@ -272,11 +248,9 @@ void remove_friend(int sock,string token,sem_t& sem){
 
 void unmute_friend(int sock,string token,sem_t& sem){
     system("clear");
-    cout <<"解除屏蔽用户 :" << endl;
-    string target_username;
-    cout << "请输入想解除屏蔽的用户名  :";
-    cin >> target_username;
-    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    // cout <<"解除屏蔽用户 :" << endl;
+    string target_username = readline_string("请输入想解除屏蔽的用户名  :");
+
 
     json j;
     j["type"]="unmute_friend";
@@ -292,11 +266,9 @@ void unmute_friend(int sock,string token,sem_t& sem){
 
 void mute_friend(int sock,string token,sem_t& sem){
     system("clear");
-    cout <<"屏蔽用户 :" << endl;
-    string target_username;
-    cout << "请输入想屏蔽的用户名  :";
-    cin >> target_username;
-    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    // cout <<"屏蔽用户 :" << endl;
+    string target_username = readline_string("请输入想屏蔽的用户名  :");
+
 
     json j;
     j["type"]="mute_friend";
@@ -320,16 +292,16 @@ void getandhandle_friend_request(int sock,string token,sem_t& sem){
     sem_wait(&sem);
 
     if(global_friend_requests.size()==0){
-        flushInput();
+        // flushInput();
         waiting();
         return;
     }
 
-    std::cout << "输入处理编号(0 退出): ";
-    int choice;
-    std::cin >> choice;
-    flushInput();
-    char op;
+    string input = readline_string("输入处理编号(0 退出): ");
+    int choice = stoi(input);
+
+    // flushInput();
+// 要不要取消锁
     std::string from_username;
 {
     std::lock_guard<std::mutex> lock(friend_requests_mutex);
@@ -341,15 +313,14 @@ void getandhandle_friend_request(int sock,string token,sem_t& sem){
     }
 
     from_username = global_friend_requests[choice - 1]["username"];
-
-    std::cout << "你想如何处理 [" << from_username << "] 的请求？(a=接受, r=拒绝): ";
-    std::cin >> op;
-    flushInput();
 }
+    string op = readline_string("你想如何处理 [" + from_username + "] 的请求？(a=接受, r=拒绝): ");
+    // flushInput();
+
     std::string action;
-    if (op == 'a' || op == 'A') {
+    if (op == "a" || op == "A") {
         action = "accept";
-    } else if (op == 'r' || op == 'R') {
+    } else if (op == "r" || op == "R") {
         action = "reject";
     } else {
         std::cout << "无效操作，已取消处理。" << std::endl;
@@ -371,11 +342,9 @@ void getandhandle_friend_request(int sock,string token,sem_t& sem){
 
 void get_friend_info(int sock,const string& token,sem_t& sem){
     system("clear");
-    cout <<"好友信息查询 :" << endl;
-    string target_username;
-    cout <<"输入查找的好友名 :";
-    cin >> target_username;
-    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    // cout <<"好友信息查询 :" << endl;
+    string target_username = readline_string("输入查找的好友名 :");
+
     json j;
     j["type"]="get_friend_info";
     j["token"]=token;
@@ -432,42 +401,43 @@ void send_private_message(int sock, const string& token, sem_t& sem) {
     system("clear");
     cout << "========== 私聊 ==========" << endl;
 
-    string target_username;
-    cout << "请输入想私聊的用户名(必须是好友否则无法发送成功) : ";
-    cin >> target_username;
-    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    string target_username = readline_string("请输入想私聊的用户名 : ");
+    if (target_username.empty()) {
+        cout << "[错误] 用户名不能为空" << endl;
+        return;
+    }
+    // 设置当前私聊用户
+    current_chat_target = target_username;
 
-
-
-
-
-// 整个函数来实现并判断是否时好友
-// 设置 current_chat_target = 这个好友的账号，
-// 退出私聊要设置为空数组，我在msg里面定义就好在这个函数里面改变实现
-// 拉历史消息
-// 把之前未读的离线消息标记为已读（可选）
-// 拉取历史消息实现,改为已读
-// 函数实现 get_unread_private_message
-
+    // 拉取离线消息
+    json req;
+    req["type"] = "get_unread_private_messages";
+    req["token"] = token;
+    req["target_username"] = target_username;
+    send_json(sock, req);
+    sem_wait(&sem); // 等待信号量
 
     cout << "进入与 [" << target_username << "] 的私聊模式" << endl;
-    cout << "输入消息并回车发送，输入 /exit 退出，/history [数量] 查看历史记录" << endl;
-
-    string message;
+    cout << "提示："<< endl;
+    // cout << "- 输入消息并回车发送，输入 /exit 退出，/history [数量] 查看历史记录，/file [路径] 发送文件" << endl;
+    cout << "- 输入消息并回车发送" << endl;
+    cout << "- 输入 /history [数量] 查看历史记录" << endl;
+    cout << "- 输入 /file 进入文件传输模式" << endl;
+    cout << "- 输入 /exit 退出" << endl;
     while (true) {
-        cout << "> ";
-        getline(cin, message);
-
+        string message = readline_string("> ");
         if (message == "/exit") {
+            // 退出当前私聊用户
+            current_chat_target = "";
             cout << "[系统] 已退出私聊模式。" << endl;
             break;
         }
 
         if (message.rfind("/history", 0) == 0) {
             int count = 10;
-            std::istringstream iss(message);
+            std::istringstream iss_history(message);
             string cmd;
-            iss >> cmd >> count;
+            iss_history >> cmd >> count;
 
             json history;
             history["type"]="get_private_history";
@@ -476,14 +446,41 @@ void send_private_message(int sock, const string& token, sem_t& sem) {
             history["count"]=count;
             send_json(sock, history);
             sem_wait(&sem);  
-            // 要区分接收者是在线还是离线状态   
+            continue;
+        }
 
-            // 等待服务端响应，offline_pri 会被填充
+        if (message.rfind("/file", 0) == 0) {
+            string path;
+            std::istringstream iss_file(message);
+            string cmd;
+            iss_file >> cmd >> path;
+
+            if(path.empty()){
+                cout << "未输入路径" << endl;
+                cout << "[系统] 已退出文件传输模式。" << endl;
+                break;
+            }
+
+            json file;
+
+            // file["type"]="send_file";
+            // file["token"]=token;
+            // file["target_username"]=target_username;
+            // file["path"]=path;
+            // send_json(sock, file);
+            // sem_wait(&sem);  
 
 
-// 在线状态直接实现好友信息时时输出，维护一个变量来知道目前在私聊界面与否
 
-            };
+
+
+
+
+
+
+
+            continue;
+        }
 
         json msg;
         msg["type"]= "send_private_message";

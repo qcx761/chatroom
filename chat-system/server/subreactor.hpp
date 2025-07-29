@@ -36,6 +36,6 @@ private:
     // std::thread heartbeat_thread;
     std::atomic<bool> running; // 原子
     std::mutex conn_mtx;
-    std::unordered_map<int, std::chrono::steady_clock::time_point> heartbeats;
+    // std::unordered_map<int, std::chrono::steady_clock::time_point> heartbeats;
     void closeAndRemove(int fd);
 };

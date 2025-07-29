@@ -6,16 +6,16 @@ void show_main_menu(){
         std::cout << "1. 登录" << std::endl;
         std::cout << "2. 注册" << std::endl;
         std::cout << "3. 退出" << std::endl;
-        std::cout << "请输入你的选项：";
+        //std::cout << "请输入你的选项：";
 }
 
 void show_next_menu(){
         system("clear");
         std::cout << "1. 个人中心" << std::endl;
         std::cout << "2. 好友与群聊管理" << std::endl;
-        //std::cout << "3. 文件接收" << std::endl;
+        // std::cout << "3. 文件接收" << std::endl;
 // std::cout << "4. 信息通知" << std::endl; 直接实时通知不用实现
-        std::cout << "请输入你的选项：";
+        //std::cout << "请输入你的选项：";
 }
 
 // 个人中心
@@ -25,7 +25,7 @@ void show_next1_menu(){
         std::cout << "2. 注销帐号" << std::endl;
         std::cout << "3. 退出帐号" << std::endl;
         std::cout << "4. 返回" << std::endl;
-        std::cout << "请输入你的选项：";
+        //std::cout << "请输入你的选项：";
 }
 
 // 个人信息
@@ -64,7 +64,7 @@ void show_next21_menu(){
         //std::cout << "7. 文件发送" << std::endl;
         std::cout << "8. 查询好友" << std::endl;
         std::cout << "9. 返回" << std::endl;
-        std::cout << "请输入你的选项：";
+        //std::cout << "请输入你的选项：";
 }
 
 // 群聊管理
@@ -83,7 +83,7 @@ void show_next22_menu(){
         //std::cout << "11. 解散群" << std::endl; // 群主
         //std::cout << "12. 群聊" << std::endl; // 包含历史记录
         std::cout << "13. 返回" << std::endl;
-        std::cout << "请输入你的选项：";
+        //std::cout << "请输入你的选项：";
 }
 
 // 文件接收

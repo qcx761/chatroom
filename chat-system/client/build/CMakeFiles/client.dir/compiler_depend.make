@@ -289,6 +289,13 @@ CMakeFiles/client.dir/account.cpp.o: /home/kong/plan/chartroom/chat-system/clien
   /usr/include/nlohmann/thirdparty/hedley/hedley.hpp \
   /usr/include/nlohmann/thirdparty/hedley/hedley_undef.hpp \
   /usr/include/pthread.h \
+  /usr/include/readline/chardefs.h \
+  /usr/include/readline/history.h \
+  /usr/include/readline/keymaps.h \
+  /usr/include/readline/readline.h \
+  /usr/include/readline/rlstdc.h \
+  /usr/include/readline/rltypedefs.h \
+  /usr/include/readline/tilde.h \
   /usr/include/sched.h \
   /usr/include/semaphore.h \
   /usr/include/stdc-predef.h \
@@ -455,7 +462,6 @@ CMakeFiles/client.dir/account.cpp.o: /home/kong/plan/chartroom/chat-system/clien
 
 CMakeFiles/client.dir/client.cpp.o: /home/kong/plan/chartroom/chat-system/client/client.cpp \
   /home/kong/plan/chartroom/chat-system/log/logger.hpp \
-  /home/kong/plan/chartroom/chat-system/threadpool/threadpool.hpp \
   /home/kong/plan/chartroom/chat-system/client/account.hpp \
   /home/kong/plan/chartroom/chat-system/client/client.hpp \
   /home/kong/plan/chartroom/chat-system/client/json.hpp \
@@ -483,7 +489,6 @@ CMakeFiles/client.dir/client.cpp.o: /home/kong/plan/chartroom/chat-system/client
   /usr/include/c++/13/bits/allocated_ptr.h \
   /usr/include/c++/13/bits/allocator.h \
   /usr/include/c++/13/bits/atomic_base.h \
-  /usr/include/c++/13/bits/atomic_futex.h \
   /usr/include/c++/13/bits/atomic_lockfree_defines.h \
   /usr/include/c++/13/bits/basic_ios.h \
   /usr/include/c++/13/bits/basic_ios.tcc \
@@ -573,7 +578,6 @@ CMakeFiles/client.dir/client.cpp.o: /home/kong/plan/chartroom/chat-system/client
   /usr/include/c++/13/bits/stl_multimap.h \
   /usr/include/c++/13/bits/stl_numeric.h \
   /usr/include/c++/13/bits/stl_pair.h \
-  /usr/include/c++/13/bits/stl_queue.h \
   /usr/include/c++/13/bits/stl_raw_storage_iter.h \
   /usr/include/c++/13/bits/stl_relops.h \
   /usr/include/c++/13/bits/stl_tempbuf.h \
@@ -630,7 +634,6 @@ CMakeFiles/client.dir/client.cpp.o: /home/kong/plan/chartroom/chat-system/client
   /usr/include/c++/13/filesystem \
   /usr/include/c++/13/forward_list \
   /usr/include/c++/13/functional \
-  /usr/include/c++/13/future \
   /usr/include/c++/13/initializer_list \
   /usr/include/c++/13/iomanip \
   /usr/include/c++/13/ios \
@@ -653,7 +656,6 @@ CMakeFiles/client.dir/client.cpp.o: /home/kong/plan/chartroom/chat-system/client
   /usr/include/c++/13/pstl/glue_memory_defs.h \
   /usr/include/c++/13/pstl/glue_numeric_defs.h \
   /usr/include/c++/13/pstl/pstl_config.h \
-  /usr/include/c++/13/queue \
   /usr/include/c++/13/random \
   /usr/include/c++/13/ratio \
   /usr/include/c++/13/sstream \
@@ -750,6 +752,13 @@ CMakeFiles/client.dir/client.cpp.o: /home/kong/plan/chartroom/chat-system/client
   /usr/include/nlohmann/thirdparty/hedley/hedley.hpp \
   /usr/include/nlohmann/thirdparty/hedley/hedley_undef.hpp \
   /usr/include/pthread.h \
+  /usr/include/readline/chardefs.h \
+  /usr/include/readline/history.h \
+  /usr/include/readline/keymaps.h \
+  /usr/include/readline/readline.h \
+  /usr/include/readline/rlstdc.h \
+  /usr/include/readline/rltypedefs.h \
+  /usr/include/readline/tilde.h \
   /usr/include/sched.h \
   /usr/include/semaphore.h \
   /usr/include/stdc-predef.h \
@@ -1723,7 +1732,6 @@ CMakeFiles/client.dir/json.cpp.o: /home/kong/plan/chartroom/chat-system/client/j
 
 CMakeFiles/client.dir/main.cpp.o: /home/kong/plan/chartroom/chat-system/client/main.cpp \
   /home/kong/plan/chartroom/chat-system/log/logger.hpp \
-  /home/kong/plan/chartroom/chat-system/threadpool/threadpool.hpp \
   /home/kong/plan/chartroom/chat-system/client/client.hpp \
   /home/kong/plan/chartroom/chat-system/client/menu.hpp \
   /usr/include/alloca.h \
@@ -1734,16 +1742,12 @@ CMakeFiles/client.dir/main.cpp.o: /home/kong/plan/chartroom/chat-system/client/m
   /usr/include/asm-generic/posix_types.h \
   /usr/include/asm-generic/socket.h \
   /usr/include/asm-generic/sockios.h \
-  /usr/include/c++/13/array \
   /usr/include/c++/13/atomic \
   /usr/include/c++/13/backward/binders.h \
   /usr/include/c++/13/bit \
-  /usr/include/c++/13/bits/algorithmfwd.h \
   /usr/include/c++/13/bits/alloc_traits.h \
-  /usr/include/c++/13/bits/allocated_ptr.h \
   /usr/include/c++/13/bits/allocator.h \
   /usr/include/c++/13/bits/atomic_base.h \
-  /usr/include/c++/13/bits/atomic_futex.h \
   /usr/include/c++/13/bits/atomic_lockfree_defines.h \
   /usr/include/c++/13/bits/basic_ios.h \
   /usr/include/c++/13/bits/basic_ios.tcc \
@@ -1756,17 +1760,12 @@ CMakeFiles/client.dir/main.cpp.o: /home/kong/plan/chartroom/chat-system/client/m
   /usr/include/c++/13/bits/cpp_type_traits.h \
   /usr/include/c++/13/bits/cxxabi_forced.h \
   /usr/include/c++/13/bits/cxxabi_init_exception.h \
-  /usr/include/c++/13/bits/deque.tcc \
-  /usr/include/c++/13/bits/enable_special_members.h \
-  /usr/include/c++/13/bits/erase_if.h \
   /usr/include/c++/13/bits/exception.h \
   /usr/include/c++/13/bits/exception_defines.h \
   /usr/include/c++/13/bits/exception_ptr.h \
   /usr/include/c++/13/bits/functexcept.h \
   /usr/include/c++/13/bits/functional_hash.h \
   /usr/include/c++/13/bits/hash_bytes.h \
-  /usr/include/c++/13/bits/hashtable.h \
-  /usr/include/c++/13/bits/hashtable_policy.h \
   /usr/include/c++/13/bits/invoke.h \
   /usr/include/c++/13/bits/ios_base.h \
   /usr/include/c++/13/bits/istream.tcc \
@@ -1780,7 +1779,6 @@ CMakeFiles/client.dir/main.cpp.o: /home/kong/plan/chartroom/chat-system/client/m
   /usr/include/c++/13/bits/move.h \
   /usr/include/c++/13/bits/nested_exception.h \
   /usr/include/c++/13/bits/new_allocator.h \
-  /usr/include/c++/13/bits/node_handle.h \
   /usr/include/c++/13/bits/ostream.tcc \
   /usr/include/c++/13/bits/ostream_insert.h \
   /usr/include/c++/13/bits/parse_numbers.h \
@@ -1790,45 +1788,27 @@ CMakeFiles/client.dir/main.cpp.o: /home/kong/plan/chartroom/chat-system/client/m
   /usr/include/c++/13/bits/range_access.h \
   /usr/include/c++/13/bits/refwrap.h \
   /usr/include/c++/13/bits/requires_hosted.h \
-  /usr/include/c++/13/bits/shared_ptr.h \
-  /usr/include/c++/13/bits/shared_ptr_base.h \
   /usr/include/c++/13/bits/std_abs.h \
-  /usr/include/c++/13/bits/std_function.h \
-  /usr/include/c++/13/bits/std_mutex.h \
   /usr/include/c++/13/bits/std_thread.h \
-  /usr/include/c++/13/bits/stl_algo.h \
   /usr/include/c++/13/bits/stl_algobase.h \
-  /usr/include/c++/13/bits/stl_bvector.h \
   /usr/include/c++/13/bits/stl_construct.h \
-  /usr/include/c++/13/bits/stl_deque.h \
   /usr/include/c++/13/bits/stl_function.h \
-  /usr/include/c++/13/bits/stl_heap.h \
   /usr/include/c++/13/bits/stl_iterator.h \
   /usr/include/c++/13/bits/stl_iterator_base_funcs.h \
   /usr/include/c++/13/bits/stl_iterator_base_types.h \
   /usr/include/c++/13/bits/stl_pair.h \
-  /usr/include/c++/13/bits/stl_queue.h \
-  /usr/include/c++/13/bits/stl_tempbuf.h \
-  /usr/include/c++/13/bits/stl_uninitialized.h \
-  /usr/include/c++/13/bits/stl_vector.h \
   /usr/include/c++/13/bits/streambuf.tcc \
   /usr/include/c++/13/bits/streambuf_iterator.h \
   /usr/include/c++/13/bits/string_view.tcc \
   /usr/include/c++/13/bits/stringfwd.h \
   /usr/include/c++/13/bits/this_thread_sleep.h \
-  /usr/include/c++/13/bits/uniform_int_dist.h \
-  /usr/include/c++/13/bits/unique_lock.h \
   /usr/include/c++/13/bits/unique_ptr.h \
-  /usr/include/c++/13/bits/unordered_map.h \
   /usr/include/c++/13/bits/uses_allocator.h \
   /usr/include/c++/13/bits/uses_allocator_args.h \
   /usr/include/c++/13/bits/utility.h \
-  /usr/include/c++/13/bits/vector.tcc \
   /usr/include/c++/13/cctype \
   /usr/include/c++/13/cerrno \
   /usr/include/c++/13/clocale \
-  /usr/include/c++/13/compare \
-  /usr/include/c++/13/condition_variable \
   /usr/include/c++/13/cstddef \
   /usr/include/c++/13/cstdint \
   /usr/include/c++/13/cstdio \
@@ -1839,28 +1819,21 @@ CMakeFiles/client.dir/main.cpp.o: /home/kong/plan/chartroom/chat-system/client/m
   /usr/include/c++/13/cwctype \
   /usr/include/c++/13/debug/assertions.h \
   /usr/include/c++/13/debug/debug.h \
-  /usr/include/c++/13/deque \
   /usr/include/c++/13/exception \
-  /usr/include/c++/13/ext/aligned_buffer.h \
   /usr/include/c++/13/ext/alloc_traits.h \
   /usr/include/c++/13/ext/atomicity.h \
-  /usr/include/c++/13/ext/concurrence.h \
   /usr/include/c++/13/ext/numeric_traits.h \
   /usr/include/c++/13/ext/string_conversions.h \
   /usr/include/c++/13/ext/type_traits.h \
-  /usr/include/c++/13/functional \
-  /usr/include/c++/13/future \
   /usr/include/c++/13/initializer_list \
   /usr/include/c++/13/ios \
   /usr/include/c++/13/iosfwd \
   /usr/include/c++/13/iostream \
   /usr/include/c++/13/istream \
   /usr/include/c++/13/limits \
-  /usr/include/c++/13/mutex \
   /usr/include/c++/13/new \
   /usr/include/c++/13/ostream \
   /usr/include/c++/13/pstl/pstl_config.h \
-  /usr/include/c++/13/queue \
   /usr/include/c++/13/ratio \
   /usr/include/c++/13/stdexcept \
   /usr/include/c++/13/streambuf \
@@ -1871,8 +1844,6 @@ CMakeFiles/client.dir/main.cpp.o: /home/kong/plan/chartroom/chat-system/client/m
   /usr/include/c++/13/tuple \
   /usr/include/c++/13/type_traits \
   /usr/include/c++/13/typeinfo \
-  /usr/include/c++/13/unordered_map \
-  /usr/include/c++/13/vector \
   /usr/include/ctype.h \
   /usr/include/endian.h \
   /usr/include/errno.h \
@@ -1887,6 +1858,13 @@ CMakeFiles/client.dir/main.cpp.o: /home/kong/plan/chartroom/chat-system/client/m
   /usr/include/locale.h \
   /usr/include/netinet/in.h \
   /usr/include/pthread.h \
+  /usr/include/readline/chardefs.h \
+  /usr/include/readline/history.h \
+  /usr/include/readline/keymaps.h \
+  /usr/include/readline/readline.h \
+  /usr/include/readline/rlstdc.h \
+  /usr/include/readline/rltypedefs.h \
+  /usr/include/readline/tilde.h \
   /usr/include/sched.h \
   /usr/include/semaphore.h \
   /usr/include/signal.h \
@@ -2513,6 +2491,13 @@ CMakeFiles/client.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/client/ms
   /usr/include/nlohmann/thirdparty/hedley/hedley.hpp \
   /usr/include/nlohmann/thirdparty/hedley/hedley_undef.hpp \
   /usr/include/pthread.h \
+  /usr/include/readline/chardefs.h \
+  /usr/include/readline/history.h \
+  /usr/include/readline/keymaps.h \
+  /usr/include/readline/readline.h \
+  /usr/include/readline/rlstdc.h \
+  /usr/include/readline/rltypedefs.h \
+  /usr/include/readline/tilde.h \
   /usr/include/sched.h \
   /usr/include/stdc-predef.h \
   /usr/include/stdint.h \
@@ -2681,14 +2666,6 @@ CMakeFiles/client.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/client/ms
 
 /home/kong/plan/chartroom/chat-system/client/json.cpp:
 
-/usr/include/x86_64-linux-gnu/c++/13/bits/basic_file.h:
-
-/usr/include/x86_64-linux-gnu/bits/struct_stat.h:
-
-/usr/include/x86_64-linux-gnu/bits/fcntl.h:
-
-/usr/include/x86_64-linux-gnu/bits/fcntl-linux.h:
-
 /usr/include/c++/13/queue:
 
 /usr/include/c++/13/bits/stl_queue.h:
@@ -2696,6 +2673,14 @@ CMakeFiles/client.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/client/ms
 /usr/include/c++/13/bits/atomic_futex.h:
 
 /home/kong/plan/chartroom/chat-system/threadpool/threadpool.hpp:
+
+/usr/include/x86_64-linux-gnu/c++/13/bits/basic_file.h:
+
+/usr/include/x86_64-linux-gnu/bits/struct_stat.h:
+
+/usr/include/x86_64-linux-gnu/bits/fcntl.h:
+
+/usr/include/x86_64-linux-gnu/bits/fcntl-linux.h:
 
 /home/kong/plan/chartroom/chat-system/log/logger.hpp:
 
@@ -2727,8 +2712,6 @@ CMakeFiles/client.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/client/ms
 
 /usr/local/include/sw/redis++/queued_redis.hpp:
 
-/usr/local/include/sw/redis++/errors.h:
-
 /usr/local/include/sw/redis++/connection_pool.h:
 
 /usr/local/include/sw/redis++/hiredis_features.h:
@@ -2754,8 +2737,6 @@ CMakeFiles/client.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/client/ms
 /usr/include/x86_64-linux-gnu/c++/13/bits/messages_members.h:
 
 /usr/include/x86_64-linux-gnu/c++/13/bits/gthr.h:
-
-/usr/include/x86_64-linux-gnu/c++/13/bits/error_constants.h:
 
 /usr/include/x86_64-linux-gnu/c++/13/bits/c++locale.h:
 
@@ -2912,6 +2893,22 @@ CMakeFiles/client.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/client/ms
 /usr/include/wctype.h:
 
 /usr/include/sched.h:
+
+/usr/include/x86_64-linux-gnu/c++/13/bits/error_constants.h:
+
+/usr/include/readline/tilde.h:
+
+/usr/local/include/sw/redis++/errors.h:
+
+/usr/include/readline/rltypedefs.h:
+
+/usr/include/readline/rlstdc.h:
+
+/usr/include/readline/readline.h:
+
+/usr/include/readline/keymaps.h:
+
+/usr/include/readline/history.h:
 
 /usr/include/pthread.h:
 
@@ -3394,6 +3391,8 @@ CMakeFiles/client.dir/msg.cpp.o: /home/kong/plan/chartroom/chat-system/client/ms
 /usr/include/c++/13/bits/functional_hash.h:
 
 /usr/include/c++/13/bits/valarray_array.tcc:
+
+/usr/include/readline/chardefs.h:
 
 /usr/include/errno.h:
 

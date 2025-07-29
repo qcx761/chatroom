@@ -11,3 +11,10 @@
 数据格式：JSON
 
 I/O事件通知机制：epoll
+
+
+
+
+
+
+readline redis mysql

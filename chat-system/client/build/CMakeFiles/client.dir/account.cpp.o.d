@@ -304,6 +304,10 @@ CMakeFiles/client.dir/account.cpp.o: \
  /usr/include/nlohmann/ordered_map.hpp /usr/include/c++/13/any \
  /usr/include/nlohmann/detail/macro_unscope.hpp \
  /usr/include/nlohmann/thirdparty/hedley/hedley_undef.hpp \
+ /usr/include/readline/readline.h /usr/include/readline/rlstdc.h \
+ /usr/include/readline/rltypedefs.h /usr/include/readline/keymaps.h \
+ /usr/include/readline/chardefs.h /usr/include/readline/tilde.h \
+ /usr/include/readline/history.h \
  /home/kong/plan/chartroom/chat-system/client/menu.hpp \
  /home/kong/plan/chartroom/chat-system/client/json.hpp \
  /usr/include/x86_64-linux-gnu/sys/socket.h \

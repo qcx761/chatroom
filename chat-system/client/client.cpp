@@ -5,7 +5,7 @@
 #include"msg.hpp"  // 信息处理函数
 using namespace std;
 
-Client::Client(std::string ip, int port) :thread_pool(10), logger(Logger::Level::DEBUG, "client.log")
+Client::Client(std::string ip, int port) :logger(Logger::Level::DEBUG, "client.log")
 {
     sock = socket(AF_INET, SOCK_STREAM, 0);
     if (sock < 0)
@@ -121,192 +121,131 @@ void Client::epoll_thread_func(){
                     }
                     
                     if(type=="sign_up"){
-                        thread_pool.enqueue([this,j]() {
-                            sign_up_msg(j);
-                            sem_post(&this->sem);  // 通过 this 访问成员变量
-                        });
+                        sign_up_msg(j);
+                        sem_post(&this->sem);  // 通过 this 访问成员变量
                         continue;
                     }
 
                     if(type=="log_in"){
-                        thread_pool.enqueue([this,j]() {
-                            bool success_if = log_in_msg(j,this->token);
-                            this->login_success.store(success_if);
-                            sem_post(&this->sem);
-                        });
+                        bool success_if = log_in_msg(j,this->token);
+                        this->login_success.store(success_if);
+                        sem_post(&this->sem);
                         continue;
                     }
 
                     if(type=="destory_account"){
-                        thread_pool.enqueue([this,j]() {
-                            destory_account_msg(j);
-                            state=main_menu;
-                            login_success.store(false);
-                            token.clear();
-                            sem_post(&this->sem);
-                        });         
+                        destory_account_msg(j);
+                        state=main_menu;
+                        login_success.store(false);
+                        token.clear();
+                        sem_post(&this->sem);
                         continue;
                     }
 
                     if(type=="quit_account"){
-                        thread_pool.enqueue([this,j]() {
-                            quit_account_msg(j);
-                            state=main_menu;
-                            login_success.store(false);
-                            token.clear();
-                            sem_post(&this->sem);
-                        });
+                        quit_account_msg(j);
+                        state=main_menu;
+                        login_success.store(false);
+                        token.clear();
+                        sem_post(&this->sem);
                         continue;
                     }
 
                     if(type=="username_view"){
-                        thread_pool.enqueue([this,j]() {
-                            username_view_msg(j);
-                            sem_post(&this->sem);        
-                        });
+                        username_view_msg(j);
+                        sem_post(&this->sem);        
                         continue;
                     }
 
                     if(type=="username_change"){
-                        thread_pool.enqueue([this, j]() {
-                            username_change_msg(j);
-                            sem_post(&this->sem);
-                        });
+                        username_change_msg(j);
+                        sem_post(&this->sem);
                         continue;
                     }
 
                     if(type=="password_change"){
-                        thread_pool.enqueue([this,j]() {
-                            password_change_msg(j);
-                            sem_post(&this->sem);
-                        });
+                        password_change_msg(j);
+                        sem_post(&this->sem);
                         continue;
                     }
 
                     if(type=="show_friend_list"){
-                        thread_pool.enqueue([this,j]() {
-                            show_friend_list_msg(j);
-                            sem_post(&this->sem);
-                        });
+                        show_friend_list_msg(j);
+                        sem_post(&this->sem);
                         continue;
                     }    
                     
                     if(type=="add_friend"){
-                        thread_pool.enqueue([this,j]() {
-                            add_friend_msg(j);
-                            sem_post(&this->sem);
-                        });
+                        add_friend_msg(j);
+                        sem_post(&this->sem);
                         continue;
                     } 
 
                     if(type=="remove_friend"){
-                        thread_pool.enqueue([this,j]() {
-                            remove_friend_msg(j);
-                            sem_post(&this->sem);
-                        });
+                        remove_friend_msg(j);
+                        sem_post(&this->sem);
                         continue;
                     } 
 
                     if(type=="mute_friend"){
-                        thread_pool.enqueue([this,j]() {
-                            mute_friend_msg(j);
-                            sem_post(&this->sem);
-                        });
+                        mute_friend_msg(j);
+                        sem_post(&this->sem);
                         continue;
                     } 
 
                     if(type=="unmute_friend"){
-                        thread_pool.enqueue([this,j]() {
-                            unmute_friend_msg(j);
-                            sem_post(&this->sem);
-                        });
+                        unmute_friend_msg(j);
+                        sem_post(&this->sem);
                         continue;
                     }
 
                     if(type=="get_friend_requests"){
-                        thread_pool.enqueue([this,j]() {
-                            get_friend_requests_msg(j);
-                            sem_post(&this->sem);
-                        });
+                        get_friend_requests_msg(j);
+                        sem_post(&this->sem);
                         continue;
                     }
 
-
                     if(type=="handle_friend_request"){
-                        thread_pool.enqueue([this,j]() {
-                            handle_friend_request_msg(j);
-                            sem_post(&this->sem);
-                        });
+                        handle_friend_request_msg(j);
+                        sem_post(&this->sem);
                         continue;
                     }
 
                     if(type=="get_friend_info"){
-                        thread_pool.enqueue([this,j]() {
-                            get_friend_info_msg(j);
-                            sem_post(&this->sem);
-                        });
-                        continue;
-                    }
-                
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                    if(type=="show_friend_notifications"){
-                        thread_pool.enqueue([this,j]() {
-                            show_friend_notifications_msg(j);
-                            sem_post(&this->sem);
-                        });
-// 信号处理后面还要添加
+                        get_friend_info_msg(j);
+                        sem_post(&this->sem);
                         continue;
                     }
 
-                    if(type=="get_private_history"){
-                        thread_pool.enqueue([this,j]() {
-                            get_private_history_msg(j);
-                            sem_post(&this->sem);
-                        });
+
+
+
+
+
+
+                    
+
+                    if(type=="get_private_history"){                        
+                        get_private_history_msg(j);
+                        sem_post(&this->sem);
                         continue;
                     }
 
                     if(type=="send_private_message"){
-                        thread_pool.enqueue([this,j]() {
-                            send_private_message_msg(j);
-                            sem_post(&this->sem);
-                        });
+                        send_private_message_msg(j);
+                        sem_post(&this->sem);
                         continue;
-                    }
+                    }   
 
                     if(type=="receive_private_message"){
-                        thread_pool.enqueue([this,j]() {
-                            receive_private_message_msg(j);
-                            // sem_post(&this->sem);
-                        });
+                        receive_private_message_msg(j);
+                        // sem_post(&this->sem);
+                        continue;
+                    }
+
+                    if(type=="get_unread_private_messages"){        
+                        get_unread_private_messages_msg(j);
+                        sem_post(&this->sem);
                         continue;
                     }
 
@@ -333,85 +272,97 @@ void Client::epoll_thread_func(){
 
 
                     if(type==""){
-                        thread_pool.enqueue([this,j]() {
-                            //_msg(j);
-                            //state=main_menu;
-                            //login_success.store(false);
-                            //token.clear();
-                            sem_post(&this->sem);
-                        });
+                        //_msg(j);
+                        //state=main_menu;
+                        //login_success.store(false);
+                        //token.clear();
+                        sem_post(&this->sem);
                         continue;
                     }
 
                     if(type==""){
-                        thread_pool.enqueue([this,j]() {
-                            //_msg(j);
-                            //state=main_menu;
-                            //login_success.store(false);
-                            //token.clear();
-                            sem_post(&this->sem);
-                        });
+                        //_msg(j);
+                        //state=main_menu;
+                        //login_success.store(false);
+                        //token.clear();
+                        sem_post(&this->sem);
                         continue;
                     }
 
                     if(type==""){
-                        thread_pool.enqueue([this,j]() {
-                            //_msg(j);
-                            //state=main_menu;
-                            //login_success.store(false);
-                            //token.clear();
-                            sem_post(&this->sem);
-                        });
+                        //_msg(j);
+                        //state=main_menu;
+                        //login_success.store(false);
+                        //token.clear();
+                        sem_post(&this->sem);
                         continue;
                     }
 
                     if(type==""){
-                        thread_pool.enqueue([this,j]() {
-                            //_msg(j);
-                            //state=main_menu;
-                            //login_success.store(false);
-                            //token.clear();
-                            sem_post(&this->sem);
-                        });
+                        //_msg(j);
+                        //state=main_menu;
+                        //login_success.store(false);
+                        //token.clear();
+                        sem_post(&this->sem);
                         continue;
                     }
 
+                    if(type==""){
+                        //_msg(j);
+                        //state=main_menu;
+                        //login_success.store(false);
+                        //token.clear();
+                        sem_post(&this->sem);
+                        continue;
+                    }
 
-                    
+                    if(type==""){
+                        //_msg(j);
+                        //state=main_menu;
+                        //login_success.store(false);
+                        //token.clear();
+                        sem_post(&this->sem);
+                        continue;
+                    }
 
+                    if(type==""){
+                        //_msg(j);
+                        //state=main_menu;
+                        //login_success.store(false);
+                        //token.clear();
+                        sem_post(&this->sem);
+                        continue;
+                    }
 
+                    if(type==""){
+                        //_msg(j);
+                        //state=main_menu;
+                        //login_success.store(false);
+                        //token.clear();
+                        sem_post(&this->sem);
+                        continue;
+                    }
 
+                    if(type==""){
+                        //_msg(j);
+                        //state=main_menu;
+                        //login_success.store(false);
+                        //token.clear();
+                        sem_post(&this->sem);
+                        continue;
+                    }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+                    if(type==""){
+                        //_msg(j);
+                        //state=main_menu;
+                        //login_success.store(false);
+                        //token.clear();
+                        sem_post(&this->sem);
+                        continue;
+                    }
                     if(type=="error"){
                     // 处理错误信息
                     }
-
-                    
-
-
-
-
                     std::cout << "收到未知消息";
                 } else if (ret == -1) {
                     cout << "接收数据失败或服务器关闭连接\n";
@@ -459,11 +410,12 @@ void Client::user_thread_func() {
 
             case next_menu:
             {
-                int m;
                 show_next_menu();
-                if (!(cin >> m)) {
-                    flushInput();
-                    cout << "无效的输入，请输入数字。" << endl;
+                std::string input = readline_string("请输入选项: ");
+                int m;
+                try { m = std::stoi(input); }
+                catch (...) {
+                    std::cout << "无效的输入，请输入数字。" << std::endl;
                     waiting();
                     continue;
                 }
@@ -471,10 +423,6 @@ void Client::user_thread_func() {
                 {
                 case 1: state=next1_menu; break; // 进入个人中心
                 case 2: state=next2_menu; break;
-
-
-
-
                 case 3: 
                 // case 4: state=next4_menu; break;
 
@@ -483,7 +431,7 @@ void Client::user_thread_func() {
 
                 default:
                     cout << "无效数字" << endl;
-                    flushInput(); // 去除数字后面的换行符
+                    // flushInput(); // 去除数字后面的换行符
                     waiting();
                 }
                 break;
@@ -491,11 +439,12 @@ void Client::user_thread_func() {
 
             case next1_menu:
             {
-                int m;
                 show_next1_menu();
-                if (!(cin >> m)) {
-                    flushInput();
-                    cout << "无效的输入，请输入数字。" << endl;
+                std::string input = readline_string("请输入选项: ");
+                int m;
+                try { m = std::stoi(input); }
+                catch (...) {
+                    std::cout << "无效的输入，请输入数字。" << std::endl;
                     waiting();
                     continue;
                 }
@@ -508,7 +457,7 @@ void Client::user_thread_func() {
                 case 4: state=next_menu; break;
                 default:
                     cout << "无效数字" << endl;
-                    flushInput(); // 去除数字后面的换行符
+                    // flushInput(); // 去除数字后面的换行符
                     waiting();
                 }
                 break;
@@ -516,11 +465,12 @@ void Client::user_thread_func() {
 
             case next11_menu:
             {
-                int m;
                 show_next11_menu();
-                if (!(cin >> m)) {
-                    flushInput();
-                    cout << "无效的输入，请输入数字。" << endl;
+                std::string input = readline_string("请输入选项: ");
+                int m;
+                try { m = std::stoi(input); }
+                catch (...) {
+                    std::cout << "无效的输入，请输入数字。" << std::endl;
                     waiting();
                     continue;
                 }
@@ -532,7 +482,7 @@ void Client::user_thread_func() {
                 case 4: state=next1_menu; break;
                 default:
                     cout << "无效数字" << endl;
-                    flushInput(); // 去除数字后面的换行符
+                    // flushInput(); // 去除数字后面的换行符
                     waiting();
                 }
                 break;
@@ -540,11 +490,12 @@ void Client::user_thread_func() {
 
             case next2_menu:
             {
-                int m;
                 show_next2_menu();
-                if (!(cin >> m)) {
-                    flushInput();
-                    cout << "无效的输入，请输入数字。" << endl;
+                std::string input = readline_string("请输入选项: ");
+                int m;
+                try { m = std::stoi(input); }
+                catch (...) {
+                    std::cout << "无效的输入，请输入数字。" << std::endl;
                     waiting();
                     continue;
                 }
@@ -560,7 +511,7 @@ void Client::user_thread_func() {
                 case 8: 
                 default:
                     cout << "无效数字" << endl;
-                    flushInput(); // 去除数字后面的换行符
+                    // flushInput(); // 去除数字后面的换行符
                     waiting();
                 }
                 break;
@@ -568,11 +519,12 @@ void Client::user_thread_func() {
 
             case next21_menu:
             {
-                int m;
                 show_next21_menu();
-                if (!(cin >> m)) {
-                    flushInput();
-                    cout << "无效的输入，请输入数字。" << endl;
+                std::string input = readline_string("请输入选项: ");
+                int m;
+                try { m = std::stoi(input); }
+                catch (...) {
+                    std::cout << "无效的输入，请输入数字。" << std::endl;
                     waiting();
                     continue;
                 }
@@ -589,7 +541,7 @@ void Client::user_thread_func() {
                 case 9: state=next2_menu; break;
                 default:
                     cout << "无效数字" << endl;
-                    flushInput(); // 去除数字后面的换行符
+                    // flushInput(); // 去除数字后面的换行符
                     waiting();
                 }
                 break;
@@ -597,11 +549,12 @@ void Client::user_thread_func() {
 
             case next22_menu:
             {
-                int m;
                 show_next22_menu();
-                if (!(cin >> m)) {
-                    flushInput();
-                    cout << "无效的输入，请输入数字。" << endl;
+                std::string input = readline_string("请输入选项: ");
+                int m;
+                try { m = std::stoi(input); }
+                catch (...) {
+                    std::cout << "无效的输入，请输入数字。" << std::endl;
                     waiting();
                     continue;
                 }
@@ -622,7 +575,7 @@ void Client::user_thread_func() {
                 case 13: state=next2_menu; break;
                 default:
                     cout << "无效数字" << endl;
-                    flushInput(); // 去除数字后面的换行符
+                    // flushInput(); // 去除数字后面的换行符
                     waiting();
                 }
                 break;
@@ -630,14 +583,15 @@ void Client::user_thread_func() {
 
             // case next4_menu:
             // {
-            //     int m;
             //     show_next4_menu();
-            //     if (!(cin >> m)) {
-            //         flushInput();
-            //         cout << "无效的输入，请输入数字。" << endl;
-            //         waiting();
-            //         continue;
-            //     }
+            // std::string input = readline_string("请输入选项: ");
+            // int m;
+            // try { m = std::stoi(input); }
+            // catch (...) {
+            //     std::cout << "无效的输入，请输入数字。" << std::endl;
+            //     waiting();
+            //     continue;
+            // }
             //     switch (m)
             //     {
             //     case 1: show_friend_notifications(sock,token,sem); break;
@@ -646,7 +600,7 @@ void Client::user_thread_func() {
             //     case 4: state=next_menu; break;
             //     default:
             //         cout << "无效数字" << endl;
-            //         flushInput(); // 去除数字后面的换行符
+            //         // flushInput(); // 去除数字后面的换行符
             //         waiting();
             //     }
             //     break;
@@ -654,14 +608,15 @@ void Client::user_thread_func() {
 
             // case next1_menu:
             // {
-            //     int m;
             //     //show_next_menu();
-            //     if (!(cin >> m)) {
-            //         flushInput();
-            //         cout << "无效的输入，请输入数字。" << endl;
-            //         waiting();
-            //         continue;
-            //     }
+            // std::string input = readline_string("请输入选项: ");
+            // int m;
+            // try { m = std::stoi(input); }
+            // catch (...) {
+            //     std::cout << "无效的输入，请输入数字。" << std::endl;
+            //     waiting();
+            //     continue;
+            // }
             //     switch (m)
             //     {
             //     case 1: 

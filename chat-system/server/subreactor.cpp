@@ -23,8 +23,8 @@ SubReactor::~SubReactor() {
 }
 
 void SubReactor::addClient(int client_fd) {
-    // int flags = fcntl(client_fd, F_GETFL, 0);
-    // fcntl(client_fd, F_SETFL, flags | O_NONBLOCK);
+    int flags = fcntl(client_fd, F_GETFL, 0);
+    fcntl(client_fd, F_SETFL, flags | O_NONBLOCK);
 
     epoll_event ev{};
     ev.events = EPOLLIN | EPOLLET;
@@ -143,41 +143,25 @@ void SubReactor::run() {
                   handle_friend_request_msg(fd,request);
                 });
                 continue;
-            }else if(type=="show_friend_notifications"){ // 需要后续添加
-                thread_pool->enqueue([fd, request]() {
-                  show_friend_notifications_msg(fd,request);
-                });
-                continue;
             }else if(type=="get_friend_info"){
                 thread_pool->enqueue([fd, request]() {
                   get_friend_info_msg(fd,request);
                 });
                 continue;
             }else if(type=="send_private_message"){
-
-
-
-
-
-
                 thread_pool->enqueue([fd, request]() {
                   send_private_message_msg(fd,request);
                 });
                 continue;
-            }else if(type=="get_chat_history"){
+            }else if(type=="get_private_history"){
                 thread_pool->enqueue([fd, request]() {
-                  get_chat_history_msg(fd,request);
+                  get_private_history_msg(fd,request);
                 });
                 continue;
-            }else if(type==""){
-
-
-
-
-
-                
-
-
+            }else if(type=="get_unread_private_messages"){
+                thread_pool->enqueue([fd, request]() {
+                  get_unread_private_messages_msg(fd,request);
+                });
                 continue;
             }else if(type==""){
 

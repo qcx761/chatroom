@@ -4,17 +4,24 @@
 #include <sw/redis++/redis++.h>  // Redis 库头文件
 #include<iostream>
 
+#include <readline/readline.h>
+#include <readline/history.h>
+#include <mutex>
+
+
 using json = nlohmann::json;
 using namespace sw::redis;
 
 // std::vector<json> global_friend_requests;
 // std::mutex friend_requests_mutex;
 
-
+// 定义
+// 用来判断用户所在的界面 记录用户在和谁私聊
 extern std::vector<json> global_friend_requests;
 extern std::mutex friend_requests_mutex;
 
-
+// 用来知道非阻塞线程操作的哪个好友
+extern std::string current_chat_target;
 
 
 // 错误处理函数要怎么实现
@@ -45,8 +52,8 @@ void handle_friend_request_msg(const json &response);
 
 
 
-// void show_friend_notifications_msg(const json &response);
 void get_private_history_msg(const json &response);
 void send_private_message_msg(const json &response);
 void receive_private_message_msg(const json &response);
+void get_unread_private_messages_msg(const json &response);
  

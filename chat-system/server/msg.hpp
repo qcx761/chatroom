@@ -45,7 +45,6 @@ void add_friend_msg(int fd, const json &request);
 
 
 void handle_friend_request_msg(int fd, const json &request);
-void show_friend_notifications_msg(int fd, const json &request);
 void get_friend_requests_msg(int fd, const json& request);
 
 
@@ -53,4 +52,5 @@ void get_friend_info_msg(int fd, const json& request);
 
 
 void send_private_message_msg(int fd, const json& request);
-void get_chat_history_msg(int fd, const json& request);
+void get_private_history_msg(int fd, const json& request);
+void get_unread_private_messages_msg(int fd, const json& request);
