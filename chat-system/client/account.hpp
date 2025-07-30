@@ -39,14 +39,21 @@ void remove_friend(int sock,string token,sem_t& sem);
 void unmute_friend(int sock,string token,sem_t& sem);
 void mute_friend(int sock,string token,sem_t& sem);
 void getandhandle_friend_request(int sock,string token,sem_t& sem);
-void get_friend_info(int sock,const string& token,sem_t& sem);
+void get_friend_info(int sock,string token,sem_t& sem);
 
 
 
 
-void send_private_message(int sock, const string& token, sem_t& sem);
+void send_private_message(int sock,string token, sem_t& sem);
 
 
+
+
+
+
+
+
+void getandhandle_group_request(int sock,string token, sem_t& sem);
 
 void show_group_list(int sock,string token,sem_t& sem);
 void join_group(int sock,string token,sem_t& sem);

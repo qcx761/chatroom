@@ -54,3 +54,21 @@ void get_friend_info_msg(int fd, const json& request);
 void send_private_message_msg(int fd, const json& request);
 void get_private_history_msg(int fd, const json& request);
 void get_unread_private_messages_msg(int fd, const json& request);
+
+
+
+
+
+void show_group_list_msg(int fd, const json& request);
+void join_group_msg(int fd, const json& request);
+void quit_group_msg(int fd, const json& request);
+void set_group_admin_msg(int fd, const json& request);
+void remove_group_admin_msg(int fd, const json& request);
+void remove_group_member_msg(int fd, const json& request);
+void add_group_member_msg(int fd, const json& request);
+void dismiss_group_msg(int fd, const json& request);
+void get_unread_group_messages_msg(int fd, const json& request);
+void get_group_history_msg(int fd, const json& request);
+void send_group_message_msg(int fd, const json& request);
+void get_group_requests_msg(int fd, const json& request);
+void handle_group_request_msg(int fd, const json& request);

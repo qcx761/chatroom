@@ -163,7 +163,9 @@ void SubReactor::run() {
                   get_unread_private_messages_msg(fd,request);
                 });
                 continue;
-            }else if(type==""){
+            }else if(type=="show_group_list"){
+
+
 
 
 
@@ -172,6 +174,69 @@ void SubReactor::run() {
                 
 
 
+                thread_pool->enqueue([fd, request]() {
+                  show_group_list_msg(fd,request);
+                });
+                continue;
+            }else if(type=="join_group"){
+                thread_pool->enqueue([fd, request]() {
+                  join_group_msg(fd,request);
+                });
+                continue;
+            }else if(type=="quit_group"){
+                thread_pool->enqueue([fd, request]() {
+                  quit_group_msg(fd,request);
+                });
+                continue;
+            }else if(type=="set_group_admin"){
+                thread_pool->enqueue([fd, request]() {
+                  set_group_admin_msg(fd,request);
+                });
+                continue;
+            }else if(type=="remove_group_admin"){
+                thread_pool->enqueue([fd, request]() {
+                  remove_group_admin_msg(fd,request);
+                });
+                continue;
+            }else if(type=="remove_group_member"){
+                thread_pool->enqueue([fd, request]() {
+                  remove_group_member_msg(fd,request);
+                });
+                continue;
+            }else if(type=="add_group_member"){
+                thread_pool->enqueue([fd, request]() {
+                  add_group_member_msg(fd,request);
+                });
+                continue;
+            }else if(type=="dismiss_group"){
+                thread_pool->enqueue([fd, request]() {
+                  dismiss_group_msg(fd,request);
+                });
+                continue;
+            }else if(type=="get_unread_group_messages"){
+                thread_pool->enqueue([fd, request]() {
+                  get_unread_group_messages_msg(fd,request);
+                });
+                continue;
+            }else if(type=="get_group_history"){
+                thread_pool->enqueue([fd, request]() {
+                  get_group_history_msg(fd,request);
+                });
+                continue;
+            }else if(type=="send_group_message"){
+                thread_pool->enqueue([fd, request]() {
+                  send_group_message_msg(fd,request);
+                });
+                continue;
+            }else if(type=="get_group_requests"){
+                thread_pool->enqueue([fd, request]() {
+                  get_group_requests_msg(fd,request);
+                });
+                continue;
+            }else if(type=="handle_group_request"){
+                thread_pool->enqueue([fd, request]() {
+                  handle_group_request_msg(fd,request);
+                });
                 continue;
             }else if(type==""){
 
@@ -218,23 +283,11 @@ void SubReactor::run() {
 
 
 
-
                 
 
 
                 continue;
             }else if(type==""){
-
-
-
-
-
-                
-
-
-                continue;
-            }else if(type==""){
-
 
 
 
@@ -248,23 +301,11 @@ void SubReactor::run() {
 
 
 
-
                 
 
 
                 continue;
             }else if(type==""){
-
-
-
-
-
-                
-
-
-                continue;
-            }else if(type==""){
-
 
 
 
@@ -278,23 +319,11 @@ void SubReactor::run() {
 
 
 
-
                 
 
 
                 continue;
             }else if(type==""){
-
-
-
-
-
-                
-
-
-                continue;
-            }else if(type==""){
-
 
 
 
@@ -308,6 +337,14 @@ void SubReactor::run() {
 
 
 
+                
+
+
+                continue;
+            }else if(type==""){
+
+
+
 
                 
 
@@ -318,6 +355,14 @@ void SubReactor::run() {
 
 
 
+                
+
+
+                continue;
+            }else if(type==""){
+
+
+
 
                 
 
@@ -325,6 +370,23 @@ void SubReactor::run() {
                 continue;
             }else if(type==""){
 
+
+
+
+                
+
+
+                continue;
+            }else if(type==""){
+
+
+
+
+                
+
+
+                continue;
+            }else if(type==""){
 
 
 

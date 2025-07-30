@@ -14,6 +14,19 @@ std::string current_chat_target = "";
 std::vector<json> global_friend_requests;
 std::mutex friend_requests_mutex;
 
+
+
+
+// 用来判断用户所在的界面 记录用户在哪个群
+std::string current_chat_group = "";
+std::vector<json> global_group_requests;
+std::mutex group_requests_mutex;
+
+
+
+
+
+
 // 处理服务端返回的错误消息
 void error_msg(int fd, const json &response) {
     
@@ -411,6 +424,42 @@ void get_unread_private_messages_msg(const json &response){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void show_group_list_msg(const json &response){
+        std::string status = response.value("status", "error");
+    if (status == "success") {
+        auto groups = response["groups"];
+        for (const auto& f : groups) {
+            std::string group_id = f["group_id"];
+            std::string owner = f["owner"];
+            std::string group_name = f["group_name"];
+            std::cout <<  "[" << group_id << "] " <<group_name << " (owner: " << owner << ")"<< std::endl;
+        }
+    }else{
+        std::string msg = response.value("msg", "未知错误");
+        std::cerr << "[列出错误] " << msg << std::endl;
+    }
+}
 
 
 

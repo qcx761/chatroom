@@ -271,6 +271,154 @@ void Client::epoll_thread_func(){
 
 
 
+                    if(type=="show_group_list"){
+                        show_group_list_msg(j);
+                        sem_post(&this->sem);
+                        continue;
+                    }
+
+                    if(type=="join_group"){
+                        //join_group_msg(j);
+                        sem_post(&this->sem);
+                        continue;
+                    }
+
+                    if(type=="quit_group"){
+                        //_msg(j);
+                        sem_post(&this->sem);
+                        continue;
+                    }
+
+                    if(type=="show_group_members"){
+                        //show_group_members_msg(j);
+                        sem_post(&this->sem);
+                        continue;
+                    }
+
+                    if(type=="create_group"){
+                        //create_group_msg(j);
+                        sem_post(&this->sem);
+                        continue;
+                    }
+
+                    if(type=="set_group_admin"){
+                        //set_group_admin_msg(j);
+                        sem_post(&this->sem);
+                        continue;
+                    }
+
+                    if(type=="remove_group_admin"){
+                        //remove_group_admin_msg(j);
+                        sem_post(&this->sem);
+                        continue;
+                    }
+
+                    if(type=="remove_group_member"){
+                        //remove_group_member_msg(j);
+                        sem_post(&this->sem);
+                        continue;
+                    }
+
+                    if(type=="add_group_member"){
+                        //add_group_member_msg(j);
+                        sem_post(&this->sem);
+                        continue;
+                    }
+
+                    if(type=="dismiss_group"){
+                        //dismiss_group_msg(j);
+                        sem_post(&this->sem);
+                        continue;
+                    }
+                    if(type=="get_unread_group_messages"){
+                        //get_unread_group_messages_msg(j);
+                        sem_post(&this->sem);
+                        continue;
+                    }
+                    if(type=="receive_group_messages"){
+                        //receive_group_messages_msg(j);
+                        sem_post(&this->sem);
+                        continue;
+                    }
+                    if(type=="get_group_history"){
+                        //get_group_history_msg(j);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                        
+                        sem_post(&this->sem);
+                        continue;
+                    }
+                    if(type==""){
+                        //_msg(j);
+                        //state=main_menu;
+                        //login_success.store(false);
+                        //token.clear();
+                        sem_post(&this->sem);
+                        continue;
+                    }
+                    if(type==""){
+                        //_msg(j);
+                        //state=main_menu;
+                        //login_success.store(false);
+                        //token.clear();
+                        sem_post(&this->sem);
+                        continue;
+                    }
+                    if(type==""){
+                        //_msg(j);
+                        //state=main_menu;
+                        //login_success.store(false);
+                        //token.clear();
+                        sem_post(&this->sem);
+                        continue;
+                    }
+                    if(type==""){
+                        //_msg(j);
+                        //state=main_menu;
+                        //login_success.store(false);
+                        //token.clear();
+                        sem_post(&this->sem);
+                        continue;
+                    }
+                    if(type==""){
+                        //_msg(j);
+                        //state=main_menu;
+                        //login_success.store(false);
+                        //token.clear();
+                        sem_post(&this->sem);
+                        continue;
+                    }
+                    if(type==""){
+                        //_msg(j);
+                        //state=main_menu;
+                        //login_success.store(false);
+                        //token.clear();
+                        sem_post(&this->sem);
+                        continue;
+                    }
                     if(type==""){
                         //_msg(j);
                         //state=main_menu;
@@ -280,86 +428,6 @@ void Client::epoll_thread_func(){
                         continue;
                     }
 
-                    if(type==""){
-                        //_msg(j);
-                        //state=main_menu;
-                        //login_success.store(false);
-                        //token.clear();
-                        sem_post(&this->sem);
-                        continue;
-                    }
-
-                    if(type==""){
-                        //_msg(j);
-                        //state=main_menu;
-                        //login_success.store(false);
-                        //token.clear();
-                        sem_post(&this->sem);
-                        continue;
-                    }
-
-                    if(type==""){
-                        //_msg(j);
-                        //state=main_menu;
-                        //login_success.store(false);
-                        //token.clear();
-                        sem_post(&this->sem);
-                        continue;
-                    }
-
-                    if(type==""){
-                        //_msg(j);
-                        //state=main_menu;
-                        //login_success.store(false);
-                        //token.clear();
-                        sem_post(&this->sem);
-                        continue;
-                    }
-
-                    if(type==""){
-                        //_msg(j);
-                        //state=main_menu;
-                        //login_success.store(false);
-                        //token.clear();
-                        sem_post(&this->sem);
-                        continue;
-                    }
-
-                    if(type==""){
-                        //_msg(j);
-                        //state=main_menu;
-                        //login_success.store(false);
-                        //token.clear();
-                        sem_post(&this->sem);
-                        continue;
-                    }
-
-                    if(type==""){
-                        //_msg(j);
-                        //state=main_menu;
-                        //login_success.store(false);
-                        //token.clear();
-                        sem_post(&this->sem);
-                        continue;
-                    }
-
-                    if(type==""){
-                        //_msg(j);
-                        //state=main_menu;
-                        //login_success.store(false);
-                        //token.clear();
-                        sem_post(&this->sem);
-                        continue;
-                    }
-
-                    if(type==""){
-                        //_msg(j);
-                        //state=main_menu;
-                        //login_success.store(false);
-                        //token.clear();
-                        sem_post(&this->sem);
-                        continue;
-                    }
                     if(type=="error"){
                     // 处理错误信息
                     }
@@ -503,8 +571,8 @@ void Client::user_thread_func() {
                 {
                 case 1: state=next21_menu; break;
                 case 2: state=next22_menu; break;
-                case 3: getandhandle_friend_request(sock,token,sem); break;
-                case 4: getandhandle_group_request(sock,token,sem); break;
+                // case 3: getandhandle_friend_request(sock,token,sem); break;
+                // case 4: getandhandle_group_request(sock,token,sem); break;
                 case 5: state=next_menu; break;
                 default:
                     cout << "无效数字" << endl;
@@ -534,7 +602,8 @@ void Client::user_thread_func() {
                 case 5: unmute_friend(sock,token,sem); break;
                 case 6: mute_friend(sock,token,sem); break;
                 case 7: get_friend_info(sock,token,sem); break;
-                case 8: state=next2_menu; break;
+                case 8: getandhandle_friend_request(sock,token,sem); break;
+                case 9: state=next2_menu; break;
                 default:
                     cout << "无效数字" << endl;
                     // flushInput(); // 去除数字后面的换行符
@@ -556,18 +625,19 @@ void Client::user_thread_func() {
                 }
                 switch (m)
                 {
-                case 1: void show_group_list(sock,token,sem); break;
-                case 2: void join_group(sock,token,sem); break;
-                case 3: void quit_group(sock,token,sem); break;
-                case 4: void show_group_members(sock,token,sem); break;
-                case 5: void create_group(sock,token,sem); break;
-                case 6: void set_group_admin(sock,token,sem); break;
-                case 7: void remove_group_admin(sock,token,sem); break;
-                case 8: void remove_group_member(sock,token,sem); break;
-                case 9: void add_group_member(sock,token,sem); break;
-                case 10: void dismiss_group(sock,token,sem); break;
-                case 11: void send_group_message(sock,token,sem); break;
-                case 12: state=next2_menu; break;
+                case 1: show_group_list(sock,token,sem); break;
+                case 2: join_group(sock,token,sem); break;
+                case 3: quit_group(sock,token,sem); break;
+                case 4: show_group_members(sock,token,sem); break;
+                case 5: create_group(sock,token,sem); break;
+                case 6: set_group_admin(sock,token,sem); break;
+                case 7: remove_group_admin(sock,token,sem); break;
+                case 8: remove_group_member(sock,token,sem); break;
+                case 9: add_group_member(sock,token,sem); break;
+                case 10: dismiss_group(sock,token,sem); break;
+                case 11: send_group_message(sock,token,sem); break;
+                case 12: getandhandle_group_request(sock,token,sem); break;
+                case 13: state=next2_menu; break;
                 default:
                     cout << "无效数字" << endl;
                     // flushInput(); // 去除数字后面的换行符

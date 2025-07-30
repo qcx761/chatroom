@@ -1,4 +1,4 @@
- #include "account.hpp"
+#include "account.hpp"
 #include "json.hpp"
 #include "msg.hpp"
 
@@ -340,7 +340,7 @@ void getandhandle_friend_request(int sock,string token,sem_t& sem){
     waiting();
 }
 
-void get_friend_info(int sock,const string& token,sem_t& sem){
+void get_friend_info(int sock, string token,sem_t& sem){
     system("clear");
     // cout <<"好友信息查询 :" << endl;
     string target_username = readline_string("输入查找的好友名 :");
@@ -363,7 +363,7 @@ void get_friend_info(int sock,const string& token,sem_t& sem){
 
 
 
-void send_private_message(int sock, const string& token, sem_t& sem) {
+void send_private_message(int sock,string token, sem_t& sem) {
     system("clear");
     cout << "========== 私聊 ==========" << endl;
 
@@ -388,7 +388,7 @@ void send_private_message(int sock, const string& token, sem_t& sem) {
     // cout << "- 输入消息并回车发送，输入 /exit 退出，/history [数量] 查看历史记录，/file [路径] 发送文件" << endl;
     cout << "- 输入消息并回车发送" << endl;
     cout << "- 输入 /history [数量] 查看历史记录" << endl;
-    cout << "- 输入 /file 进入文件传输模式" << endl;
+    cout << "- 输入 /file [路径] 传输文件" << endl;
     cout << "- 输入 /exit 退出" << endl;
     while (true) {
         string message = readline_string("> ");
@@ -486,59 +486,328 @@ void send_private_message(int sock, const string& token, sem_t& sem) {
 
 
 
-void getandhandle_group_request(int sock,string token,sem_t& sem){
-
-
-}
 
 
 
 
-void show_group_list(int sock,string token,sem_t& sem){
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void show_group_list(int sock, string token, sem_t &sem){
+    json j;
+    j["type"] = "show_group_list";
+    j["token"] = token;
+    send_json(sock, j);
+    sem_wait(&sem);
+    waiting();
 }
 
 void join_group(int sock,string token,sem_t& sem){
-
+    string group_name = readline_string("输入想加入的群聊名称 : ");
+    json j;
+    j["type"] = "join_group";
+    j["token"] = token;
+    j["group_name"] = group_name;
+    send_json(sock, j);
+    sem_wait(&sem);
+    waiting();
 }
 
 void quit_group(int sock,string token,sem_t& sem){
-
+    string group_name = readline_string("输入要退出的群聊名称 : ");
+    json j;
+    j["type"] = "quit_group";
+    j["token"] = token;
+    j["group_name"] = group_name;
+    send_json(sock, j);
+    sem_wait(&sem);
+    waiting();
 }
 
 void show_group_members(int sock,string token,sem_t& sem){
-
+    string group_name = readline_string("输入要查看成员的群聊名称 : ");
+    json j;
+    j["type"] = "show_group_members";
+    j["token"] = token;
+    j["group_name"] = group_name;
+    send_json(sock, j);
+    sem_wait(&sem);
+    waiting();
 }
 
 void create_group(int sock,string token,sem_t& sem){
-
+    string group_name = readline_string("请输入新建群聊名称 : ");
+    json j;
+    j["type"] = "create_group";
+    j["token"] = token;
+    j["group_name"] = group_name;
+    send_json(sock, j);
+    sem_wait(&sem);
+    waiting();
 }
 
 void set_group_admin(int sock,string token,sem_t& sem){
-
+    string group_name = readline_string("输入群聊名称 : ");
+    string target_user = readline_string("输入要设为管理员的用户名 : ");
+    json j;
+    j["type"] = "set_group_admin";
+    j["token"] = token;
+    j["group_name"] = group_name;
+    j["target_user"] = target_user;
+    send_json(sock, j);
+    sem_wait(&sem);
+    waiting();
 }
 
 void remove_group_admin(int sock,string token,sem_t& sem){
-
+    string group_name = readline_string("输入群聊名称 : ");
+    string target_user = readline_string("输入要移除管理员权限的用户名 : ");
+    json j;
+    j["type"] = "remove_group_admin";
+    j["token"] = token;
+    j["group_name"] = group_name;
+    j["target_user"] = target_user;
+    send_json(sock, j);
+    sem_wait(&sem);
+    waiting();
 }
 
 void remove_group_member(int sock,string token,sem_t& sem){
-
+    string group_name = readline_string("输入群聊名称 : ");
+    string target_user = readline_string("输入要移除的成员用户名 : ");
+    json j;
+    j["type"] = "remove_group_member";
+    j["token"] = token;
+    j["group_name"] = group_name;
+    j["target_user"] = target_user;
+    send_json(sock, j);
+    sem_wait(&sem);
+    waiting();
 }
 
 void add_group_member(int sock,string token,sem_t& sem){
-
+    string group_name = readline_string("输入群聊名称 : ");
+    string new_member = readline_string("输入新成员用户名 : ");
+    json j;
+    j["type"] = "add_group_member";
+    j["token"] = token;
+    j["group_name"] = group_name;
+    j["new_member"] = new_member;
+    send_json(sock, j);
+    sem_wait(&sem);
+    waiting();
 }
 
 void dismiss_group(int sock,string token,sem_t& sem){
-
+    string group_name = readline_string("输入要解散的群聊名称 : ");
+    json j;
+    j["type"] = "dismiss_group";
+    j["token"] = token;
+    j["group_name"] = group_name;
+    send_json(sock, j);
+    sem_wait(&sem);
+    waiting();
 }
 
 void send_group_message(int sock,string token,sem_t& sem){
+system("clear");
+    cout << "========== 群聊 ==========" << endl;
 
+    string target_group = readline_string("请输入想群聊的群名 : ");
+    if (target_group.empty()) {
+        cout << "[错误] 群名不能为空" << endl;
+        return;
+    }
+    // 设置当前群聊
+    current_chat_group = target_group;
+
+    // 拉取离线消息
+    json req;
+    req["type"] = "get_unread_group_messages";
+    req["token"] = token;
+    req["target_username"] = target_group;
+    send_json(sock, req);
+    sem_wait(&sem); // 等待信号量
+
+    cout << "进入 [" << target_group << "] 群" << endl;
+    cout << "提示："<< endl;
+    // cout << "- 输入消息并回车发送，输入 /exit 退出，/history [数量] 查看历史记录，/file [路径] 发送文件" << endl;
+    cout << "- 输入消息并回车发送" << endl;
+    cout << "- 输入 /history [数量] 查看历史记录" << endl;
+    cout << "- 输入 /file [路径] 传输文件" << endl;
+    cout << "- 输入 /exit 退出" << endl;
+    while (true) {
+        string message = readline_string("> ");
+        if (message == "/exit") {
+            // 退出当前群聊
+            current_chat_group = "";
+            cout << "[系统] 已退出群聊模式。" << endl;
+            break;
+        }
+
+        if (message.rfind("/history", 0) == 0) {
+            int count = 10;
+            std::istringstream iss_history(message);
+            string cmd;
+            iss_history >> cmd >> count;
+
+            json history;
+            history["type"]="get_group_history";
+            history["token"]=token;
+            history["target_username"]=target_group;
+            history["count"]=count;
+            send_json(sock, history);
+            sem_wait(&sem);  
+            continue;
+        }
+
+        if (message.rfind("/file", 0) == 0) {
+            string path;
+            std::istringstream iss_file(message);
+            string cmd;
+            iss_file >> cmd >> path;
+
+            if(path.empty()){
+                cout << "未输入路径" << endl;
+                cout << "[系统] 已退出文件传输模式。" << endl;
+                break;
+            }
+
+            json file;
+
+            // file["type"]="send_group_file";
+            // file["token"]=token;
+            // file["target_username"]=target_group;
+            // file["path"]=path;
+            // send_json(sock, file);
+            // sem_wait(&sem);  
+
+
+
+
+
+
+
+
+
+
+
+// 文件传输
+// 记得通知
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            continue;
+        }
+
+        json msg;
+        msg["type"]= "send_group_message";
+        msg["token"]=token;
+        msg["target_username"]=target_group;
+        msg["message"]=message;
+
+        send_json(sock, msg);
+        sem_wait(&sem);  
+
+    }
 }
 
+// 处理加群成员
+void getandhandle_group_request(int sock,string token,sem_t& sem){
+    system("clear");
+    string target_group = readline_string("请输入想处理成员添加的群名 : ");
+    std::cout << "请求列表" << std::endl;
+    json j;
+    j["type"]="get_group_requests";
+    j["token"]=token;
+    send_json(sock,j);
+    sem_wait(&sem);
 
+    if(global_group_requests.size()==0){
+        // flushInput();
+        waiting();
+        return;
+    }
+
+    string input = readline_string("输入处理编号(0 退出): ");
+    int choice = stoi(input);
+
+    // flushInput();
+// 要不要取消锁
+    std::string from_group;
+{
+    std::lock_guard<std::mutex> lock(group_requests_mutex);
+
+    if (choice <= 0 || choice > global_group_requests.size()) {
+        std::cout << "已取消处理。" << std::endl;
+        waiting();
+        return;
+    }
+
+    from_group = global_group_requests[choice - 1]["group"];
+}
+    string op = readline_string("你想如何处理 [" + from_group + "] 的请求？(a=接受, r=拒绝): ");
+    // flushInput();
+
+    std::string action;
+    if (op == "a" || op == "A") {
+        action = "accept";
+    } else if (op == "r" || op == "R") {
+        action = "reject";
+    } else {
+        std::cout << "无效操作，已取消处理。" << std::endl;
+        waiting();
+        return;
+    }
+
+    json m;
+    m["type"] = "handle_group_request";
+    m["token"] = token;
+    m["from_username"] = from_group;
+    m["action"] = action;
+    send_json(sock, m);
+    sem_wait(&sem);
+    waiting();
+}
 
 
 

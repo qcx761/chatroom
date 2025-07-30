@@ -24,8 +24,25 @@ extern std::mutex friend_requests_mutex;
 extern std::string current_chat_target;
 
 
+
+
+
+
+// 定义
+// 用来判断用户所在的界面 记录用户在和谁私聊
+extern std::vector<json> global_group_requests;
+extern std::mutex group_requests_mutex;
+// 用来知道非阻塞线程操作的哪个群
+extern std::string current_chat_group;
+
+
+
+
+
+
 // 错误处理函数要怎么实现
 void error_msg(int fd,const json &request);
+
 
 
 
@@ -56,4 +73,8 @@ void get_private_history_msg(const json &response);
 void send_private_message_msg(const json &response);
 void receive_private_message_msg(const json &response);
 void get_unread_private_messages_msg(const json &response);
- 
+
+
+
+
+void show_group_list_msg(const json &response);

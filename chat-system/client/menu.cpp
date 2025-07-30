@@ -14,7 +14,7 @@ void show_next_menu(){
         std::cout << "1. 个人中心" << std::endl;
         std::cout << "2. 好友与群聊管理" << std::endl;
         // std::cout << "3. 文件接收" << std::endl;
-// std::cout << "4. 信息通知" << std::endl; 直接实时通知不用实现
+        // std::cout << "4. 信息通知" << std::endl; 直接实时通知不用实现
         //std::cout << "请输入你的选项：";
 }
 
@@ -35,7 +35,7 @@ void show_next11_menu(){
         std::cout << "2. 用户名修改" << std::endl;
         std::cout << "3. 密码修改" << std::endl;
         std::cout << "4. 返回" << std::endl;
-        std::cout << "请输入你的选项：";
+        //td::cout << "请输入你的选项：";
 }
 
 // 好友与群聊管理
@@ -43,13 +43,9 @@ void show_next2_menu(){
         system("clear");
         std::cout << "1. 好友管理" << std::endl;
         std::cout << "2. 群管理" << std::endl;
-        std::cout << "3. 好友申请" << std::endl;
-        std::cout << "4. 群申请" << std::endl;
         std::cout << "5. 返回" << std::endl; 
         //std::cout << "6. 历史记录查询" << std::endl; 直接包含在私聊里面不用实现
-        //std::cout << "7. " << std::endl;
-        //std::cout << "8. " << std::endl;
-        std::cout << "请输入你的选项：";
+        //std::cout << "请输入你的选项：";
 }
 
 // 好友管理
@@ -62,7 +58,8 @@ void show_next21_menu(){
         std::cout << "5. 解除屏蔽好友" << std::endl;
         std::cout << "6. 屏蔽好友" << std::endl; // 屏蔽信息
         std::cout << "7. 查询好友" << std::endl;
-        std::cout << "8. 返回" << std::endl;
+        std::cout << "8. 好友申请" << std::endl;
+        std::cout << "9. 返回" << std::endl;
         //std::cout << "7. 文件发送" << std::endl;
 
         //std::cout << "请输入你的选项：";
@@ -82,8 +79,9 @@ void show_next22_menu(){
         std::cout << "9. 添加成员" << std::endl; // 群主 管理员
         std::cout << "10. 解散群" << std::endl; // 群主
         std::cout << "11. 群聊" << std::endl; // 包含历史记录
-//std::cout << ". 文件发送" << std::endl; // 放群聊
-        std::cout << "12. 返回" << std::endl;
+        std::cout << "12. 群申请" << std::endl; // 群主 管理员
+        std::cout << "13. 返回" << std::endl;
+        //std::cout << ". 文件发送" << std::endl; // 放群聊
         //std::cout << "请输入你的选项：";
 }
 
