@@ -504,11 +504,8 @@ void Client::user_thread_func() {
                 case 1: state=next21_menu; break;
                 case 2: state=next22_menu; break;
                 case 3: getandhandle_friend_request(sock,token,sem); break;
-                case 4: 
-                case 5: 
-                case 6: state=next_menu; break;
-                case 7: 
-                case 8: 
+                case 4: getandhandle_group_request(sock,token,sem); break;
+                case 5: state=next_menu; break;
                 default:
                     cout << "无效数字" << endl;
                     // flushInput(); // 去除数字后面的换行符
@@ -536,9 +533,8 @@ void Client::user_thread_func() {
                 case 4: send_private_message(sock,token,sem); break;
                 case 5: unmute_friend(sock,token,sem); break;
                 case 6: mute_friend(sock,token,sem); break;
-                case 7: 
-                case 8: get_friend_info(sock,token,sem); break;
-                case 9: state=next2_menu; break;
+                case 7: get_friend_info(sock,token,sem); break;
+                case 8: state=next2_menu; break;
                 default:
                     cout << "无效数字" << endl;
                     // flushInput(); // 去除数字后面的换行符
@@ -560,19 +556,18 @@ void Client::user_thread_func() {
                 }
                 switch (m)
                 {
-                case 1: 
-                case 2: 
-                case 3: 
-                case 4: 
-                case 5: 
-                case 6: 
-                case 7: 
-                case 8: 
-                case 9: 
-                case 10: 
-                case 11: 
-                case 12: 
-                case 13: state=next2_menu; break;
+                case 1: void show_group_list(sock,token,sem); break;
+                case 2: void join_group(sock,token,sem); break;
+                case 3: void quit_group(sock,token,sem); break;
+                case 4: void show_group_members(sock,token,sem); break;
+                case 5: void create_group(sock,token,sem); break;
+                case 6: void set_group_admin(sock,token,sem); break;
+                case 7: void remove_group_admin(sock,token,sem); break;
+                case 8: void remove_group_member(sock,token,sem); break;
+                case 9: void add_group_member(sock,token,sem); break;
+                case 10: void dismiss_group(sock,token,sem); break;
+                case 11: void send_group_message(sock,token,sem); break;
+                case 12: state=next2_menu; break;
                 default:
                     cout << "无效数字" << endl;
                     // flushInput(); // 去除数字后面的换行符

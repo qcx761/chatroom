@@ -44,9 +44,9 @@ void show_next2_menu(){
         std::cout << "1. 好友管理" << std::endl;
         std::cout << "2. 群管理" << std::endl;
         std::cout << "3. 好友申请" << std::endl;
-        //std::cout << "4. 群申请" << std::endl;
-        //std::cout << "5. 历史记录查询" << std::endl; 直接包含在私聊里面不用实现
-        std::cout << "6. 返回" << std::endl;
+        std::cout << "4. 群申请" << std::endl;
+        std::cout << "5. 返回" << std::endl; 
+        //std::cout << "6. 历史记录查询" << std::endl; 直接包含在私聊里面不用实现
         //std::cout << "7. " << std::endl;
         //std::cout << "8. " << std::endl;
         std::cout << "请输入你的选项：";
@@ -61,28 +61,29 @@ void show_next21_menu(){
         std::cout << "4. 私聊好友" << std::endl; // 必须是好友 包含历史记录
         std::cout << "5. 解除屏蔽好友" << std::endl;
         std::cout << "6. 屏蔽好友" << std::endl; // 屏蔽信息
+        std::cout << "7. 查询好友" << std::endl;
+        std::cout << "8. 返回" << std::endl;
         //std::cout << "7. 文件发送" << std::endl;
-        std::cout << "8. 查询好友" << std::endl;
-        std::cout << "9. 返回" << std::endl;
+
         //std::cout << "请输入你的选项：";
 }
 
 // 群聊管理
 void show_next22_menu(){
         system("clear");
-        //std::cout << "1. 群聊列表" << std::endl;
-        //std::cout << "2. 添加群聊" << std::endl;
-        //std::cout << "3. 退出群聊" << std::endl; // 要已加入
-        //std::cout << "4. 群成员列表" << std::endl;
-        //std::cout << "5. 文件发送" << std::endl;
-        //std::cout << "6. 群聊创建" << std::endl;
-        //std::cout << "7. 管理员设置" << std::endl; // 群主
-        //std::cout << "8. 管理员移除" << std::endl; // 群主
-        //std::cout << "9. 移除成员" << std::endl; // 群主 管理员
-        //std::cout << "10. 添加成员" << std::endl; // 群主 管理员
-        //std::cout << "11. 解散群" << std::endl; // 群主
-        //std::cout << "12. 群聊" << std::endl; // 包含历史记录
-        std::cout << "13. 返回" << std::endl;
+        std::cout << "1. 群聊列表" << std::endl;
+        std::cout << "2. 添加群聊" << std::endl;
+        std::cout << "3. 退出群聊" << std::endl; // 要已加入
+        std::cout << "4. 群成员列表" << std::endl;
+        std::cout << "5. 群聊创建" << std::endl;
+        std::cout << "6. 管理员设置" << std::endl; // 群主
+        std::cout << "7. 管理员移除" << std::endl; // 群主
+        std::cout << "8. 移除成员" << std::endl; // 群主 管理员
+        std::cout << "9. 添加成员" << std::endl; // 群主 管理员
+        std::cout << "10. 解散群" << std::endl; // 群主
+        std::cout << "11. 群聊" << std::endl; // 包含历史记录
+//std::cout << ". 文件发送" << std::endl; // 放群聊
+        std::cout << "12. 返回" << std::endl;
         //std::cout << "请输入你的选项：";
 }
 

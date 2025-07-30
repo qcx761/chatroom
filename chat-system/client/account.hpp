@@ -45,3 +45,17 @@ void get_friend_info(int sock,const string& token,sem_t& sem);
 
 
 void send_private_message(int sock, const string& token, sem_t& sem);
+
+
+
+void show_group_list(int sock,string token,sem_t& sem);
+void join_group(int sock,string token,sem_t& sem);
+void quit_group(int sock,string token,sem_t& sem);
+void show_group_members(int sock,string token,sem_t& sem);
+void create_group(int sock,string token,sem_t& sem);
+void set_group_admin(int sock,string token,sem_t& sem);
+void remove_group_admin(int sock,string token,sem_t& sem);
+void remove_group_member(int sock,string token,sem_t& sem);
+void add_group_member(int sock,string token,sem_t& sem);
+void dismiss_group(int sock,string token,sem_t& sem);
+void send_group_message(int sock,string token,sem_t& sem);

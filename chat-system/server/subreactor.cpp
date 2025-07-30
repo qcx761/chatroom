@@ -157,7 +157,7 @@ void SubReactor::run() {
                 thread_pool->enqueue([fd, request]() {
                   get_private_history_msg(fd,request);
                 });
-                continue;
+                continue; 
             }else if(type=="get_unread_private_messages"){
                 thread_pool->enqueue([fd, request]() {
                   get_unread_private_messages_msg(fd,request);

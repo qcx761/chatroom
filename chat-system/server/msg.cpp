@@ -62,7 +62,7 @@ int get_fd_by_account(const std::string& account) {
 // 获取MySQL连接
 std::shared_ptr<sql::Connection> get_mysql_connection() {
     sql::mysql::MySQL_Driver* driver = sql::mysql::get_mysql_driver_instance();
-    auto conn = std::shared_ptr<sql::Connection>(driver->connect("tcp://127.0.0.1:3306", "qcx", "zmt060407"));
+    auto conn = std::shared_ptr<sql::Connection>(driver->connect("tcp://127.0.0.1:3306", "qcx", "qcx761"));
     conn->setSchema("chatroom");  // 你的数据库名
     return conn;
 }
