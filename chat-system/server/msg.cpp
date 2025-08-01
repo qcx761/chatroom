@@ -49,6 +49,49 @@ std::mutex fd_mutex;
 //     is_read BOOLEAN DEFAULT FALSE          -- 消息是否已读标志，默认为否
 // );
 
+
+
+
+// 群
+
+// CREATE TABLE chat_groups (
+//     group_id INT PRIMARY KEY AUTO_INCREMENT,        -- 群ID，自增
+//     group_name VARCHAR(64) NOT NULL UNIQUE,         -- 群聊名，唯一
+//     owner_account VARCHAR(64) NOT NULL                     -- 群主账号
+// );
+
+// 群消息
+
+// CREATE TABLE group_messages (
+//     id INT PRIMARY KEY AUTO_INCREMENT,               -- 消息ID
+//     group_id INT NOT NULL,                           -- 所属群ID
+//     sender VARCHAR(64) NOT NULL,                     -- 发送者账号
+//     content TEXT NOT NULL,                           -- 消息内容
+//     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP    -- 发送时间
+// );
+
+//     FOREIGN KEY (group_id) REFERENCES chat_groups(group_id) ON DELETE CASCADE
+
+// 成员在群信息
+
+// CREATE TABLE group_members (
+//     group_id INT NOT NULL,                                     -- 群聊 ID，关联 chat_groups 表的主键
+//     account VARCHAR(64) NOT NULL,                              -- 用户账号，关联 users 表的主键或唯一字段
+//     role ENUM('owner', 'admin', 'member') DEFAULT 'member'    -- 在群中的角色：群主、管理员或普通成员
+// );
+
+// 加群请求
+
+// CREATE TABLE group_requests (
+//     id INT PRIMARY KEY AUTO_INCREMENT,                         -- 主键ID，自动递增
+//     sender VARCHAR(64) NOT NULL,                               -- 发起申请的用户账号
+//     group_id INT NOT NULL,                                     -- 要加入的群聊 ID
+//     status ENUM('pending', 'accepted', 'rejected') NOT NULL    -- 当前状态（待处理 / 接受 / 拒绝）
+//         DEFAULT 'pending',
+//     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP              -- 申请发起时间
+// );
+
+
 // 通过 account 获取 fd
 int get_fd_by_account(const std::string& account) {
     std::lock_guard<std::mutex> lock(fd_mutex);
@@ -318,7 +361,7 @@ void destory_account_msg(int fd, const json &request) {
                 
                 
                 
-// 所有表的注销
+// 所有表的注销，包括群有关的消息
                 
                 
                 
@@ -1793,13 +1836,10 @@ void get_unread_private_messages_msg(int fd, const json& request) {
 
 
 // 群
-// CREATE TABLE groups (
+// CREATE TABLE chat_groups (
 //     group_id INT PRIMARY KEY AUTO_INCREMENT,        -- 群ID，自增
 //     group_name VARCHAR(64) NOT NULL UNIQUE,         -- 群聊名，唯一
-//     owner VARCHAR(64) NOT NULL,                     -- 群主账号
-//     admins JSON NOT NULL DEFAULT '[]',              -- 管理员列表，允许为空
-//     members JSON NOT NULL DEFAULT '[]',             -- 群成员列表，不能为空，默认空数组
-//     created_at DATETIME DEFAULT CURRENT_TIMESTAMP   -- 创建时间
+//     owner_account VARCHAR(64) NOT NULL,             -- 群主账号
 // );
 
 // 群消息
@@ -1809,19 +1849,15 @@ void get_unread_private_messages_msg(int fd, const json& request) {
 //     sender VARCHAR(64) NOT NULL,                     -- 发送者账号
 //     content TEXT NOT NULL,                           -- 消息内容
 //     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,    -- 发送时间
-//     FOREIGN KEY (group_id) REFERENCES groups(group_id) ON DELETE CASCADE
+//     FOREIGN KEY (group_id) REFERENCES chat_groups(group_id) ON DELETE CASCADE
 // );
 
 // 成员在群信息
 // CREATE TABLE group_members (
-//     group_id INT NOT NULL COMMENT,                                     -- 群聊 ID，关联 groups 表的主键
+//     group_id INT NOT NULL COMMENT,                                     -- 群聊 ID，关联 chat_groups 表的主键
 //     account VARCHAR(64) NOT NULL COMMENT,                              -- 用户账号，关联 users 表的主键或唯一字段
 //     role ENUM('owner', 'admin', 'member') DEFAULT 'member' COMMENT,    -- 在群中的角色：群主、管理员或普通成员
 // );
-
-//     PRIMARY KEY (group_id, account),
-//     FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE,
-//     FOREIGN KEY (account) REFERENCES users(account) ON DELETE CASCADE
 
 // CREATE TABLE group_requests (
 //     id INT PRIMARY KEY AUTO_INCREMENT,                         -- 主键ID，自动递增
@@ -1832,11 +1868,9 @@ void get_unread_private_messages_msg(int fd, const json& request) {
 //     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,              -- 申请发起时间
 // );
 
-//     FOREIGN KEY (group_id) REFERENCES groups(group_id) ON DELETE CASCADE
 
 
-
-
+// 显示加入的群
 void show_group_list_msg(int fd, const json& request) {
     json response;
     response["type"] = "show_group_list";
@@ -1852,13 +1886,13 @@ void show_group_list_msg(int fd, const json& request) {
     }
 
     try {
-        auto conn = get_mysql_connection(); // std::unique_ptr<sql::Connection>
+        auto conn = get_mysql_connection();
 
         // 通过帐号查找群id并通过群id查找群名字
         auto stmt = std::unique_ptr<sql::PreparedStatement>(
             conn->prepareStatement(
-                "SELECT g.group_id, g.group_name, g.owner "
-                "FROM groups g "
+                "SELECT g.group_id, g.group_name, g.owner_account, gm.role "
+                "FROM chat_groups g "
                 "JOIN group_members gm ON g.group_id = gm.group_id "
                 "WHERE gm.account = ?"
             )
@@ -1872,7 +1906,8 @@ void show_group_list_msg(int fd, const json& request) {
             json group;
             group["group_id"] = res->getInt("group_id");
             group["group_name"] = res->getString("group_name");
-            group["owner"] = res->getString("owner");
+            group["owner"] = res->getString("owner_account");
+            group["role"] = res->getString("role");
             groups.push_back(group);
         }
 
@@ -1885,18 +1920,122 @@ void show_group_list_msg(int fd, const json& request) {
     send_json(fd, response);
 }
 
-
-
-
-
-
-void join_group_msg(int fd, const json& request){
+// 申请群
+void join_group_msg(int fd, const json& request) {
     json response;
     response["type"] = "join_group";
-
     std::string token = request.value("token", "");
-    std::string user_account;
+    std::string group_name = request.value("group_name", "");
+    std::string sender_account;
 
+    if (!verify_token(token, sender_account)) {
+        response["status"] = "fail";
+        response["msg"] = "Invalid token";
+        send_json(fd, response);
+        return;
+    }
+
+    try {
+        auto conn = get_mysql_connection();
+
+        // 查询 group_id
+        int group_id = -1;
+        {
+            std::unique_ptr<sql::PreparedStatement> stmt(
+                conn->prepareStatement("SELECT group_id FROM chat_groups WHERE group_name = ?"));
+            stmt->setString(1, group_name);
+            std::unique_ptr<sql::ResultSet> res(stmt->executeQuery());
+            if (res->next()) {
+                group_id = res->getInt("group_id");
+            } else {
+                response["status"] = "fail";
+                response["msg"] = "Group not found";
+                send_json(fd, response);
+                return;
+            }
+        }
+
+        // 检查是否已经在群中
+        {
+            std::unique_ptr<sql::PreparedStatement> stmt(
+                conn->prepareStatement("SELECT 1 FROM group_members WHERE group_id = ? AND account = ?"));
+            stmt->setInt(1, group_id);
+            stmt->setString(2, sender_account);
+            std::unique_ptr<sql::ResultSet> res(stmt->executeQuery());
+            if (res->next()) {
+                response["status"] = "fail";
+                response["msg"] = "Already in the group";
+                send_json(fd, response);
+                return;
+            }
+        }
+
+        // 检查是否已有申请
+        {
+            std::unique_ptr<sql::PreparedStatement> stmt(
+                conn->prepareStatement(
+                    "SELECT id, status FROM group_requests WHERE sender = ? AND group_id = ? ORDER BY id DESC LIMIT 1"));
+            stmt->setString(1, sender_account);
+            stmt->setInt(2, group_id);
+            std::unique_ptr<sql::ResultSet> res(stmt->executeQuery());
+
+            if (res->next()) {
+                int request_id = res->getInt("id");
+                std::string status = res->getString("status");
+
+                if (status == "pending") {
+                    std::unique_ptr<sql::PreparedStatement> update_stmt(
+                        conn->prepareStatement("UPDATE group_requests SET timestamp = NOW() WHERE id = ?"));
+                    update_stmt->setInt(1, request_id);
+                    update_stmt->execute();
+
+                    response["status"] = "success";
+                    response["msg"] = "Group join request refreshed";
+                    send_json(fd, response);
+                    return;
+                } else {
+                    std::unique_ptr<sql::PreparedStatement> update_stmt(
+                        conn->prepareStatement(
+                            "UPDATE group_requests SET status = 'pending', timestamp = NOW() WHERE id = ?"));
+                    update_stmt->setInt(1, request_id);
+                    update_stmt->execute();
+
+                    response["status"] = "success";
+                    response["msg"] = "Group join request re-sent";
+                    send_json(fd, response);
+                    return;
+                }
+            }
+        }
+
+        // 插入新申请
+        {
+            std::unique_ptr<sql::PreparedStatement> stmt(
+                conn->prepareStatement(
+                    "INSERT INTO group_requests(sender, group_id, status, timestamp) VALUES (?, ?, 'pending', NOW())"));
+            stmt->setString(1, sender_account);
+            stmt->setInt(2, group_id);
+            stmt->execute();
+        }
+
+        response["status"] = "success";
+        response["msg"] = "Group join request sent";
+
+    } catch (const std::exception& e) {
+        response["status"] = "error";
+        response["msg"] = std::string("Exception: ") + e.what();
+    }
+
+    send_json(fd, response);
+}
+
+// 退出群
+void quit_group_msg(int fd, const json& request){
+    json response;
+    response["type"] = "quit_group";
+    std::string token = request.value("token", "");
+    std::string group_name = request.value("group_name","");
+    std::string user_account;
     if (!verify_token(token, user_account)) {
         response["status"] = "fail";
         response["msg"] = "Invalid token";
@@ -1907,379 +2046,1112 @@ void join_group_msg(int fd, const json& request){
     try
     {
         auto conn = get_mysql_connection();
+        auto stmt = std::unique_ptr<sql::PreparedStatement>(conn->prepareStatement(
+            "SELECT group_id, owner_account FROM chat_groups WHERE group_name = ?"
+        ));
+        stmt->setString(1, group_name);
+        auto res = std::unique_ptr<sql::ResultSet>(stmt->executeQuery());
 
-        // int group_id=-1;
-        //     auto stmt = std::unique_ptr<sql::PreparedStatement>(conn->prepareStatement(
-        //         "SELECT group_id FROM groups WHERE group_name = ?"
-        //     ));
-        // stmt->setString(1, group_name);
-        // auto res = std::unique_ptr<sql::ResultSet>(stmt->executeQuery());
-        // if(res->next()){
-        //     group_id=res->getInt("group_id");
-        // }else{
-        //     response["status"] = "fail";
-        //     response["msg"] = "Group not found";
-        //     send_json(fd, response);
-        //     return;
-        // }
-        // stmt
+        int group_id = -1;
+        std::string owner_account;
+        if(res->next()){
+            group_id = res->getInt("group_id");
+            owner_account = res->getString("owner_account");
+        }else{
+            response["status"] = "fail";
+            response["msg"] = "Group not found";
+            send_json(fd,response);
+            return;
+        }
 
+        if(owner_account == user_account){
+            response["status"] = "fail";
+            response["msg"] = "Owner can not quit group";
+            send_json(fd,response);
+            return;
+        }
 
+        auto del_stmt = std::unique_ptr<sql::PreparedStatement>(conn->prepareStatement(
+            "DELETE FROM group_members WHERE group_id = ? AND account = ?"
+        ));
+        del_stmt->setInt(1, group_id);
+        del_stmt->setString(2, user_account);
+        del_stmt->execute();
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
-    }catch(const std::exception& e){
+        response["status"] = "success";
+        response["msg"] = "Quit group success";
+    }catch(const std::exception& e)
+    {
         response["status"] = "error";
-        response["msg"] = std::string("Exception: ") + e.what();
+        response["msg"] = e.what();
     }
     send_json(fd,response);
-
 }
 
-void quit_group_msg(int fd, const json& request){
-    ;
+// 显示群成员
+void show_group_members_msg(int fd, const json& request) {
+    json response;
+    response["type"] = "show_group_members";
+    std::string token = request.value("token", "");
+    std::string group_name = request.value("group_name", "");
+    std::string user_account;
+
+    if (!verify_token(token, user_account)) {
+        response["status"] = "fail";
+        response["msg"] = "Invalid token";
+        send_json(fd, response);
+        return;
+    }
+
+    try {
+        auto conn = get_mysql_connection();
+
+        // 获取 group_id
+        int group_id = -1;
+        {
+            auto stmt_id = std::unique_ptr<sql::PreparedStatement>(
+                conn->prepareStatement("SELECT group_id FROM chat_groups WHERE group_name = ?"));
+            stmt_id->setString(1, group_name);
+            auto res_id = std::unique_ptr<sql::ResultSet>(stmt_id->executeQuery());
+
+            if (res_id->next()) {
+                group_id = res_id->getInt("group_id");
+            } else {
+                response["status"] = "fail";
+                response["msg"] = "Group not found";
+                send_json(fd, response);
+                return;
+            }
+        }
+
+        // 验证请求者是否是该群成员
+        {
+            auto stmt_check = std::unique_ptr<sql::PreparedStatement>(
+                conn->prepareStatement("SELECT 1 FROM group_members WHERE group_id = ? AND account = ?"));
+            stmt_check->setInt(1, group_id);
+            stmt_check->setString(2, user_account);
+            auto res_check = std::unique_ptr<sql::ResultSet>(stmt_check->executeQuery());
+
+            if (!res_check->next()) {
+                response["status"] = "fail";
+                response["msg"] = "You are not a member of this group";
+                send_json(fd, response);
+                return;
+            }
+        }
+
+        // 查询成员
+        auto stmt = std::unique_ptr<sql::PreparedStatement>(
+            conn->prepareStatement(
+                "SELECT gm.account, gm.role, "
+                "       JSON_UNQUOTE(JSON_EXTRACT(u.info, '$.username')) AS username "
+                "FROM group_members gm "
+                "JOIN users u ON gm.account = JSON_UNQUOTE(JSON_EXTRACT(u.info, '$.account')) "
+                "WHERE gm.group_id = ?"
+            ));
+        stmt->setInt(1, group_id);
+        auto res = std::unique_ptr<sql::ResultSet>(stmt->executeQuery());
+
+
+        json members = json::array();
+        while (res->next()) {
+            json member;
+            member["name"] = res->getString("username");
+            member["account"] = res->getString("account");
+            member["role"] = res->getString("role");
+            members.push_back(member);
+        }
+
+        response["status"] = "success";
+        response["group_name"] = group_name;
+        response["members"] = members;
+    } catch (const std::exception& e) {
+        response["status"] = "error";
+        response["msg"] = e.what();
+    }
+
+    send_json(fd, response);
 }
 
-void set_group_admin_msg(int fd, const json& request){
-    ;
+// 创建群
+void create_group_msg(int fd, const json& request) {
+    json response;
+    response["type"] = "create_group";
+
+    std::string token = request.value("token", "");
+    std::string group_name = request.value("group_name", "");
+    std::string user_account;
+
+    if (!verify_token(token, user_account)) {
+        response["status"] = "fail";
+        response["msg"] = "Invalid token";
+        send_json(fd, response);
+        return;
+    }
+
+    if (group_name.empty()) {
+        response["status"] = "fail";
+        response["msg"] = "Group name cannot be empty";
+        send_json(fd, response);
+        return;
+    }
+
+    try {
+        auto conn = get_mysql_connection();
+
+        // 检查群名是否已存在
+        auto check_stmt = std::unique_ptr<sql::PreparedStatement>(
+            conn->prepareStatement("SELECT 1 FROM chat_groups WHERE group_name = ? LIMIT 1"));
+        check_stmt->setString(1, group_name);
+        auto check_res = std::unique_ptr<sql::ResultSet>(check_stmt->executeQuery());
+
+        if (check_res->next()) {
+            response["status"] = "fail";
+            response["msg"] = "Group name already exists";
+            send_json(fd, response);
+            return;
+        }
+
+        // 插入群表
+        auto insert_group = std::unique_ptr<sql::PreparedStatement>(
+            conn->prepareStatement("INSERT INTO chat_groups (group_name, owner_account) VALUES (?, ?)"));
+        insert_group->setString(1, group_name);
+        insert_group->setString(2, user_account);
+        insert_group->executeUpdate();
+
+        // 获取新群 ID
+        auto id_stmt = std::unique_ptr<sql::PreparedStatement>(
+            conn->prepareStatement("SELECT LAST_INSERT_ID() AS group_id"));
+        auto id_res = std::unique_ptr<sql::ResultSet>(id_stmt->executeQuery());
+        int group_id = -1;
+        if (id_res->next()) {
+            group_id = id_res->getInt("group_id");
+        }
+
+        // 插入成员表，角色为 owner
+        auto insert_member = std::unique_ptr<sql::PreparedStatement>(
+            conn->prepareStatement("INSERT INTO group_members (group_id, account, role) VALUES (?, ?, 'owner')"));
+        insert_member->setInt(1, group_id);
+        insert_member->setString(2, user_account);
+        insert_member->executeUpdate();
+
+        response["status"] = "success";
+        response["msg"] = "Group created successfully";
+        response["group_id"] = group_id;
+        response["group_name"] = group_name;
+
+    } catch (const std::exception& e) {
+        response["status"] = "error";
+        response["msg"] = e.what();
+    }
+
+    send_json(fd, response);
 }
 
-void remove_group_admin_msg(int fd, const json& request){
-    ;
+// 设置管理员
+void set_group_admin_msg(int fd, const json& request) {
+    json response;
+    response["type"] = "set_group_admin";
+    std::string token = request.value("token", "");
+    std::string group_name = request.value("group_name", "");
+    std::string target_name = request.value("target_name", "");  // 目标成员名字改名为target_name
+    std::string user_account;
+
+    if (!verify_token(token, user_account)) {
+        response["status"] = "fail";
+        response["msg"] = "Invalid token";
+        send_json(fd, response);
+        return;
+    }
+
+    if (group_name.empty() || target_name.empty()) {
+        response["status"] = "fail";
+        response["msg"] = "Invalid parameters";// 没有参数
+        send_json(fd, response);
+        return;
+    }
+
+    try {
+        auto conn = get_mysql_connection();
+
+        int group_id = -1;
+        std::string group_owner;
+
+        // 查询群ID和群主账号
+        {
+            auto stmt = std::unique_ptr<sql::PreparedStatement>(conn->prepareStatement(
+                "SELECT group_id, owner_account FROM chat_groups WHERE group_name = ?"
+            ));
+            stmt->setString(1, group_name);
+            auto res = std::unique_ptr<sql::ResultSet>(stmt->executeQuery());
+
+            if (!res->next()) {
+                response["status"] = "fail";
+                response["msg"] = "Group not found";
+                send_json(fd, response);
+                return;
+            }
+
+            group_id = res->getInt("group_id");
+            group_owner = res->getString("owner_account");
+        }
+
+        // 判断是否是群主
+        if (group_owner != user_account) {
+            response["status"] = "fail";
+            response["msg"] = "Only the group owner can set admins";
+            send_json(fd, response);
+            return;
+        }
+
+        // 根据目标名字查询账号
+        std::string target_account;
+        {
+            auto stmt = std::unique_ptr<sql::PreparedStatement>(conn->prepareStatement(
+                "SELECT JSON_UNQUOTE(JSON_EXTRACT(info, '$.account')) AS account "
+                "FROM users "
+                "WHERE JSON_UNQUOTE(JSON_EXTRACT(info, '$.username')) = ?"
+            ));
+
+            stmt->setString(1, target_name);
+            auto res = std::unique_ptr<sql::ResultSet>(stmt->executeQuery());
+            if (!res->next()) {
+                response["status"] = "fail";
+                response["msg"] = "Target user not found";
+                send_json(fd, response);
+                return;
+            }
+            target_account = res->getString("account");
+        }
+
+        if(user_account == target_account){
+            response["status"] = "fail";
+            response["msg"] = "Target user can not be owner";
+            send_json(fd, response);
+            return;
+        }
+
+        // 设置管理员
+        {
+            auto stmt = std::unique_ptr<sql::PreparedStatement>(conn->prepareStatement(
+                "UPDATE group_members SET role = 'admin' WHERE group_id = ? AND account = ?"
+            ));
+            stmt->setInt(1, group_id);
+            stmt->setString(2, target_account);
+            int affected = stmt->executeUpdate();
+
+            // 受到影响的函数
+            if (affected == 0) {
+                response["status"] = "fail";
+                response["msg"] = "Target user is not a group member";
+                send_json(fd, response);
+                return;
+            }
+        }
+
+        response["status"] = "success";
+        response["msg"] = "Admin role assigned";
+
+    } catch (const std::exception& e) {
+        response["status"] = "error";
+        response["msg"] = e.what();
+    }
+
+    send_json(fd, response);
 }
 
-void remove_group_member_msg(int fd, const json& request){
-    ;
-}   
+// 移除管理员
+void remove_group_admin_msg(int fd, const json& request) {
+    json response;
+    response["type"] = "remove_group_admin";
+    std::string token = request.value("token", "");
+    std::string group_name = request.value("group_name", "");
+    std::string target_name = request.value("target_name", "");
+    std::string user_account;
 
-void add_group_member_msg(int fd, const json& request){
-    ;
+    if (!verify_token(token, user_account)) {
+        response["status"] = "fail";
+        response["msg"] = "Invalid token";
+        send_json(fd, response);
+        return;
+    }
+    if (group_name.empty() || target_name.empty()) {
+        response["status"] = "fail";
+        response["msg"] = "Invalid parameters";
+        send_json(fd, response);
+        return;
+    }
+
+    try {
+        auto conn = get_mysql_connection();
+
+        int group_id = -1;
+        std::string group_owner;
+
+        // 查询群ID和群主账号
+        {
+            auto stmt = std::unique_ptr<sql::PreparedStatement>(conn->prepareStatement(
+                "SELECT group_id, owner_account FROM chat_groups WHERE group_name = ?"
+            ));
+            stmt->setString(1, group_name);
+            auto res = std::unique_ptr<sql::ResultSet>(stmt->executeQuery());
+            if (!res->next()) {
+                response["status"] = "fail";
+                response["msg"] = "Group not found";
+                send_json(fd, response);
+                return;
+            }
+            group_id = res->getInt("group_id");
+            group_owner = res->getString("owner_account");
+        }
+
+        // 判断是否是群主
+        if (group_owner != user_account) {
+            response["status"] = "fail";
+            response["msg"] = "Only the group owner can remove admins";
+            send_json(fd, response);
+            return;
+        }
+
+        // 根据目标名字查询账号
+        std::string target_account;
+        {
+            auto stmt = std::unique_ptr<sql::PreparedStatement>(conn->prepareStatement(
+                "SELECT JSON_UNQUOTE(JSON_EXTRACT(info, '$.account')) AS account "
+                "FROM users WHERE JSON_UNQUOTE(JSON_EXTRACT(info, '$.username')) = ?"
+            ));
+
+            stmt->setString(1, target_name);
+            auto res = std::unique_ptr<sql::ResultSet>(stmt->executeQuery());
+            if (!res->next()) {
+                response["status"] = "fail";
+                response["msg"] = "Target user not found";
+                send_json(fd, response);
+                return;
+            }
+            target_account = res->getString("account");
+        }
+
+        // 移除管理员身份
+        {
+            auto stmt = std::unique_ptr<sql::PreparedStatement>(conn->prepareStatement(
+                "UPDATE group_members SET role = 'member' WHERE group_id = ? AND account = ?"
+            ));
+            stmt->setInt(1, group_id);
+            stmt->setString(2, target_account);
+            int affected = stmt->executeUpdate();
+
+            if (affected == 0) {
+                response["status"] = "fail";
+                response["msg"] = "Target user is not a member";
+                send_json(fd, response);
+                return;
+            }
+        }
+
+        response["status"] = "success";
+        response["msg"] = "Removed admin successfully";
+
+    } catch (const std::exception& e) {
+        response["status"] = "error";
+        response["msg"] = e.what();
+    }
+    send_json(fd, response);
 }
 
-void dismiss_group_msg(int fd, const json& request){
-    ;
+// 移除群成员
+void remove_group_member_msg(int fd, const json& request) {
+    json response;
+    response["type"] = "remove_group_member";
+    std::string token = request.value("token", "");
+    std::string group_name = request.value("group_name", "");
+    std::string target_username = request.value("target_name", "");
+    std::string operator_account;
+
+    if (!verify_token(token, operator_account)) {
+        response["status"] = "fail";
+        response["msg"] = "Invalid token";
+        send_json(fd, response);
+        return;
+    }
+    if (group_name.empty() || target_username.empty()) {
+        response["status"] = "fail";
+        response["msg"] = "Invalid parameters";
+        send_json(fd, response);
+        return;
+    }
+
+    try {
+        auto conn = get_mysql_connection();
+
+        // 先根据群名查 group_id
+        int group_id = -1;
+        {
+            auto stmt = std::unique_ptr<sql::PreparedStatement>(conn->prepareStatement(
+                "SELECT group_id FROM chat_groups WHERE group_name = ?"
+            ));
+            stmt->setString(1, group_name);
+            auto res = std::unique_ptr<sql::ResultSet>(stmt->executeQuery());
+            if (res->next()) {
+                group_id = res->getInt("group_id");
+            } else {
+                response["status"] = "fail";
+                response["msg"] = "Group not found";
+                send_json(fd, response);
+                return;
+            }
+        }
+
+        // 根据用户名查目标账号
+        std::string target_account;
+        {
+            auto stmt = std::unique_ptr<sql::PreparedStatement>(conn->prepareStatement(
+                "SELECT JSON_UNQUOTE(JSON_EXTRACT(info, '$.account')) AS account "
+                "FROM users WHERE JSON_UNQUOTE(JSON_EXTRACT(info, '$.username')) = ?"
+            ));
+            stmt->setString(1, target_username);
+            auto res = std::unique_ptr<sql::ResultSet>(stmt->executeQuery());
+            if (res->next()) {
+                target_account = res->getString("account");
+            } else {
+                response["status"] = "fail";
+                response["msg"] = "Target user not found";
+                send_json(fd, response);
+                return;
+            }
+        }
+
+        // 验证操作者权限（owner 或 admin）
+        {
+            auto stmt = std::unique_ptr<sql::PreparedStatement>(conn->prepareStatement(
+                "SELECT role FROM group_members WHERE group_id = ? AND account = ?"
+            ));
+            stmt->setInt(1, group_id);
+            stmt->setString(2, operator_account);
+            auto res = std::unique_ptr<sql::ResultSet>(stmt->executeQuery());
+
+            if (!res->next()) {
+                response["status"] = "fail";
+                response["msg"] = "Operator is not a group member";
+                send_json(fd, response);
+                return;
+            }
+            std::string role = res->getString("role");
+            if (role != "owner" && role != "admin") {
+                response["status"] = "fail";
+                response["msg"] = "Only owner or admin can remove members";
+                send_json(fd, response);
+                return;
+            }
+        }
+
+        // 删除目标成员
+        {
+            auto stmt = std::unique_ptr<sql::PreparedStatement>(conn->prepareStatement(
+                "DELETE FROM group_members WHERE group_id = ? AND account = ?"
+            ));
+            stmt->setInt(1, group_id);
+            stmt->setString(2, target_account);
+            int affected = stmt->executeUpdate();
+
+            if (affected == 0) {
+                response["status"] = "fail";
+                response["msg"] = "Target user is not a member";
+                send_json(fd, response);
+                return;
+            }
+        }
+
+        response["status"] = "success";
+        response["msg"] = "Removed group member successfully";
+    } catch (const std::exception& e) {
+        response["status"] = "error";
+        response["msg"] = e.what();
+    }
+    send_json(fd, response);
+}
+ 
+// 拉成员
+void add_group_member_msg(int fd, const json& request) {
+    json response;
+    response["type"] = "add_group_member";
+
+    std::string token = request.value("token", "");
+    std::string group_name = request.value("group_name", "");
+    std::string target_username = request.value("new_member", "");  // 对应客户端传的字段
+    std::string operator_account;
+
+    if (!verify_token(token, operator_account)) {
+        response["status"] = "fail";
+        response["msg"] = "Invalid token";
+        send_json(fd, response);
+        return;
+    }
+
+    if (group_name.empty() || target_username.empty()) {
+        response["status"] = "fail";
+        response["msg"] = "Invalid parameters";
+        send_json(fd, response);
+        return;
+    }
+
+    try {
+        auto conn = get_mysql_connection();
+
+        // 根据群名查 group_id 和群主
+        int group_id = -1;
+        std::string group_owner;
+        {
+            auto stmt = std::unique_ptr<sql::PreparedStatement>(conn->prepareStatement(
+                "SELECT group_id, owner_account FROM chat_groups WHERE group_name = ?"
+            ));
+            stmt->setString(1, group_name);
+            auto res = std::unique_ptr<sql::ResultSet>(stmt->executeQuery());
+            if (res->next()) {
+                group_id = res->getInt("group_id");
+                group_owner = res->getString("owner_account");
+            } else {
+                response["status"] = "fail";
+                response["msg"] = "Group not found";
+                send_json(fd, response);
+                return;
+            }
+        }
+
+        // 判断操作者是否是群主或管理员
+        std::string role;
+        {
+            auto stmt = std::unique_ptr<sql::PreparedStatement>(conn->prepareStatement(
+                "SELECT role FROM group_members WHERE group_id = ? AND account = ?"
+            ));
+            stmt->setInt(1, group_id);
+            stmt->setString(2, operator_account);
+            auto res = std::unique_ptr<sql::ResultSet>(stmt->executeQuery());
+            if (res->next()) {
+                role = res->getString("role");
+            } else {
+                response["status"] = "fail";
+                response["msg"] = "You are not a group member";
+                send_json(fd, response);
+                return;
+            }
+        }
+
+        if (role != "owner" && role != "admin") {
+            response["status"] = "fail";
+            response["msg"] = "Only owner or admin can add members";
+            send_json(fd, response);
+            return;
+        }
+
+        // 根据用户名查目标账号
+        std::string target_account;
+        {
+            auto stmt = std::unique_ptr<sql::PreparedStatement>(conn->prepareStatement(
+                "SELECT JSON_UNQUOTE(JSON_EXTRACT(info, '$.account')) AS account "
+                "FROM users WHERE JSON_UNQUOTE(JSON_EXTRACT(info, '$.username')) = ?"
+            ));
+            stmt->setString(1, target_username);
+            auto res = std::unique_ptr<sql::ResultSet>(stmt->executeQuery());
+            if (res->next()) {
+                target_account = res->getString("account");
+            } else {
+                response["status"] = "fail";
+                response["msg"] = "Target user not found";
+                send_json(fd, response);
+                return;
+            }
+        }
+
+        // 确认好友关系且判断屏蔽（对方是否屏蔽自己）
+        bool is_friend = false;
+        bool target_muted_operator = false;
+        {
+            std::unique_ptr<sql::PreparedStatement> stmt(
+                conn->prepareStatement("SELECT friends FROM friends WHERE account = ?"));
+            stmt->setString(1, target_account);
+            std::unique_ptr<sql::ResultSet> res(stmt->executeQuery());
+            if (res->next()) {
+                json friends = json::parse(std::string(res->getString("friends")));
+                for (const auto& f : friends) {
+                    if (f.value("account", "") == operator_account) {
+                        is_friend = true;
+                        target_muted_operator = f.value("muted", false);
+                        break;
+                    }
+                }
+            }
+        }
+
+        if(!is_friend){
+            response["status"] = "fail";
+            response["msg"] = "User is not your friend";
+            send_json(fd, response);
+            return;
+        }
+
+        if(target_muted_operator){
+            response["status"] = "fail";
+            response["msg"] = "You are muted";
+            send_json(fd, response);
+            return;
+        }
+
+        // 检查是否已经是成员
+        {
+            auto stmt = std::unique_ptr<sql::PreparedStatement>(conn->prepareStatement(
+                "SELECT 1 FROM group_members WHERE group_id = ? AND account = ?"
+            ));
+            stmt->setInt(1, group_id);
+            stmt->setString(2, target_account);
+            auto res = std::unique_ptr<sql::ResultSet>(stmt->executeQuery());
+            if (res->next()) {
+                response["status"] = "fail";
+                response["msg"] = "User is already a group member";
+                send_json(fd, response);
+                return;
+            }
+        }
+
+        // 插入成员记录，默认角色 member
+        {
+            auto stmt = std::unique_ptr<sql::PreparedStatement>(conn->prepareStatement(
+                "INSERT INTO group_members (group_id, account, role) VALUES (?, ?, 'member')"
+            ));
+            stmt->setInt(1, group_id);
+            stmt->setString(2, target_account);
+            stmt->executeUpdate();
+        }
+
+        response["status"] = "success";
+        response["msg"] = "User added to group successfully";
+
+    } catch (const std::exception& e) {
+        response["status"] = "error";
+        response["msg"] = e.what();
+    }
+
+    send_json(fd, response);
 }
 
-void get_unread_group_messages_msg(int fd, const json& request){
-    ;
+// 解散群
+void dismiss_group_msg(int fd, const json& request) {
+    json response;
+    response["type"] = "dismiss_group";
+    std::string token = request.value("token", "");
+    std::string group_name = request.value("group_name", "");
+    std::string user_account;
+
+    if (!verify_token(token, user_account)) {
+        response["status"] = "fail";
+        response["msg"] = "Invalid token";
+        send_json(fd, response);
+        return;
+    }
+
+    try {
+        auto conn = get_mysql_connection();
+
+        // 根据群名查 group_id 和群主
+        int group_id = -1;
+        std::string group_owner;
+        {
+            auto stmt = std::unique_ptr<sql::PreparedStatement>(conn->prepareStatement(
+                "SELECT group_id, owner_account FROM chat_groups WHERE group_name = ?"
+            ));
+            stmt->setString(1, group_name);
+            auto res = std::unique_ptr<sql::ResultSet>(stmt->executeQuery());
+            if (res->next()) {
+                group_id = res->getInt("group_id");
+                group_owner = res->getString("owner_account");
+                if(group_owner != user_account){
+                    response["status"] = "fail";
+                    response["msg"] = "Only group owner can dismiss group";
+                    send_json(fd, response);
+                    return;
+                }
+            } else {
+                response["status"] = "fail";
+                response["msg"] = "Group not found";
+                send_json(fd, response);
+                return;
+            }
+        }
+
+        // 删除群成员
+        {
+            std::unique_ptr<sql::PreparedStatement> stmt(
+                conn->prepareStatement("DELETE FROM group_members WHERE group_id = ?"));
+            stmt->setInt(1, group_id);
+            stmt->execute();
+        }
+
+        // 删除入群申请记录
+        {
+            std::unique_ptr<sql::PreparedStatement> stmt(
+                conn->prepareStatement("DELETE FROM group_requests WHERE group_id = ?"));
+            stmt->setInt(1, group_id);
+            stmt->execute();
+        }
+
+        // 删除群消息
+        {
+            std::unique_ptr<sql::PreparedStatement> stmt(
+                conn->prepareStatement("DELETE FROM group_messages WHERE group_id = ?"));
+            stmt->setInt(1, group_id);
+            stmt->execute();
+        }
+
+        // 删除群本身
+        {
+            std::unique_ptr<sql::PreparedStatement> stmt(
+                conn->prepareStatement("DELETE FROM chat_groups WHERE group_id = ?"));
+            stmt->setInt(1, group_id);
+            stmt->execute();
+        }
+
+        response["status"] = "success";
+        response["msg"] = "Group dismissed successfully";
+
+    } catch (const std::exception& e) {
+        response["status"] = "error";
+        response["msg"] = e.what();
+    }
+    send_json(fd, response);
 }
 
-void get_group_history_msg(int fd, const json& request){
-    ;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// 获取群申请
+void get_group_requests_msg(int fd, const json& request) {
+    json response;
+    response["type"] = "get_group_requests";
+    std::string token = request.value("token", "");
+    std::string group_name = request.value("group_name", "");
+    std::string user_account;
+
+    if (!verify_token(token, user_account)) {
+        response["status"] = "fail";
+        response["msg"] = "Invalid token";
+        send_json(fd, response);
+        return;
+    }
+
+    try {
+        auto conn = get_mysql_connection();
+
+        // 获取群id
+        int group_id;
+        {
+            auto stmt = conn->prepareStatement("SELECT group_id FROM chat_groups WHERE group_name = ? ");
+            stmt->setString(1, group_name);
+            auto res = stmt->executeQuery();
+
+            if (!res->next()) {
+                response["status"] = "fail";
+                response["msg"] = "Group not found";
+                send_json(fd, response);
+                return;
+            }
+            group_id = res->getInt("group_id");
+        }   
+
+        // 验证操作者权限（owner 或 admin）
+        {
+            auto stmt = std::unique_ptr<sql::PreparedStatement>(conn->prepareStatement(
+                "SELECT role FROM group_members WHERE group_id = ? AND account = ?"
+            ));
+            stmt->setInt(1, group_id);
+            stmt->setString(2, user_account);
+            auto res = std::unique_ptr<sql::ResultSet>(stmt->executeQuery());
+
+            if (!res->next()) {
+                response["status"] = "fail";
+                response["msg"] = "Operator is not a group member";
+                send_json(fd, response);
+                return;
+            }
+            std::string role = res->getString("role");
+            if (role != "owner" && role != "admin") {
+                response["status"] = "fail";
+                response["msg"] = "Only owner or admin can get group request";
+                send_json(fd, response);
+                return;
+            }
+        }
+
+        auto stmt = std::unique_ptr<sql::PreparedStatement>(conn->prepareStatement(
+            "SELECT sender FROM group_requests WHERE group_id = ?"
+        ));
+        stmt->setInt(1, group_id);
+        auto res = std::unique_ptr<sql::ResultSet>(stmt->executeQuery());
+
+        json requests = json::array();
+        while (res->next()) {
+            std::string sender_account = res->getString("sender");
+            std::string sender_username;
+            {
+                std::unique_ptr<sql::PreparedStatement> uname_stmt(
+                    conn->prepareStatement(
+                        "SELECT JSON_UNQUOTE(JSON_EXTRACT(info, '$.username')) AS username FROM users WHERE JSON_UNQUOTE(JSON_EXTRACT(info, '$.account')) = ?"));
+                uname_stmt->setString(1, sender_account);
+                std::unique_ptr<sql::ResultSet> uname_res(uname_stmt->executeQuery());
+
+                if (uname_res->next()) {
+                    sender_username = uname_res->getString("username");
+                }
+            }
+
+            requests.push_back({
+                {"account", sender_account},
+                {"username", sender_username},
+                {"group_name", group_name}
+            });
+        }
+
+        response["status"] = "success";
+        response["msg"] = "Get list success";
+        response["requests"] = requests;
+    } catch (const std::exception& e) {
+        response["status"] = "error";
+        response["msg"] = e.what();
+    }
+    send_json(fd, response);
 }
 
-void send_group_message_msg(int fd, const json& request){
-    ;
+// 处理群申请
+void handle_group_request_msg(int fd, const json& request) {
+    json response;
+    response["type"] = "handle_group_request";
+    std::string token = request.value("token", "");
+    std::string group_name = request.value("group_name", "");
+    std::string from_username = request.value("from_username", "");
+    std::string action = request.value("action", "reject");
+    std::string user_account;
+
+    if (!verify_token(token, user_account)) {
+        response["status"] = "fail";
+        response["msg"] = "Invalid token";
+        send_json(fd, response);
+        return;
+    }
+
+    try {
+        auto conn = get_mysql_connection();
+
+        int group_id;
+        {
+            auto stmt = std::unique_ptr<sql::PreparedStatement>(conn->prepareStatement(
+                "SELECT group_id FROM chat_groups WHERE group_name = ? "
+            ));
+            stmt->setString(1, group_name);
+            auto res = std::unique_ptr<sql::ResultSet>(stmt->executeQuery());
+
+            if (!res->next()) {
+                response["status"] = "fail";
+                response["msg"] = "Group not found";
+                send_json(fd, response);
+                return;
+            }
+            group_id = res->getInt("group_id");
+        }
+
+        if (action == "accept") {
+            {
+                auto stmt = std::unique_ptr<sql::PreparedStatement>(conn->prepareStatement(
+                    "INSERT IGNORE INTO group_members (group_id, account, role) VALUES (?, ?, 'member')"
+                ));
+                stmt->setInt(1, group_id);
+                stmt->setString(2, from_username);
+                stmt->execute();
+            }
+        }
+
+        std::unique_ptr<sql::PreparedStatement> stmt(conn->prepareStatement(
+            "DELETE FROM group_requests WHERE group_id = ? AND sender = ?"
+        ));
+        stmt->setInt(1, group_id);
+        stmt->setString(2, from_username);
+        stmt->execute();
+
+        response["status"] = "success";
+        response["msg"] = (action == "accept") ? "Request accepted" : "Request rejected";
+    } catch (const std::exception& e) {
+        response["status"] = "error";
+        response["msg"] = e.what();
+    }
+    send_json(fd, response);
 }
 
-void get_group_requests_msg(int fd, const json& request){
-    ;
-}
+// // 获取未读消息
+// void get_unread_group_messages_msg(int fd, const json& request) {
+//     json response;
+//     response["type"] = "get_unread_group_messages";
+//     std::string token = request.value("token", "");
+//     std::string group_name = request.value("group_name", "");
+//     std::string user_account;
 
-void handle_group_request_msg(int fd, const json& request){
-    ;
-}
-
-
-
-
-// void join_group(int sock,string token,sem_t& sem){
-//     string group_name = readline_string("输入想加入的群聊名称 : ");
-//     json j;
-//     j["type"] = "join_group";
-//     j["token"] = token;
-//     j["group_name"] = group_name;
-//     send_json(sock, j);
-//     sem_wait(&sem);
-//     waiting();
-// }
-
-// void quit_group(int sock,string token,sem_t& sem){
-//     string group_name = readline_string("输入要退出的群聊名称 : ");
-//     json j;
-//     j["type"] = "quit_group";
-//     j["token"] = token;
-//     j["group_name"] = group_name;
-//     send_json(sock, j);
-//     sem_wait(&sem);
-//     waiting();
-// }
-
-// void show_group_members(int sock,string token,sem_t& sem){
-//     string group_name = readline_string("输入要查看成员的群聊名称 : ");
-//     json j;
-//     j["type"] = "show_group_members";
-//     j["token"] = token;
-//     j["group_name"] = group_name;
-//     send_json(sock, j);
-//     sem_wait(&sem);
-//     waiting();
-// }
-
-// void create_group(int sock,string token,sem_t& sem){
-//     string group_name = readline_string("请输入新建群聊名称 : ");
-//     json j;
-//     j["type"] = "create_group";
-//     j["token"] = token;
-//     j["group_name"] = group_name;
-//     send_json(sock, j);
-//     sem_wait(&sem);
-//     waiting();
-// }
-
-// void set_group_admin(int sock,string token,sem_t& sem){
-//     string group_name = readline_string("输入群聊名称 : ");
-//     string target_user = readline_string("输入要设为管理员的用户名 : ");
-//     json j;
-//     j["type"] = "set_group_admin";
-//     j["token"] = token;
-//     j["group_name"] = group_name;
-//     j["target_user"] = target_user;
-//     send_json(sock, j);
-//     sem_wait(&sem);
-//     waiting();
-// }
-
-// void remove_group_admin(int sock,string token,sem_t& sem){
-//     string group_name = readline_string("输入群聊名称 : ");
-//     string target_user = readline_string("输入要移除管理员权限的用户名 : ");
-//     json j;
-//     j["type"] = "remove_group_admin";
-//     j["token"] = token;
-//     j["group_name"] = group_name;
-//     j["target_user"] = target_user;
-//     send_json(sock, j);
-//     sem_wait(&sem);
-//     waiting();
-// }
-
-// void remove_group_member(int sock,string token,sem_t& sem){
-//     string group_name = readline_string("输入群聊名称 : ");
-//     string target_user = readline_string("输入要移除的成员用户名 : ");
-//     json j;
-//     j["type"] = "remove_group_member";
-//     j["token"] = token;
-//     j["group_name"] = group_name;
-//     j["target_user"] = target_user;
-//     send_json(sock, j);
-//     sem_wait(&sem);
-//     waiting();
-// }
-
-// void add_group_member(int sock,string token,sem_t& sem){
-//     string group_name = readline_string("输入群聊名称 : ");
-//     string new_member = readline_string("输入新成员用户名 : ");
-//     json j;
-//     j["type"] = "add_group_member";
-//     j["token"] = token;
-//     j["group_name"] = group_name;
-//     j["new_member"] = new_member;
-//     send_json(sock, j);
-//     sem_wait(&sem);
-//     waiting();
-// }
-
-// void dismiss_group(int sock,string token,sem_t& sem){
-//     string group_name = readline_string("输入要解散的群聊名称 : ");
-//     json j;
-//     j["type"] = "dismiss_group";
-//     j["token"] = token;
-//     j["group_name"] = group_name;
-//     send_json(sock, j);
-//     sem_wait(&sem);
-//     waiting();
-// }
-
-// void send_group_message(int sock,string token,sem_t& sem){
-// system("clear");
-//     cout << "========== 群聊 ==========" << endl;
-
-//     string target_group = readline_string("请输入想群聊的群名 : ");
-//     if (target_group.empty()) {
-//         cout << "[错误] 群名不能为空" << endl;
+//     if (!verify_token(token, user_account)) {
+//         response["status"] = "fail";
+//         response["msg"] = "Invalid token";
+//         send_json(fd, response);
 //         return;
 //     }
-//     // 设置当前群聊
-//     current_chat_group = target_group;
 
-//     // 拉取离线消息
-//     json req;
-//     req["type"] = "get_unread_group_messages";
-//     req["token"] = token;
-//     req["target_username"] = target_group;
-//     send_json(sock, req);
-//     sem_wait(&sem); // 等待信号量
+//     try {
+//         auto conn = get_mysql_connection();
+//         auto stmt = conn->prepareStatement("SELECT group_id FROM chat_groups WHERE group_name = ?");
+//         stmt->setString(1, group_name);
+//         auto res = stmt->executeQuery();
 
-//     cout << "进入 [" << target_group << "] 群" << endl;
-//     cout << "提示："<< endl;
-//     // cout << "- 输入消息并回车发送，输入 /exit 退出，/history [数量] 查看历史记录，/file [路径] 发送文件" << endl;
-//     cout << "- 输入消息并回车发送" << endl;
-//     cout << "- 输入 /history [数量] 查看历史记录" << endl;
-//     cout << "- 输入 /file [路径] 传输文件" << endl;
-//     cout << "- 输入 /exit 退出" << endl;
-//     while (true) {
-//         string message = readline_string("> ");
-//         if (message == "/exit") {
-//             // 退出当前群聊
-//             current_chat_group = "";
-//             cout << "[系统] 已退出群聊模式。" << endl;
-//             break;
+//         if (!res->next()) {
+//             response["status"] = "fail";
+//             response["msg"] = "Group not found";
+//             send_json(fd, response);
+//             return;
+//         }
+//         int group_id = res->getInt("group_id");
+
+//         stmt = conn->prepareStatement("SELECT sender, content, timestamp FROM group_messages WHERE group_id = ? AND receiver = ? AND is_read = 0");
+//         stmt->setInt(1, group_id);
+//         stmt->setString(2, user_account);
+//         res = stmt->executeQuery();
+
+//         json messages = json::array();
+//         while (res->next()) {
+//             messages.push_back({
+//                 {"sender", res->getString("sender")},
+//                 {"content", res->getString("content")},
+//                 {"timestamp", res->getString("timestamp")}
+//             });
 //         }
 
-//         if (message.rfind("/history", 0) == 0) {
-//             int count = 10;
-//             std::istringstream iss_history(message);
-//             string cmd;
-//             iss_history >> cmd >> count;
+//         response["status"] = "success";
+//         response["messages"] = messages;
+//     } catch (const std::exception& e) {
+//         response["status"] = "error";
+//         response["msg"] = e.what();
+//     }
+//     send_json(fd, response);
+// }
 
-//             json history;
-//             history["type"]="get_group_history";
-//             history["token"]=token;
-//             history["target_username"]=target_group;
-//             history["count"]=count;
-//             send_json(sock, history);
-//             sem_wait(&sem);  
-//             continue;
+// // 获取群历史信息
+// void get_group_history_msg(int fd, const json& request) {
+//     json response;
+//     response["type"] = "get_group_history";
+//     std::string token = request.value("token", "");
+//     std::string group_name = request.value("group_name", "");
+//     std::string user_account;
+
+//     if (!verify_token(token, user_account)) {
+//         response["status"] = "fail";
+//         response["msg"] = "Invalid token";
+//         send_json(fd, response);
+//         return;
+//     }
+
+//     try {
+//         auto conn = get_mysql_connection();
+//         auto stmt = conn->prepareStatement("SELECT group_id FROM chat_groups WHERE group_name = ?");
+//         stmt->setString(1, group_name);
+//         auto res = stmt->executeQuery();
+
+//         if (!res->next()) {
+//             response["status"] = "fail";
+//             response["msg"] = "Group not found";
+//             send_json(fd, response);
+//             return;
+//         }
+//         int group_id = res->getInt("group_id");
+
+//         stmt = conn->prepareStatement("SELECT sender, content, timestamp FROM group_messages WHERE group_id = ? ORDER BY timestamp ASC");
+//         stmt->setInt(1, group_id);
+//         res = stmt->executeQuery();
+
+//         json history = json::array();
+//         while (res->next()) {
+//             history.push_back({
+//                 {"sender", res->getString("sender")},
+//                 {"content", res->getString("content")},
+//                 {"timestamp", res->getString("timestamp")}
+//             });
 //         }
 
-//         if (message.rfind("/file", 0) == 0) {
-//             string path;
-//             std::istringstream iss_file(message);
-//             string cmd;
-//             iss_file >> cmd >> path;
+//         response["status"] = "success";
+//         response["history"] = history;
+//     } catch (const std::exception& e) {
+//         response["status"] = "error";
+//         response["msg"] = e.what();
+//     }
+//     send_json(fd, response);
+// }
 
-//             if(path.empty()){
-//                 cout << "未输入路径" << endl;
-//                 cout << "[系统] 已退出文件传输模式。" << endl;
-//                 break;
-//             }
+// // 发送群聊信息
+// void send_group_message_msg(int fd, const json& request) {
+//     json response;
+//     response["type"] = "send_group_message";
+//     std::string token = request.value("token", "");
+//     std::string group_name = request.value("group_name", "");
+//     std::string content = request.value("content", "");
+//     std::string user_account;
 
-//             json file;
+//     if (!verify_token(token, user_account)) {
+//         response["status"] = "fail";
+//         response["msg"] = "Invalid token";
+//         send_json(fd, response);
+//         return;
+//     }
 
-//             // file["type"]="send_file";
-//             // file["token"]=token;
-//             // file["target_username"]=target_group;
-//             // file["path"]=path;
-//             // send_json(sock, file);
-//             // sem_wait(&sem);  
+//     try {
+//         auto conn = get_mysql_connection();
+//         auto stmt = conn->prepareStatement("SELECT group_id FROM chat_groups WHERE group_name = ?");
+//         stmt->setString(1, group_name);
+//         auto res = stmt->executeQuery();
 
-
-
-
-
-
-
-
-
-
-
-// // 文件传输
-// // 记得通知
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//             continue;
+//         if (!res->next()) {
+//             response["status"] = "fail";
+//             response["msg"] = "Group not found";
+//             send_json(fd, response);
+//             return;
 //         }
+//         int group_id = res->getInt("group_id");
 
-//         json msg;
-//         msg["type"]= "send_group_message";
-//         msg["token"]=token;
-//         msg["target_username"]=target_group;
-//         msg["message"]=message;
+//         stmt = conn->prepareStatement("INSERT INTO group_messages (group_id, sender, content, timestamp) VALUES (?, ?, ?, NOW())");
+//         stmt->setInt(1, group_id);
+//         stmt->setString(2, user_account);
+//         stmt->setString(3, content);
+//         stmt->execute();
 
-//         send_json(sock, msg);
-//         sem_wait(&sem);  
-
+//         response["status"] = "success";
+//         response["msg"] = "Message sent";
+//     } catch (const std::exception& e) {
+//         response["status"] = "error";
+//         response["msg"] = e.what();
 //     }
+//     send_json(fd, response);
 // }
 
-// // 处理加群成员
-// void getandhandle_group_request(int sock,string token,sem_t& sem){
-//     system("clear");
-//     string target_group = readline_string("请输入想处理成员添加的群名 : ");
-//     std::cout << "请求列表" << std::endl;
-//     json j;
-//     j["type"]="get_group_requests";
-//     j["token"]=token;
-//     send_json(sock,j);
-//     sem_wait(&sem);
 
-//     if(global_group_requests.size()==0){
-//         // flushInput();
-//         waiting();
-//         return;
-//     }
 
-//     string input = readline_string("输入处理编号(0 退出): ");
-//     int choice = stoi(input);
 
-//     // flushInput();
-// // 要不要取消锁
-//     std::string from_group;
-// {
-//     std::lock_guard<std::mutex> lock(group_requests_mutex);
 
-//     if (choice <= 0 || choice > global_group_requests.size()) {
-//         std::cout << "已取消处理。" << std::endl;
-//         waiting();
-//         return;
-//     }
-
-//     from_group = global_group_requests[choice - 1]["group"];
-// }
-//     string op = readline_string("你想如何处理 [" + from_group + "] 的请求？(a=接受, r=拒绝): ");
-//     // flushInput();
-
-//     std::string action;
-//     if (op == "a" || op == "A") {
-//         action = "accept";
-//     } else if (op == "r" || op == "R") {
-//         action = "reject";
-//     } else {
-//         std::cout << "无效操作，已取消处理。" << std::endl;
-//         waiting();
-//         return;
-//     }
-
-//     json m;
-//     m["type"] = "handle_group_request";
-//     m["token"] = token;
-//     m["from_username"] = from_group;
-//     m["action"] = action;
-//     send_json(sock, m);
-//     sem_wait(&sem);
-//     waiting();
-// }
 
 
 

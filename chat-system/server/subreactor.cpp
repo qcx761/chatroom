@@ -188,6 +188,16 @@ void SubReactor::run() {
                   quit_group_msg(fd,request);
                 });
                 continue;
+            }else if(type=="show_group_members"){
+                thread_pool->enqueue([fd, request]() {
+                  show_group_members_msg(fd,request);
+                });
+                continue;
+            }else if(type=="create_group"){
+                thread_pool->enqueue([fd, request]() {
+                  create_group_msg(fd,request);
+                });
+                continue;
             }else if(type=="set_group_admin"){
                 thread_pool->enqueue([fd, request]() {
                   set_group_admin_msg(fd,request);
@@ -212,21 +222,21 @@ void SubReactor::run() {
                 thread_pool->enqueue([fd, request]() {
                   dismiss_group_msg(fd,request);
                 });
-                continue;
-            }else if(type=="get_unread_group_messages"){
-                thread_pool->enqueue([fd, request]() {
-                  get_unread_group_messages_msg(fd,request);
-                });
-                continue;
-            }else if(type=="get_group_history"){
-                thread_pool->enqueue([fd, request]() {
-                  get_group_history_msg(fd,request);
-                });
-                continue;
-            }else if(type=="send_group_message"){
-                thread_pool->enqueue([fd, request]() {
-                  send_group_message_msg(fd,request);
-                });
+            //     continue;
+            // }else if(type=="get_unread_group_messages"){
+            //     thread_pool->enqueue([fd, request]() {
+            //       get_unread_group_messages_msg(fd,request);
+            //     });
+            //     continue;
+            // }else if(type=="get_group_history"){
+            //     thread_pool->enqueue([fd, request]() {
+            //       get_group_history_msg(fd,request);
+            //     });
+            //     continue;
+            // }else if(type=="send_group_message"){
+            //     thread_pool->enqueue([fd, request]() {
+            //       send_group_message_msg(fd,request);
+            //     });
                 continue;
             }else if(type=="get_group_requests"){
                 thread_pool->enqueue([fd, request]() {
@@ -237,8 +247,8 @@ void SubReactor::run() {
                 thread_pool->enqueue([fd, request]() {
                   handle_group_request_msg(fd,request);
                 });
-                continue;
-            }else if(type==""){
+            //     continue;
+            // }else if(type==""){
 
 
 
