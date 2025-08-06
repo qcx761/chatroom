@@ -385,11 +385,11 @@ void send_private_message(int sock,string token, sem_t& sem) {
 
     cout << "进入与 [" << target_username << "] 的私聊模式" << endl;
     cout << "提示："<< endl;
-    // cout << "- 输入消息并回车发送，输入 /exit 退出，/history [数量] 查看历史记录，/file [路径] 发送文件" << endl;
     cout << "- 输入消息并回车发送" << endl;
     cout << "- 输入 /history [数量] 查看历史记录" << endl;
     cout << "- 输入 /file [路径] 传输文件" << endl;
     cout << "- 输入 /exit 退出" << endl;
+    cout << "- 输入 /help 获取提示" << endl;
     while (true) {
         string message = readline_string("> ");
         if (message == "/exit") {
@@ -397,6 +397,16 @@ void send_private_message(int sock,string token, sem_t& sem) {
             current_chat_target = "";
             cout << "[系统] 已退出私聊模式。" << endl;
             break;
+        }
+
+        if (message == "/help") {
+            cout << "提示："<< endl;
+            cout << "- 输入消息并回车发送" << endl;
+            cout << "- 输入 /history [数量] 查看历史记录" << endl;
+            cout << "- 输入 /file [路径] 传输文件" << endl;
+            cout << "- 输入 /exit 退出" << endl;
+            cout << "- 输入/help 获取提示" << endl;
+            continue;
         }
 
         if (message.rfind("/history", 0) == 0) {
@@ -427,20 +437,18 @@ void send_private_message(int sock,string token, sem_t& sem) {
                 break;
             }
 
-            json file;
-
-            // file["type"]="send_file";
-            // file["token"]=token;
-            // file["target_username"]=target_username;
-            // file["path"]=path;
-            // send_json(sock, file);
-            // sem_wait(&sem);  
 
 
 
-
-
-
+            // 提取文件名和大小
+            std::ifstream file(path, std::ios::binary | std::ios::ate);
+            if (!file) {
+                cout << "[错误] 文件打开失败！" << endl;
+                break;
+            }
+            long long filesize_ll = file.tellg();
+            std::string filesize = std::to_string(filesize_ll);
+            string filename = path.substr(path.find_last_of("/") + 1);
 
 
 
@@ -451,26 +459,39 @@ void send_private_message(int sock,string token, sem_t& sem) {
 
 
 
+            std::thread([sock, token, target_username , path, filename,filesize]() {
+                const std::string ftp_ip = "10.30.1.215";
+                const int ftp_port = 2100;
+
+                int control_fd = connect_to_server(ftp_ip, ftp_port);
+                if (control_fd < 0) {
+                    std::cerr << "[错误] 连接FTP控制端失败\n" << endl;
+                    return;
+                }
+
+                ftp_stor(control_fd, filename, path);
+
+                close(control_fd);
 
 
+// 文件发送成功告诉服务端推送文件
+json file_req;
+file_req["type"] = "send_private_file";
+file_req["token"] = token;
+file_req["target_username"] = target_username;
+file_req["filename"] = filename;
+file_req["filesize"] = filesize;
+send_json(sock, file_req);
 
+            }).detach();
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+            cout << "[系统] 文件上传已开始，后台进行中..." << endl;
             continue;
         }
+
+
+
+
 
         json msg;
         msg["type"]= "send_private_message";
@@ -483,6 +504,92 @@ void send_private_message(int sock,string token, sem_t& sem) {
 
     }
 }
+
+
+
+
+
+
+
+
+
+void receive_file(int sock,string token,sem_t& sem){
+    system("clear");
+    json j;
+    j["type"] = "get_file_list";
+    j["token"] = token;
+    send_json(sock, j);
+    sem_wait(&sem);
+    string filename = readline_string("请输入想接收的文件名 : ");
+    string path1 = readline_string("请输入想放在的路径 : ");
+
+
+if (path1.empty()) {
+    path1 = "../filereceive";  // 默认保存
+}
+
+if (path1.back() != '/'){
+    path1 += '/';
+}
+
+    string path = path1 + filename;
+    // json m;
+    // m["type"] = "retr_file";
+    // m["token"] = token;
+    // m["path"] = path;
+    // send_json(sock, j);
+    // sem_wait(&sem);
+
+    std::thread([sock, token, path, filename]() {
+        const std::string ftp_ip = "10.30.1.215";
+        const int ftp_port = 2100;
+
+        int control_fd = connect_to_server(ftp_ip, ftp_port);
+        if (control_fd < 0) {
+            std::cerr << "[错误] 连接FTP控制端失败\n" << endl;
+            return;
+        }
+
+
+        ftp_retr(control_fd, filename, path);
+
+        close(control_fd);
+
+
+
+    std::cout << "文件下载完成" << std::endl;
+
+
+
+    }).detach();
+
+    cout << "[系统] 文件下载已开始，后台进行中..." << endl;
+
+
+    waiting();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -515,6 +622,7 @@ void send_private_message(int sock,string token, sem_t& sem) {
 
 
 void show_group_list(int sock, string token, sem_t &sem){
+    system("clear");
     json j;
     j["type"] = "show_group_list";
     j["token"] = token;
@@ -524,6 +632,7 @@ void show_group_list(int sock, string token, sem_t &sem){
 }
 
 void join_group(int sock,string token,sem_t& sem){
+    system("clear");
     string group_name = readline_string("输入想加入的群聊名称 : ");
     json j;
     j["type"] = "join_group";
@@ -535,6 +644,7 @@ void join_group(int sock,string token,sem_t& sem){
 }
 
 void quit_group(int sock,string token,sem_t& sem){
+    system("clear");
     string group_name = readline_string("输入要退出的群聊名称 : ");
     json j;
     j["type"] = "quit_group";
@@ -546,6 +656,7 @@ void quit_group(int sock,string token,sem_t& sem){
 }
 
 void show_group_members(int sock,string token,sem_t& sem){
+    system("clear");
     string group_name = readline_string("输入要查看成员的群聊名称 : ");
     json j;
     j["type"] = "show_group_members";
@@ -557,6 +668,7 @@ void show_group_members(int sock,string token,sem_t& sem){
 }
 
 void create_group(int sock,string token,sem_t& sem){
+    system("clear");
     string group_name = readline_string("请输入新建群聊名称 : ");
     json j;
     j["type"] = "create_group";
@@ -568,45 +680,49 @@ void create_group(int sock,string token,sem_t& sem){
 }
 
 void set_group_admin(int sock,string token,sem_t& sem){
+    system("clear");
     string group_name = readline_string("输入群聊名称 : ");
     string target_user = readline_string("输入要设为管理员的用户名 : ");
     json j;
     j["type"] = "set_group_admin";
     j["token"] = token;
     j["group_name"] = group_name;
-    j["target_user"] = target_user;
+    j["target_name"] = target_user;
     send_json(sock, j);
     sem_wait(&sem);
     waiting();
 }
 
 void remove_group_admin(int sock,string token,sem_t& sem){
+    system("clear");
     string group_name = readline_string("输入群聊名称 : ");
     string target_user = readline_string("输入要移除管理员权限的用户名 : ");
     json j;
     j["type"] = "remove_group_admin";
     j["token"] = token;
     j["group_name"] = group_name;
-    j["target_user"] = target_user;
+    j["target_name"] = target_user;
     send_json(sock, j);
     sem_wait(&sem);
     waiting();
 }
 
 void remove_group_member(int sock,string token,sem_t& sem){
+    system("clear");
     string group_name = readline_string("输入群聊名称 : ");
     string target_user = readline_string("输入要移除的成员用户名 : ");
     json j;
     j["type"] = "remove_group_member";
     j["token"] = token;
     j["group_name"] = group_name;
-    j["target_user"] = target_user;
+    j["target_name"] = target_user;
     send_json(sock, j);
     sem_wait(&sem);
     waiting();
 }
 
 void add_group_member(int sock,string token,sem_t& sem){
+    system("clear");
     string group_name = readline_string("输入群聊名称 : ");
     string new_member = readline_string("输入新成员用户名 : ");
     json j;
@@ -620,6 +736,7 @@ void add_group_member(int sock,string token,sem_t& sem){
 }
 
 void dismiss_group(int sock,string token,sem_t& sem){
+    system("clear");
     string group_name = readline_string("输入要解散的群聊名称 : ");
     json j;
     j["type"] = "dismiss_group";
@@ -629,6 +746,77 @@ void dismiss_group(int sock,string token,sem_t& sem){
     sem_wait(&sem);
     waiting();
 }
+
+void getandhandle_group_request(int sock,string token,sem_t& sem){
+    system("clear");
+    std::cout << "请求列表" << std::endl;
+    string group_name = readline_string("输入查询的群名 : ");
+    
+    json j;
+    j["type"]="get_group_requests";
+    j["group_name"] =group_name;
+    j["token"]=token;
+    send_json(sock,j);
+    sem_wait(&sem);
+
+    if(global_group_requests.size()==0){
+        waiting();
+        return;
+    }
+
+    string input = readline_string("输入处理编号(0 退出): ");
+    int choice = stoi(input);
+
+    std::string from_username;
+    {
+        std::lock_guard<std::mutex> lock(group_requests_mutex);
+
+        if (choice <= 0 || choice > global_group_requests.size()) {
+            std::cout << "已取消处理。" << std::endl;
+            waiting();
+            return;
+        }
+
+        from_username = global_group_requests[choice - 1]["username"];
+    }
+    string op = readline_string("你想如何处理 [用户名为" + from_username + "] 的请求？(a=接受, r=拒绝): ");
+
+    std::string action;
+    if (op == "a" || op == "A") {
+        action = "accept";
+    } else if (op == "r" || op == "R") {
+        action = "reject";
+    } else {
+        std::cout << "无效操作，已取消处理。" << std::endl;
+        waiting();
+        return;
+    }
+
+    json g;
+    g["type"] = "handle_group_request";
+    g["token"] = token;
+    g["from_username"] = from_username;
+    g["action"] = action;
+    g["group_name"] = group_name;
+    send_json(sock, g);
+    sem_wait(&sem);
+    waiting();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 void send_group_message(int sock,string token,sem_t& sem){
 system("clear");
@@ -645,18 +833,18 @@ system("clear");
     // 拉取离线消息
     json req;
     req["type"] = "get_unread_group_messages";
-    req["token"] = token;
-    req["target_username"] = target_group;
+    req["token"] = token;    
+    req["group_name"] = target_group;
     send_json(sock, req);
     sem_wait(&sem); // 等待信号量
 
     cout << "进入 [" << target_group << "] 群" << endl;
     cout << "提示："<< endl;
-    // cout << "- 输入消息并回车发送，输入 /exit 退出，/history [数量] 查看历史记录，/file [路径] 发送文件" << endl;
     cout << "- 输入消息并回车发送" << endl;
     cout << "- 输入 /history [数量] 查看历史记录" << endl;
     cout << "- 输入 /file [路径] 传输文件" << endl;
     cout << "- 输入 /exit 退出" << endl;
+    cout << "- 输入 /help 获取提示" << endl;
     while (true) {
         string message = readline_string("> ");
         if (message == "/exit") {
@@ -664,6 +852,16 @@ system("clear");
             current_chat_group = "";
             cout << "[系统] 已退出群聊模式。" << endl;
             break;
+        }
+
+        if (message == "/help") {
+            cout << "提示："<< endl;
+            cout << "- 输入消息并回车发送" << endl;
+            cout << "- 输入 /history [数量] 查看历史记录" << endl;
+            cout << "- 输入 /file [路径] 传输文件" << endl;
+            cout << "- 输入 /exit 退出" << endl;
+            cout << "- 输入/help 获取提示" << endl;
+            continue;
         }
 
         if (message.rfind("/history", 0) == 0) {
@@ -675,7 +873,7 @@ system("clear");
             json history;
             history["type"]="get_group_history";
             history["token"]=token;
-            history["target_username"]=target_group;
+            history["group_name"]=target_group;
             history["count"]=count;
             send_json(sock, history);
             sem_wait(&sem);  
@@ -694,20 +892,34 @@ system("clear");
                 break;
             }
 
-            json file;
+            // json file;
 
             // file["type"]="send_group_file";
             // file["token"]=token;
-            // file["target_username"]=target_group;
+            // file["group_name"]=target_group;
             // file["path"]=path;
             // send_json(sock, file);
-            // sem_wait(&sem);  
+            // sem_wait(&sem);
+
+            // 提取文件名和大小
+            std::ifstream file(path, std::ios::binary | std::ios::ate);
+            if (!file) {
+                cout << "[错误] 文件打开失败！" << endl;
+                break;
+            }
+            long long filesize_ll = file.tellg();
+            std::string filesize = std::to_string(filesize_ll);
+            string filename = path.substr(path.find_last_of("/") + 1);
 
 
-
-
-
-
+            // json file_req;
+            // file_req["type"] = "send_private_file";
+            // file_req["token"] = token;
+            // file_req["target_username"] = target_username;
+            // file_req["filename"] = filename;
+            // file_req["filesize"] = filesize;
+            // send_json(sock, file_req);
+            // sem_wait(&sem);
 
 
 
@@ -718,31 +930,38 @@ system("clear");
 
 
 
+            std::thread([sock, token, target_group , path, filename,filesize]() {
+                const std::string ftp_ip = "10.30.1.215";
+                const int ftp_port = 2100;
+
+                int control_fd = connect_to_server(ftp_ip, ftp_port);
+                if (control_fd < 0) {
+                    std::cerr << "[错误] 连接FTP控制端失败\n" << endl;
+                    return;
+                }
+
+                ftp_stor(control_fd, filename, path);
+
+                close(control_fd);
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+                            // 文件发送成功告诉服务端推送文件
+                            json file_req;
+                            file_req["type"] = "send_group_file";
+                            file_req["token"] = token;
+                            file_req["group_name"] = target_group;
+                            file_req["filename"] = filename;
+                            file_req["filesize"] = filesize;
+                            send_json(sock, file_req);
+            }).detach();
+            cout << "[系统] 文件上传已开始，后台进行中..." << endl;
             continue;
         }
 
         json msg;
         msg["type"]= "send_group_message";
         msg["token"]=token;
-        msg["target_username"]=target_group;
+        msg["group_name"]=target_group;
         msg["message"]=message;
 
         send_json(sock, msg);
@@ -751,85 +970,313 @@ system("clear");
     }
 }
 
-// 处理加群成员
-void getandhandle_group_request(int sock,string token,sem_t& sem){
-    system("clear");
-    string target_group = readline_string("请输入想处理成员添加的群名 : ");
-    std::cout << "请求列表" << std::endl;
-    json j;
-    j["type"]="get_group_requests";
-    j["token"]=token;
-    send_json(sock,j);
-    sem_wait(&sem);
 
-    if(global_group_requests.size()==0){
-        // flushInput();
-        waiting();
-        return;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// 处理粘包：从 control_fd 逐行读取服务器响应（以 \r\n 分隔）
+std::string read_ftp_response_line(int control_fd) {
+    static std::string buffer;
+    char temp[512];
+
+    while (true) {
+        size_t pos = buffer.find("\r\n");
+        if (pos != std::string::npos) {
+            std::string line = buffer.substr(0, pos);
+            buffer.erase(0, pos + 2);
+            return line;
+        }
+
+        ssize_t n = recv(control_fd, temp, sizeof(temp) - 1, 0);
+        if (n <= 0) return "";
+        temp[n] = '\0';
+        buffer += temp;
     }
-
-    string input = readline_string("输入处理编号(0 退出): ");
-    int choice = stoi(input);
-
-    // flushInput();
-// 要不要取消锁
-    std::string from_group;
-{
-    std::lock_guard<std::mutex> lock(group_requests_mutex);
-
-    if (choice <= 0 || choice > global_group_requests.size()) {
-        std::cout << "已取消处理。" << std::endl;
-        waiting();
-        return;
-    }
-
-    from_group = global_group_requests[choice - 1]["group"];
 }
-    string op = readline_string("你想如何处理 [" + from_group + "] 的请求？(a=接受, r=拒绝): ");
-    // flushInput();
 
-    std::string action;
-    if (op == "a" || op == "A") {
-        action = "accept";
-    } else if (op == "r" || op == "R") {
-        action = "reject";
+
+
+
+
+
+
+
+// 创建并连接服务器socket
+int connect_to_server(const string& ip, int port) {
+    int sock = socket(AF_INET, SOCK_STREAM, 0);
+    if (sock < 0) {
+        perror("socket");
+        return -1;
+    }
+
+    sockaddr_in addr{};
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(port);
+    if (inet_pton(AF_INET, ip.c_str(), &addr.sin_addr) <= 0) {
+        cerr << "[错误] IP地址格式错误: " << ip << endl;
+        close(sock);
+        return -1;
+    }
+
+    if (connect(sock, (sockaddr*)&addr, sizeof(addr)) < 0) {
+        perror("connect");
+        close(sock);
+        return -1;
+    }
+
+    return sock;
+}
+
+// 进入PASV模式，返回数据端口
+pair<string, int> enter_passive_mode(int control_fd) {
+    const char* pasv_cmd = "PASV\r\n";
+    if (send(control_fd, pasv_cmd, strlen(pasv_cmd), 0) < 0) {
+        perror("send PASV");
+        return {"", -1};
+    }
+
+    std::string buf = read_ftp_response_line(control_fd);
+
+
+    cout << "[调试] 服务器PASV响应: " << buf << endl;
+
+    // 解析类似 "227 Entering Passive Mode (h1,h2,h3,h4,p1,p2)"
+    int h1,h2,h3,h4,p1,p2;
+    if (sscanf(buf.c_str(), "227 Entering Passive Mode (%d,%d,%d,%d,%d,%d)", &h1,&h2,&h3,&h4,&p1,&p2) != 6) {
+        cerr << "[错误] 解析PASV响应失败" << endl;
+        return {"", -1};
+    }
+
+    string ip = to_string(h1) + "." + to_string(h2) + "." + to_string(h3) + "." + to_string(h4);
+    int port = p1 * 256 + p2;
+
+    cout << "[调试] 解析得到IP: " << ip << ", 端口: " << port << endl;
+
+    return {ip, port};
+}
+
+
+
+void ftp_stor(int control_fd, const std::string& filename, const std::string& filepath) {
+    auto [ip, port] = enter_passive_mode(control_fd);
+    if (ip.empty() || port < 0) {
+        std::cerr << "[错误] 进入PASV模式失败\n";
+        return;
+    }
+
+    std::string stor_cmd = "STOR " + filename + "\r\n";
+    send(control_fd, stor_cmd.c_str(), stor_cmd.size(), 0);
+
+
+
+//     // 等待服务器回复150
+//     char responsee[512];
+//     int m = recv(control_fd, responsee, sizeof(responsee) - 1, 0);
+
+    
+// cout << responsee << endl;
+
+    // if (m <= 0) {
+    //     std::cerr << "[错误] 未收到服务器150响应或连接关闭\n";
+    //     return;
+    // }
+    // responsee[m] = '\0';
+    // std::string resp_str(responsee);
+    // if (resp_str.find("150") == std::string::npos) {
+    //     std::cerr << "[错误] 服务器未进入传输状态: " << resp_str << std::endl;
+    //     return;
+    // }
+    std::string resp_150 = read_ftp_response_line(control_fd);
+    if (resp_150.find("150") == std::string::npos) {
+        std::cerr << "[错误] 未收到150: " << resp_150 << std::endl;
+        return;
+    }
+
+    int data_fd = connect_to_server(ip, port);
+    if (data_fd < 0) {
+        std::cerr << "[错误] 连接数据端口失败\n";
+        return;
+    }
+
+    int file_fd = open(filepath.c_str(), O_RDONLY);
+    if (file_fd < 0) {
+        std::cerr << "[错误] 打开文件失败: " << filepath << std::endl;
+        close(data_fd);
+        return;
+    }
+    
+    off_t offset = 0;
+    struct stat file_stat;
+    fstat(file_fd, &file_stat);
+    size_t remaining = file_stat.st_size;
+
+    // while (remaining > 0) {
+    //     ssize_t sent = sendfile(data_fd, file_fd, &offset, remaining);
+    //     if (sent <= 0) break;
+    //     remaining -= sent;
+    // }
+
+    while (remaining > 0) {
+        ssize_t sent = sendfile(data_fd, file_fd, &offset, remaining);
+        if (sent <= 0) {
+            perror("sendfile error or done");
+            break;
+        }
+        remaining -= sent;
+        std::cout << "sendfile sent bytes: " << sent << ", remaining: " << remaining << std::endl;
+    }
+
+    shutdown(data_fd, SHUT_WR);
+
+    close(file_fd);
+    //close(data_fd);
+
+    // 接收服务器确认消息
+
+
+
+
+    std::string resp_226 = read_ftp_response_line(control_fd);
+    if (resp_226.find("226") != std::string::npos){
+        //std::cout << "[系统] 上传完成: " << filename << std::endl;
     } else {
-        std::cout << "无效操作，已取消处理。" << std::endl;
-        waiting();
-        return;
+        std::cout << "[系统] 上传响应: " << resp_226 << std::endl;
     }
-
-    json m;
-    m["type"] = "handle_group_request";
-    m["token"] = token;
-    m["from_username"] = from_group;
-    m["action"] = action;
-    send_json(sock, m);
-    sem_wait(&sem);
-    waiting();
+    close(data_fd);
 }
 
 
 
 
+void ftp_retr(int control_fd, const std::string& filename, const std::string& save_path) {
+    // 进入PASV模式，获取数据端口
+    auto [ip, port] = enter_passive_mode(control_fd);
+    if (ip.empty() || port < 0) {
+        std::cerr << "[错误] 进入PASV模式失败\n";
+        return;
+    }
+
+    // 发送RETR命令
+    std::string retr_cmd = "RETR " + filename + "\r\n";
+    send(control_fd, retr_cmd.c_str(), retr_cmd.size(), 0);
+
+    std::string resp_150 = read_ftp_response_line(control_fd);
+    if (resp_150.find("150") == std::string::npos) {
+        std::cerr << "[错误] 未收到150: " << resp_150 << std::endl;
+        return;
+    }
+
+    // 连接数据端口
+    int data_fd = connect_to_server(ip, port);
+    if (data_fd < 0) {
+        std::cerr << "[错误] 连接数据端口失败\n";
+        return;
+    }
 
 
+    // 打开本地文件准备写入
+    std::ofstream ofs(save_path, std::ios::binary);
+    if (!ofs.is_open()) {
+        std::cerr << "[错误] 无法打开本地文件保存路径: " << save_path << std::endl;
+        close(data_fd);
+        return;
+    }
 
+    // 从数据连接读取数据，写入文件
+    char buf[4096];
+    ssize_t m;
+    while ((m = recv(data_fd, buf, sizeof(buf), 0)) > 0) {
+        ofs.write(buf, m);
+    }
+    ofs.close();
+    close(data_fd);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// 清屏，token，state，login——success，return返回，发送send，信号量
+    // // 等待服务器发送“226 Transfer complete”
+    // char response[512];
+    // int n = recv(control_fd, response, sizeof(response) - 1, 0);
+    // if (n > 0) {
+    //     response[n] = '\0';
+    //     std::string resp_str(response);
+    //     if (resp_str.find("226") != std::string::npos) {
+    //         std::cout << "[系统] 上传成功完成：" << filename << std::endl;
+    //     } else {
+    //         std::cout << "[系统] 收到上传后的响应：" << resp_str << std::endl;
+    //     }
+    // } else {
+    //     std::cerr << "[错误] 上传完成后未收到服务器确认" << std::endl;
+    // }
+        std::string resp_226 = read_ftp_response_line(control_fd);
+    if (resp_226.find("226") != std::string::npos){
+        //std::cout << "[系统] 下载完成: " << filename << std::endl;
+    } else {
+        std::cout << "[系统] 下载响应: " << resp_226 << std::endl;
+    }
+}

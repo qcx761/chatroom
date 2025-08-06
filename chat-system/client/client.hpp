@@ -28,14 +28,6 @@ class Client
 
 public:
 
-    // enum MenuState {
-    //     main_menu,    // 主菜单
-    //     next_menu,    // 登录后主界面
-    //     next1_menu,   // 个人中心
-    //     next11_menu,  // 个人信息  
-
-    // }; 扔到目录文件中了
-
 
     Client(std::string ip, int port);
     ~Client();

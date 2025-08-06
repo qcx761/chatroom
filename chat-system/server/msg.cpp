@@ -1,6 +1,9 @@
 #include "json.hpp"
 #include "msg.hpp"
 
+#include <set>
+
+
 Redis redis("tcp://127.0.0.1:6379");
 
 std::unordered_map<std::string, int> account_fd_map;
@@ -95,6 +98,28 @@ std::mutex fd_mutex;
 //     account VARCHAR(64) NOT NULL,
 //     last_read_message_id INT DEFAULT 0,
 //     PRIMARY KEY (group_id, account)
+// );
+
+
+// CREATE TABLE file_messages (
+//     id INT AUTO_INCREMENT PRIMARY KEY,
+//     sender VARCHAR(64) NOT NULL,
+//     receiver VARCHAR(64) NOT NULL,
+//     filename VARCHAR(255) NOT NULL,
+//     filesize VARCHAR(64),
+//     filepath VARCHAR(1024) NOT NULL,
+//     is_read BOOLEAN DEFAULT FALSE,
+//     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+// );
+
+// CREATE TABLE group_file_messages (
+//     id INT AUTO_INCREMENT PRIMARY KEY,
+//     sender VARCHAR(64) NOT NULL,
+//     group_id INT NOT NULL,
+//     filename VARCHAR(255) NOT NULL,
+//     filesize VARCHAR(64),
+//     filepath VARCHAR(1024) NOT NULL,
+//     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
 // );
 
 // 通过 account 获取 fd
@@ -3339,6 +3364,479 @@ void send_group_message_msg(int fd, const json& request) {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// void send_private_file_msg(int fd, const json& request){
+//     std::cout << "进入 send_private_file_msg" << std::endl;
+//     json response;
+
+//     std::string token = request.value("token", "");
+//     std::string target_name = request.value("target_username", "");
+//     std::string filename = request.value("filename", "");
+//     std::string filesize = request.value("filesize", "");
+//     std::string user_account;
+//     std::string target_account;
+
+// std::cout << "1111111" << std::endl;
+
+//     std::cout << "[调试] token: " << token << std::endl;
+//     std::cout << "[调试] target_name: " << target_name << std::endl;
+//     std::cout << "[调试] filename: " << filename << std::endl;
+//     std::cout << "[调试] filesize: " << filesize << std::endl;
+
+//     if (!verify_token(token, user_account)) {
+//         response["status"] = "fail";
+//         response["msg"] = "Invalid token";
+//         send_json(fd, response);
+//         return;
+//     }
+//     std::cout << "[调试] token 验证通过，发送者 account: " << user_account << std::endl;
+
+// std::cout << "e12e1111" << std::endl;
+//     try {
+//         auto conn = get_mysql_connection();
+
+//         // 查找接收者的 account
+//         {
+//             std::unique_ptr<sql::PreparedStatement> stmt(
+//                 conn->prepareStatement(
+//                     "SELECT JSON_UNQUOTE(JSON_EXTRACT(info, '$.account')) AS account "
+//                     "FROM users WHERE JSON_UNQUOTE(JSON_EXTRACT(info, '$.username')) = ?"));
+//             stmt->setString(1, target_name);
+//             std::unique_ptr<sql::ResultSet> res(stmt->executeQuery());
+//             if (res->next()) {
+//                 target_account = res->getString("account");
+//                 std::cout << "[调试] target_account 查找成功: " << target_account << std::endl;
+//             } else {
+//                 response["status"] = "fail";
+//                 response["msg"] = "Friend user not found";
+//                 send_json(fd, response);
+//                 std::cerr << "[错误] 用户名不存在: " << target_name << std::endl;
+//                 return;
+//             }
+//         }
+
+//         // 查找发送者用户名（user_account -> username）
+//         std::string user_name;
+//         {
+//             std::unique_ptr<sql::PreparedStatement> stmt(
+//                 conn->prepareStatement(
+//                     "SELECT JSON_UNQUOTE(JSON_EXTRACT(info, '$.username')) AS username "
+//                     "FROM users WHERE JSON_UNQUOTE(JSON_EXTRACT(info, '$.account')) = ?"));
+//             stmt->setString(1, user_account);
+//             std::unique_ptr<sql::ResultSet> res(stmt->executeQuery());
+//             if (res->next()) {
+//                 user_name = res->getString("username");
+//                 std::cout << "[调试] 发送者用户名为: " << user_name << std::endl;
+//             }
+//         }
+
+//         // 生成文件存储路径
+//         std::string filepath = "/home/kong/plan/chartroom/chat-system/server/" + filename;
+//         std::cout << "[调试] 文件路径为: " << filepath << std::endl;
+
+//         // 插入文件消息记录
+//         {
+//             std::unique_ptr<sql::PreparedStatement> stmt(
+//                 conn->prepareStatement(
+//                     "INSERT INTO file_messages (sender, receiver, filename, filesize, filepath, is_read, timestamp) "
+//                     "VALUES (?, ?, ?, ?, ?, FALSE, NOW())"));
+//             stmt->setString(1, user_account);
+//             stmt->setString(2, target_account);
+//             stmt->setString(3, filename);
+//             stmt->setString(4, filesize);
+//             stmt->setString(5, filepath);
+
+//             stmt->execute();
+//             std::cout << "[数据库] 文件消息插入成功 ✅" << std::endl;
+//         }
+
+//         // 判断对方是否在线
+//         bool is_online = redis.exists("online:" + target_account);
+//         std::cout << "[调试] 用户是否在线: " << is_online << std::endl;
+
+//         if (is_online) {
+//             int target_fd = get_fd_by_account(target_account);
+//             std::cout << "[调试] 对方在线，FD = " << target_fd << std::endl;
+
+//             if (target_fd != -1) {
+//                 json notify;
+//                 notify["type"] = "receive_message";
+//                 notify["type1"] = "private_file_message";
+//                 notify["from"] = user_name;
+//                 notify["filename"] = filename;
+//                 notify["filesize"] = filesize;
+
+//                 send_json(target_fd, notify);
+//                 std::cout << "[系统] 已推送文件消息给在线用户" << std::endl;
+//             } else {
+//                 std::cerr << "[错误] 获取用户 fd 失败！" << std::endl;
+//             }
+//         } else {
+//             std::cout << "[系统] 接收方不在线，将在上线时推送离线消息" << std::endl;
+//         }
+
+//     } catch (const sql::SQLException& e) {
+//         std::cerr << "[数据库异常] " << e.what() << std::endl;
+//         response["status"] = "fail";
+//         response["msg"] = "Database error";
+//         send_json(fd, response);
+//     }
+// }
+
+
+
+
+
+
+
+
+// 转发给用户
+void send_private_file_msg(int fd, const json& request){
+    std::cout <<"进入 send_private_file_msg" << std::endl;
+    json response;
+    // response["type"] = "send_private_file";
+
+    std::string token = request.value("token", "");
+    std::string target_name = request.value("target_username", "");
+    std::string filename = request.value("filename", "");
+
+
+    std::string filesize = request.value("filesize", "");
+    std::string user_account;
+    std::string target_account;
+
+    if (!verify_token(token, user_account)) {
+        response["status"] = "fail";
+        response["msg"] = "Invalid token";
+        send_json(fd, response);
+        return;
+    }
+
+        auto conn = get_mysql_connection();
+
+        // 查找对方账号
+        {
+            std::unique_ptr<sql::PreparedStatement> stmt(
+                conn->prepareStatement(
+                    "SELECT JSON_UNQUOTE(JSON_EXTRACT(info, '$.account')) AS account "
+                    "FROM users WHERE JSON_UNQUOTE(JSON_EXTRACT(info, '$.username')) = ?"));
+            stmt->setString(1, target_name);
+            std::unique_ptr<sql::ResultSet> res(stmt->executeQuery());
+            if (res->next()) {
+                target_account = res->getString("account");
+            } else {
+                response["status"] = "fail";
+                response["msg"] = "Friend user not found";
+                send_json(fd, response);
+                return;
+            }
+        }
+
+        //自己帐号查询名字
+        std::string user_name;
+        {
+            std::unique_ptr<sql::PreparedStatement> stmt(
+                conn->prepareStatement(
+                    "SELECT JSON_UNQUOTE(JSON_EXTRACT(info, '$.username')) AS username "
+                    "FROM users WHERE JSON_UNQUOTE(JSON_EXTRACT(info, '$.account')) = ?"));
+            stmt->setString(1, user_account);
+            std::unique_ptr<sql::ResultSet> res(stmt->executeQuery());
+            if (res->next()) {
+                user_name = res->getString("username");
+            }
+        }
+
+
+        // std::string filepath = "/var/ftp/files/" + user_account + "/" + filename;
+        std::string filepath = "/home/kong/plan/chartroom/chat-system/server/"  + filename;
+
+
+        // 存储文件消息记录
+        {
+            std::unique_ptr<sql::PreparedStatement> stmt(
+                conn->prepareStatement(
+                    "INSERT INTO file_messages (sender, receiver, filename, filesize, filepath, is_read, timestamp) "
+                    "VALUES (?, ?, ?, ?, ?, FALSE, NOW())"));
+            stmt->setString(1, user_account);
+            stmt->setString(2, target_account);
+            stmt->setString(3, filename);
+            stmt->setString(4, filesize);
+            stmt->setString(5, filepath);
+            stmt->execute();
+        }
+
+        bool is_online = redis.exists("online:" + target_account);
+
+//         // 在线则推送消息
+        if (is_online) {
+            int target_fd = get_fd_by_account(target_account);
+                json response;
+                response["type"] = "receive_message";
+                response["type1"] = "private_file_message";
+
+            if (target_fd == -1) {
+                response["status"] = "fail";
+                response["msg"] = "Failed to get target user fd";
+                send_json(fd, response);
+                return;
+            }
+
+            response["from"] = user_name;
+//             response1["message"] = message;
+
+
+            send_json(target_fd, response);
+        }else{
+                    ;
+//         //离线
+//         // 上线在哪里调用通知函数
+//         // 离线要怎么实现用户上线提示和发送信息
+//         // 上线的离线消息发送逻辑，遍历消息表输出未读消息
+        }
+
+
+}
+
+
+
+
+
+
+void send_group_file_msg(int fd, const json& request){
+    json response;
+    // response["type"] = "send_group_file";
+
+    std::string token = request.value("token", "");
+    std::string group_name = request.value("group_name", "");
+    std::string filename = request.value("filename", "");
+    std::string filesize = request.value("filesize", "");
+    std::string user_account;
+
+    if (!verify_token(token, user_account)) {
+        response["status"] = "fail";
+        response["msg"] = "Invalid token";
+        send_json(fd, response);
+        return;
+    }
+
+        auto conn = get_mysql_connection();
+
+
+        // 获取群id
+        int group_id = -1;
+        {
+            std::unique_ptr<sql::PreparedStatement> stmt(
+                conn->prepareStatement("SELECT group_id FROM chat_groups WHERE group_name = ?"));
+            stmt->setString(1, group_name);
+            std::unique_ptr<sql::ResultSet> res(stmt->executeQuery());
+            if (!res->next()) {
+                response["status"] = "fail";
+                response["msg"] = "Group not found";
+                send_json(fd, response);
+                return;
+            }
+            group_id = res->getInt("group_id");
+        }
+
+
+        //自己帐号查询名字
+        std::string user_name;
+        {
+            std::unique_ptr<sql::PreparedStatement> stmt(
+                conn->prepareStatement(
+                    "SELECT JSON_UNQUOTE(JSON_EXTRACT(info, '$.username')) AS username "
+                    "FROM users WHERE JSON_UNQUOTE(JSON_EXTRACT(info, '$.account')) = ?"));
+            stmt->setString(1, user_account);
+            std::unique_ptr<sql::ResultSet> res(stmt->executeQuery());
+            if (res->next()) {
+                user_name = res->getString("username");
+            }
+        }
+
+        // std::string filepath = "/var/ftp/files/groups/" + std::to_string(group_id) + "/" + filename;
+        std::string filepath = "/home/kong/plan/chartroom/chat-system/server/"  + filename;
+
+        // 存储群文件消息记录
+        {
+            std::unique_ptr<sql::PreparedStatement> stmt(
+                conn->prepareStatement(
+                    "INSERT INTO group_file_messages (sender, group_id, filename, filesize, filepath, timestamp) "
+                    "VALUES (?, ?, ?, ?, ?, NOW())"));
+            stmt->setString(1, user_account);
+            stmt->setInt(2, group_id);
+            stmt->setString(3, filename);
+            stmt->setString(4, filesize);
+            stmt->setString(5, filepath);
+            stmt->execute();
+        }
+
+// 推送给在线群成员（除自己外）
+        {
+            std::unique_ptr<sql::PreparedStatement> stmt(
+                conn->prepareStatement("SELECT account FROM group_members WHERE group_id = ?"));
+            stmt->setInt(1, group_id);
+            std::unique_ptr<sql::ResultSet> res(stmt->executeQuery());
+
+            while (res->next()) {
+                std::string member_account = res->getString("account");
+                if (member_account == user_account) continue;
+                if (redis.exists("online:" + member_account)) {
+                    int member_fd = get_fd_by_account(member_account);
+                    if (member_fd != -1) {
+
+                json response;
+                response["type"] = "receive_message";
+                response["type1"] = "group_file_message";
+
+
+                response["from"] = user_name;
+                response["group"] = group_name;
+
+
+                send_json(member_fd, response);
+
+                    }
+                } else {
+//离线
+                    ;
+                }
+            }
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+void get_file_list_msg(int fd, const json& request){
+    std::cout <<"进入 get_file_list_msg" << std::endl;
+    json response;
+    response["type"] = "get_file_list";
+    std::string token = request.value("token", "");
+    std::string user_account;
+
+    if (!verify_token(token, user_account)) {
+        response["status"] = "fail";
+        response["msg"] = "Invalid token";
+        send_json(fd, response);
+        return;
+    }
+
+try {
+        auto conn = get_mysql_connection();
+        json file_list = json::array();
+
+        // 私聊文件
+        {
+            std::unique_ptr<sql::PreparedStatement> stmt(
+                conn->prepareStatement(
+                    "SELECT id, sender, filename, filesize, filepath, timestamp "
+                    "FROM file_messages WHERE receiver = ? ORDER BY timestamp DESC"
+                )
+            );
+            stmt->setString(1, user_account);
+            std::unique_ptr<sql::ResultSet> res(stmt->executeQuery());
+
+            while (res->next()) {
+                json file;
+                file["type"] = "private";
+                file["id"] = res->getInt("id");
+                file["sender"] = res->getString("sender");
+                file["filename"] = res->getString("filename");
+                file["filesize"] = res->getString("filesize");
+                file["filepath"] = res->getString("filepath");
+                file["timestamp"] = res->getString("timestamp");
+                file_list.push_back(file);
+            }
+        }
+
+        // 群聊文件：查询自己参与的群
+        std::set<int> group_ids;
+        {
+            std::unique_ptr<sql::PreparedStatement> stmt(
+                conn->prepareStatement("SELECT group_id FROM group_members WHERE account = ?")
+            );
+            stmt->setString(1, user_account);
+            std::unique_ptr<sql::ResultSet> res(stmt->executeQuery());
+            while (res->next()) {
+                group_ids.insert(res->getInt("group_id"));
+            }
+        }
+
+        // 查询这些群的群文件
+        if (!group_ids.empty()) {
+            std::string in_clause;
+            for (int gid : group_ids) {
+                in_clause += std::to_string(gid) + ",";
+            }
+            in_clause.pop_back();  // 去掉最后的逗号
+
+            std::string sql = 
+                "SELECT id, group_id, sender, filename, filesize, filepath, timestamp "
+                "FROM group_file_messages WHERE group_id IN (" + in_clause + ") ORDER BY timestamp DESC";
+
+            std::unique_ptr<sql::Statement> stmt(conn->createStatement());
+            std::unique_ptr<sql::ResultSet> res(stmt->executeQuery(sql));
+
+            while (res->next()) {
+                json file;
+                file["type"] = "group";
+                file["id"] = res->getInt("id");
+                file["group_id"] = res->getInt("group_id");
+                file["sender"] = res->getString("sender");
+                file["filename"] = res->getString("filename");
+                file["filesize"] = res->getString("filesize");
+                file["filepath"] = res->getString("filepath");
+                file["timestamp"] = res->getString("timestamp");
+                file_list.push_back(file);
+            }
+        }
+
+        response["status"] = "success";
+        response["files"] = file_list;
+        send_json(fd, response);
+    } catch (const std::exception& e) {
+        response["status"] = "error";
+        response["msg"] = e.what();
+        send_json(fd, response);
+    }
+
+
+
+
+    
+}
 
 
 

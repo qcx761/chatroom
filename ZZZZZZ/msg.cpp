@@ -1801,7 +1801,7 @@ void get_unread_private_messages_msg(int fd, const json& request){
 
 
 // 群
-// CREATE TABLE groups (
+// CREATE TABLE chat_groups (
 //     group_id INT PRIMARY KEY AUTO_INCREMENT,        -- 群ID，自增
 //     group_name VARCHAR(64) NOT NULL UNIQUE,         -- 群聊名，唯一
 //     owner VARCHAR(64) NOT NULL,                     -- 群主账号
@@ -1817,18 +1817,18 @@ void get_unread_private_messages_msg(int fd, const json& request){
 //     sender VARCHAR(64) NOT NULL,                     -- 发送者账号
 //     content TEXT NOT NULL,                           -- 消息内容
 //     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,    -- 发送时间
-//     FOREIGN KEY (group_id) REFERENCES groups(group_id) ON DELETE CASCADE
+//     FOREIGN KEY (group_id) REFERENCES chat_groups(group_id) ON DELETE CASCADE
 // );
 
 // 成员在群信息
 // CREATE TABLE group_members (
-//     group_id INT NOT NULL COMMENT,                                     -- 群聊 ID，关联 groups 表的主键
+//     group_id INT NOT NULL COMMENT,                                     -- 群聊 ID，关联 chat_groups 表的主键
 //     account VARCHAR(64) NOT NULL COMMENT,                              -- 用户账号，关联 users 表的主键或唯一字段
 //     role ENUM('owner', 'admin', 'member') DEFAULT 'member' COMMENT,    -- 在群中的角色：群主、管理员或普通成员
 // );
 
 //     PRIMARY KEY (group_id, account),
-//     FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE,
+//     FOREIGN KEY (group_id) REFERENCES chat_groups(id) ON DELETE CASCADE,
 //     FOREIGN KEY (account) REFERENCES users(account) ON DELETE CASCADE
 
 // CREATE TABLE group_requests (
@@ -1840,7 +1840,7 @@ void get_unread_private_messages_msg(int fd, const json& request){
 //     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,              -- 申请发起时间
 // );
 
-//     FOREIGN KEY (group_id) REFERENCES groups(group_id) ON DELETE CASCADE
+//     FOREIGN KEY (group_id) REFERENCES chat_groups(group_id) ON DELETE CASCADE
 
 
 
@@ -1864,7 +1864,7 @@ void show_group_list_msg(int fd, const json& request) {
         auto conn = get_mysql_connection();
         auto stmt = conn->prepareStatement(
             "SELECT g.group_id, g.group_name, g.owner"
-            "FROM groups g "
+            "FROM chat_groups g "
             "JOIN group_members gm ON g.group_id = gm.group_id "
             "WHERE gm.account = ?"
         );
@@ -1915,7 +1915,7 @@ void join_group_msg(int fd, const json& request){
 
         int group_id=-1;
         auto stmt = conn->prepareStatement(
-            "SELECT group_id FROM groups WHERE group_name =?"
+            "SELECT group_id FROM chat_groups WHERE group_name =?"
         );
         stmt->setString(1, group_name);
         res = stmt->executeQuery();

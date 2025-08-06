@@ -78,3 +78,33 @@ void get_unread_private_messages_msg(const json &response);
 
 
 void show_group_list_msg(const json &response);
+void join_group_msg(const json &response);
+void quit_group_msg(const json &response);
+void show_group_members_msg(const json &response);
+void create_group_msg(const json &response);
+void set_group_admin_msg(const json &response);
+void remove_group_admin_msg(const json &response);
+void remove_group_member_msg(const json &response);
+void add_group_member_msg(const json &response);
+void dismiss_group_msg(const json &response);
+
+
+
+
+
+void get_group_requests_msg(const json &response);
+void handle_group_request_msg(const json &response);
+
+void get_unread_group_messages_msg(const json &response);
+void receive_group_messages_msg(const json &response);
+void get_group_history_msg(const json &response);
+void send_group_message_msg(const json &response);
+
+
+
+
+
+void get_file_list_msg(const json &response);
+
+
+void receive_message_msg(const json &response);

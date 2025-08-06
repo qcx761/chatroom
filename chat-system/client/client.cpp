@@ -217,14 +217,6 @@ void Client::epoll_thread_func(){
                         continue;
                     }
 
-
-
-
-
-
-
-                    
-
                     if(type=="get_private_history"){                        
                         get_private_history_msg(j);
                         sem_post(&this->sem);
@@ -239,7 +231,6 @@ void Client::epoll_thread_func(){
 
                     if(type=="receive_private_message"){
                         receive_private_message_msg(j);
-                        // sem_post(&this->sem);
                         continue;
                     }
 
@@ -249,28 +240,6 @@ void Client::epoll_thread_func(){
                         continue;
                     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                     if(type=="show_group_list"){
                         show_group_list_msg(j);
                         sem_post(&this->sem);
@@ -278,99 +247,168 @@ void Client::epoll_thread_func(){
                     }
 
                     if(type=="join_group"){
-                        //join_group_msg(j);
+                        join_group_msg(j);
                         sem_post(&this->sem);
                         continue;
                     }
 
                     if(type=="quit_group"){
-                        //_msg(j);
+                        quit_group_msg(j);
                         sem_post(&this->sem);
                         continue;
                     }
 
                     if(type=="show_group_members"){
-                        //show_group_members_msg(j);
+                        show_group_members_msg(j);
                         sem_post(&this->sem);
                         continue;
                     }
 
                     if(type=="create_group"){
-                        //create_group_msg(j);
+                        create_group_msg(j);
                         sem_post(&this->sem);
                         continue;
                     }
 
                     if(type=="set_group_admin"){
-                        //set_group_admin_msg(j);
+                        set_group_admin_msg(j);
                         sem_post(&this->sem);
                         continue;
                     }
 
                     if(type=="remove_group_admin"){
-                        //remove_group_admin_msg(j);
+                        remove_group_admin_msg(j);
                         sem_post(&this->sem);
                         continue;
                     }
 
                     if(type=="remove_group_member"){
-                        //remove_group_member_msg(j);
+                        remove_group_member_msg(j);
                         sem_post(&this->sem);
                         continue;
                     }
 
                     if(type=="add_group_member"){
-                        //add_group_member_msg(j);
+                        add_group_member_msg(j);
                         sem_post(&this->sem);
                         continue;
                     }
 
                     if(type=="dismiss_group"){
-                        //dismiss_group_msg(j);
+                        dismiss_group_msg(j);
                         sem_post(&this->sem);
                         continue;
                     }
+
+                    if(type=="get_group_requests"){
+                        get_group_requests_msg(j);
+                        sem_post(&this->sem);
+                        continue;
+                    }
+
+                    if(type=="handle_group_request"){
+                        handle_group_request_msg(j);
+                        sem_post(&this->sem);
+                        continue;
+                    }
+
                     if(type=="get_unread_group_messages"){
-                        //get_unread_group_messages_msg(j);
+                        get_unread_group_messages_msg(j);
                         sem_post(&this->sem);
                         continue;
                     }
                     if(type=="receive_group_messages"){
-                        //receive_group_messages_msg(j);
-                        sem_post(&this->sem);
+                        receive_group_messages_msg(j);
                         continue;
                     }
                     if(type=="get_group_history"){
-                        //get_group_history_msg(j);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                        
+                        get_group_history_msg(j);
                         sem_post(&this->sem);
                         continue;
                     }
+
+                    if(type=="send_group_message"){
+                        send_group_message_msg(j);
+                        sem_post(&this->sem);
+                        continue;
+                    }   
+
+
+                    // 处理通知
+                    if(type=="receive_message"){
+                        receive_message_msg(j);
+                        // sem_post(&this->sem);
+                        continue;
+                    }   
+
+
+
+
+
+                    if(type=="get_file_list"){
+                        get_file_list_msg(j);
+                        sem_post(&this->sem);
+                        continue;
+                    }                      
+                    // if(type==""){
+                    //     _msg(j);
+                    //     sem_post(&this->sem);
+                    //     continue;
+                    // }                      
+                    // if(type==""){
+                    //     _msg(j);
+                    //     sem_post(&this->sem);
+                    //     continue;
+                    // }  
+
+
+
+                    // if(type=="receive_file"){
+                    //     _msg(j);
+                    //     sem_post(&this->sem);
+                    //     continue;
+                    // }  
+
+
+
+
+
+
+
+
+
+
+
+
+                    // if(type=="send_private_file"){
+                    //     send_private_file_msg(j);
+                    //     sem_post(&this->sem);
+                    //     continue;
+                    // }   
+
+
+                    // if(type=="send_group_file"){
+                    //     send_group_file_msg(j);
+                    //     sem_post(&this->sem);
+                    //     continue;
+                    // }  
+
+                    // if(type==""){
+                    //     _msg(j);
+                    //     sem_post(&this->sem);
+                    //     continue;
+                    // }  
+
+
+
+
+
+
+
+
+
+
+
                     if(type==""){
                         //_msg(j);
                         //state=main_menu;
@@ -379,6 +417,13 @@ void Client::epoll_thread_func(){
                         sem_post(&this->sem);
                         continue;
                     }
+
+
+
+
+
+
+
                     if(type==""){
                         //_msg(j);
                         //state=main_menu;
@@ -431,7 +476,7 @@ void Client::epoll_thread_func(){
                     if(type=="error"){
                     // 处理错误信息
                     }
-                    std::cout << "收到未知消息";
+                    std::cout << "收到未知消息" << std::endl;
                 } else if (ret == -1) {
                     cout << "接收数据失败或服务器关闭连接\n";
                     running = false;
@@ -491,15 +536,9 @@ void Client::user_thread_func() {
                 {
                 case 1: state=next1_menu; break; // 进入个人中心
                 case 2: state=next2_menu; break;
-                case 3: 
-                // case 4: state=next4_menu; break;
-
-
-
-
+                case 3: receive_file(sock,token,sem); break;
                 default:
                     cout << "无效数字" << endl;
-                    // flushInput(); // 去除数字后面的换行符
                     waiting();
                 }
                 break;
@@ -525,7 +564,6 @@ void Client::user_thread_func() {
                 case 4: state=next_menu; break;
                 default:
                     cout << "无效数字" << endl;
-                    // flushInput(); // 去除数字后面的换行符
                     waiting();
                 }
                 break;
@@ -550,7 +588,6 @@ void Client::user_thread_func() {
                 case 4: state=next1_menu; break;
                 default:
                     cout << "无效数字" << endl;
-                    // flushInput(); // 去除数字后面的换行符
                     waiting();
                 }
                 break;
@@ -571,12 +608,9 @@ void Client::user_thread_func() {
                 {
                 case 1: state=next21_menu; break;
                 case 2: state=next22_menu; break;
-                // case 3: getandhandle_friend_request(sock,token,sem); break;
-                // case 4: getandhandle_group_request(sock,token,sem); break;
-                case 5: state=next_menu; break;
+                case 3: state=next_menu; break;
                 default:
                     cout << "无效数字" << endl;
-                    // flushInput(); // 去除数字后面的换行符
                     waiting();
                 }
                 break;
@@ -606,7 +640,6 @@ void Client::user_thread_func() {
                 case 9: state=next2_menu; break;
                 default:
                     cout << "无效数字" << endl;
-                    // flushInput(); // 去除数字后面的换行符
                     waiting();
                 }
                 break;
@@ -640,63 +673,10 @@ void Client::user_thread_func() {
                 case 13: state=next2_menu; break;
                 default:
                     cout << "无效数字" << endl;
-                    // flushInput(); // 去除数字后面的换行符
                     waiting();
                 }
                 break;
             }
-
-            // case next4_menu:
-            // {
-            //     show_next4_menu();
-            // std::string input = readline_string("请输入选项: ");
-            // int m;
-            // try { m = std::stoi(input); }
-            // catch (...) {
-            //     std::cout << "无效的输入，请输入数字。" << std::endl;
-            //     waiting();
-            //     continue;
-            // }
-            //     switch (m)
-            //     {
-            //     case 1: show_friend_notifications(sock,token,sem); break;
-            //     case 2: 
-            //     case 3: 
-            //     case 4: state=next_menu; break;
-            //     default:
-            //         cout << "无效数字" << endl;
-            //         // flushInput(); // 去除数字后面的换行符
-            //         waiting();
-            //     }
-            //     break;
-            // }
-
-            // case next1_menu:
-            // {
-            //     //show_next_menu();
-            // std::string input = readline_string("请输入选项: ");
-            // int m;
-            // try { m = std::stoi(input); }
-            // catch (...) {
-            //     std::cout << "无效的输入，请输入数字。" << std::endl;
-            //     waiting();
-            //     continue;
-            // }
-            //     switch (m)
-            //     {
-            //     case 1: 
-            //     case 2: 
-            //     case 3: 
-            //     case 4: 
-            //     }
-            //     break;
-            // }
-
-
-
-
-
-
         } // switch处理
     } // while循环
 } // 线程

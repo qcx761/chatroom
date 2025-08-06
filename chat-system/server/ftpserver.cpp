@@ -395,7 +395,11 @@ cout <<"数据连接 fd="<< data_fd <<endl;
 }
 
 void FTPServer::start_sendfile(int data_fd, int control_fd, const string& filename) {
-    int file_fd = open(filename.c_str(), O_RDONLY);
+    std::string root_dir = "/home/kong/plan/chartroom/chat-system/server/";
+    std::string full_path = root_dir + filename;
+    int file_fd = open(full_path.c_str(), O_RDONLY);
+
+    //int file_fd = open(filename.c_str(), O_RDONLY);
     if (file_fd < 0) {
         perror("open file for RETR");
         close_connection(data_fd);
@@ -451,7 +455,11 @@ void FTPServer::sendfile_continue(SendState& state) {
 }
 
 void FTPServer::start_stor(int data_fd, int control_fd, const string& filename) {
-    int file_fd = open(filename.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    const std::string root_dir = "/home/kong/plan/chartroom/chat-system/server/";
+    std::string save_path = root_dir + filename;
+
+    int file_fd = open(save_path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    // int file_fd = open(filename.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
     if (file_fd < 0) {
         perror("open file for STOR");
         close_connection(data_fd);
@@ -463,8 +471,6 @@ void FTPServer::start_stor(int data_fd, int control_fd, const string& filename) 
     state.active = true;
     stor_states[data_fd] = state;
 }
-
-
 
 void FTPServer::handle_stor_data(int data_fd, int control_fd) {
     auto it = stor_states.find(data_fd);
@@ -499,6 +505,7 @@ void FTPServer::handle_stor_data(int data_fd, int control_fd) {
 
             const char* msg = "226 Transfer complete.\r\n";
             send(control_fd, msg, strlen(msg), 0);
+
             return;
         } else {
             if (errno == EAGAIN || errno == EWOULDBLOCK) {

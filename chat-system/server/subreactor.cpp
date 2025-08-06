@@ -248,7 +248,7 @@ void SubReactor::run() {
                   handle_group_request_msg(fd,request);
                 });
                 continue;
-            }else if(type==""){
+            }else if(type=="send_private_file"){
 
 
 
@@ -256,20 +256,19 @@ void SubReactor::run() {
 
                 
 
-
+                thread_pool->enqueue([fd, request]() {
+                  send_private_file_msg(fd,request);
+                });
                 continue;
-            }else if(type==""){
-
-
-
-
-
-                
-
-
+            }else if(type=="send_group_file"){
+                thread_pool->enqueue([fd, request]() {
+                  send_group_file_msg(fd,request);
+                });
                 continue;
-            }else if(type==""){
-
+            }else if(type=="get_file_list"){
+                thread_pool->enqueue([fd, request]() {
+                  get_file_list_msg(fd,request);
+                });
 
 
 

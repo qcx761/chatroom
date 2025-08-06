@@ -146,6 +146,7 @@ void password_change_msg(const json &response){
 
 }
 
+
 void show_friend_list_msg(const json &response){
     std::string status = response.value("status", "error");
     if (status == "success") {
@@ -156,7 +157,7 @@ void show_friend_list_msg(const json &response){
             std::string username = f["username"];
             bool is_online = f["online"];
             bool is_muted = f["muted"];
-            std::cout << username << " (" << account << ") is "
+            std::cout << "用户名:"<< username << " 帐号:" << account << " is "
             << (is_online ? " online" : "offline")
             << (is_muted ? " [muted]" : "") << std::endl;
         }
@@ -262,7 +263,7 @@ void get_friend_info_msg(const json &response){
             std::string username = friends["username"];
             bool is_online = friends["online"];
             bool is_muted = friends["muted"];
-            std::cout << username << " (" << account << ") is "
+            std::cout << "用户名:"<< username << " 帐号:" << account << " is "
             << (is_online ? " online" : "offline")
             << (is_muted ? " [muted]" : "") << std::endl;
     }else if(status=="fail"){
@@ -446,18 +447,149 @@ void get_unread_private_messages_msg(const json &response){
 
 
 void show_group_list_msg(const json &response){
-        std::string status = response.value("status", "error");
+    std::string status = response.value("status", "error");
     if (status == "success") {
         auto groups = response["groups"];
         for (const auto& f : groups) {
-            std::string group_id = f["group_id"];
+            int group_id = f["group_id"];
             std::string owner = f["owner"];
             std::string group_name = f["group_name"];
-            std::cout <<  "[" << group_id << "] " <<group_name << " (owner: " << owner << ")"<< std::endl;
+            std::string role = f["role"];
+            std::cout <<  "id:" << group_id <<"  name:"<< group_name << "  owner:" << owner << "  role:" << role << std::endl;
         }
     }else{
         std::string msg = response.value("msg", "未知错误");
         std::cerr << "[列出错误] " << msg << std::endl;
+    }
+}
+
+void join_group_msg(const json &response){
+    std::string status = response.value("status", "error");
+    std::string msg = response.value("msg", "未知错误");
+
+    if (status == "success") {
+        std::cout << "[发送请求成功] " << msg << std::endl;
+    } else if (status == "fail") {
+        std::cout << "[发送请求失败] " << msg << std::endl;
+    } else {
+        std::cerr << "[发送请求错误] " << msg << std::endl;
+    }
+}
+
+void quit_group_msg(const json &response){
+    std::string status = response.value("status", "error");
+    std::string msg = response.value("msg", "未知错误");
+
+    if (status == "success") {
+        std::cout << "[退出群聊成功] " << msg << std::endl;
+    } else if (status == "fail") {
+        std::cout << "[退出群聊失败] " << msg << std::endl;
+    } else {
+        std::cerr << "[退出群聊错误] " << msg << std::endl;
+    }
+}
+
+void show_group_members_msg(const json &response){
+    std::string status = response.value("status", "error");
+    if (status == "success") {
+        // nlohmann::json 支持隐式把 STL 容器转换为 JSON 数组
+        std::string group_name = response["group_name"];
+        auto members = response["members"];
+        for (const auto& m : members) {
+            std::string account = m["account"];
+            std::string name = m["name"];
+            std::string role = m["role"];
+            std::cout << "name:" << name << " account:" << account  
+            << " role:"<< role << " in " << group_name <<std::endl;
+        }
+    } else if (status == "fail") {
+        std::string msg = response.value("msg", "未知错误");
+        std::cerr << "[列出失败] " << msg << std::endl;
+    } else {
+        std::string msg = response.value("msg", "未知错误");
+        std::cerr << "[列出错误] " << msg << std::endl;
+    }
+}
+
+
+void create_group_msg(const json &response){
+    std::string status = response.value("status", "error");
+    std::string msg = response.value("msg", "未知错误");
+
+    if (status == "success") {
+        std::cout << "[创建群聊成功] " << msg << std::endl;
+        // 可以输出id
+    } else if (status == "fail") {
+        std::cout << "[创建群聊失败] " << msg << std::endl;
+    } else {
+        std::cerr << "[创建群聊错误] " << msg << std::endl;
+    }
+}
+
+void set_group_admin_msg(const json &response){
+    std::string status = response.value("status", "error");
+    std::string msg = response.value("msg", "未知错误");
+
+    if (status == "success") {
+        std::cout << "[添加管理员成功] " << msg << std::endl;
+        // 可以输出id
+    } else if (status == "fail") {
+        std::cout << "[添加管理员失败] " << msg << std::endl;
+    } else {
+        std::cerr << "[添加管理员错误] " << msg << std::endl;
+    }
+}
+
+void remove_group_admin_msg(const json &response){
+    std::string status = response.value("status", "error");
+    std::string msg = response.value("msg", "未知错误");
+
+    if (status == "success") {
+        std::cout << "[删除管理员成功] " << msg << std::endl;
+        // 可以输出id
+    } else if (status == "fail") {
+        std::cout << "[删除管理员失败] " << msg << std::endl;
+    } else {
+        std::cerr << "[删除管理员错误] " << msg << std::endl;
+    }
+}
+
+void remove_group_member_msg(const json &response){
+    std::string status = response.value("status", "error");
+    std::string msg = response.value("msg", "未知错误");
+
+    if (status == "success") {
+        std::cout << "[删除成员成功] " << msg << std::endl;
+    } else if (status == "fail") {
+        std::cout << "[删除成员失败] " << msg << std::endl;
+    } else {
+        std::cerr << "[删除成员错误] " << msg << std::endl;
+    }
+}
+
+void add_group_member_msg(const json &response){
+    std::string status = response.value("status", "error");
+    std::string msg = response.value("msg", "未知错误");
+
+    if (status == "success") {
+        std::cout << "[添加成员成功] " << msg << std::endl;
+    } else if (status == "fail") {
+        std::cout << "[添加成员失败] " << msg << std::endl;
+    } else {
+        std::cerr << "[添加成员错误] " << msg << std::endl;
+    }
+}
+
+void dismiss_group_msg(const json &response){
+    std::string status = response.value("status", "error");
+    std::string msg = response.value("msg", "未知错误");
+
+    if (status == "success") {
+        std::cout << "[解散成功] " << msg << std::endl;
+    } else if (status == "fail") {
+        std::cout << "[解散失败] " << msg << std::endl;
+    } else {
+        std::cerr << "[解散错误] " << msg << std::endl;
     }
 }
 
@@ -475,6 +607,359 @@ void show_group_list_msg(const json &response){
 
 
 
-// resp["type"] = type;
-// resp["status"] = "error";
-// resp["msg"] = "Invalid or expired token.";
+
+void get_group_requests_msg(const json &response){
+    std::lock_guard<std::mutex> lock(group_requests_mutex);
+    global_group_requests.clear();
+    std::string status = response.value("status", "error");
+    std::string msg = response.value("msg", "未知错误");
+
+    if (status == "success") {
+        // std::cout << "[群申请列表获取成功] " << msg << std::endl;
+        auto requests = response["requests"];
+        if (requests.empty()) {
+            std::cout << "暂无待处理的群申请请求" << std::endl;
+        }else{
+            int index = 0;
+            for (const auto& r : requests) {
+                global_group_requests.push_back(r);
+                std::string username = r.value("username", "");
+                std::string account = r.value("account", "");
+                std::string group_name = r.value("group_name", "");
+                std::cout << ++index << ". 用户名:" << username
+                << " 账号:" << account << " from " 
+                << group_name << std::endl;
+            }
+        }
+    } else if (status == "fail") {
+        std::cout << "[群申请列表获取失败] " << msg << std::endl;
+    } else {
+        std::cerr << "[群申请列表获取错误] " << msg << std::endl;
+    }
+}
+
+void handle_group_request_msg(const json &response){
+    std::string status = response.value("status", "error");
+    std::string msg = response.value("msg", "未知错误");
+
+    if (status == "success") {
+        std::cout << "[处理成功] " << msg << std::endl;
+    } else if (status == "fail") {
+        std::cout << "[处理失败] " << msg << std::endl;
+    } else {
+        std::cerr << "[处理错误] " << msg << std::endl;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void get_unread_group_messages_msg(const json &response){
+    std::string status = response.value("status", "error");
+    if (status == "success") {
+        auto messages = response.value("messages",json::array());
+        std::cout << "------- 未读消息及上次聊天记录 -------" << std::endl;
+        if(messages.empty()){
+            std::cout<< "暂无未读消息"<<std::endl;
+            std::cout << "--------------------------" << std::endl;
+            return;
+        }
+
+        for(const auto&f : messages){
+            std::string from = f.value("sender","");
+            std::string content = f.value("content","");
+            std::string timestamp = f.value("timestamp","");
+            std::cout << "[" << from << "]: " << " > "<<content << std::endl;
+        }
+        std::cout << "--------------------------" << std::endl;
+    }else if(status=="fail"){
+        std::string msg = response.value("msg", "未知错误");
+        std::cout <<"[未读消息查询失败] " << msg << std::endl;
+    }else{
+        std::string msg = response.value("msg", "未知错误");
+        std::cerr << "[未读消息查询错误] " << msg << std::endl;
+    }
+}
+
+void receive_group_messages_msg(const json &response){
+    std::string from = response["from"];
+    std::string message = response["message"];
+    std::string group_name = response["group_name"];
+
+    std::lock_guard<std::mutex> lock(io_mutex);
+
+    // 保存当前输入文本和光标位置
+    int saved_point = rl_point;
+
+    // 保存当前 readline 输入行内容
+    char* saved_line = rl_copy_text(0, rl_end);
+
+    // 清除当前行并把光标移到行首
+    rl_replace_line("", 0);
+    std::cout << "\33[2K\r";
+
+    // 打印新消息
+    if (group_name == current_chat_group) {
+        std::cout << "[" << group_name << "] " << from <<":"<< message << std::endl;
+    } else {
+        std::cout << "[新消息来自 " << from << "] in " << group_name << std::endl;
+        // 这里你可以做未读提醒等
+    }
+
+    // 恢复之前的用户输入
+    rl_replace_line(saved_line, 0);
+    rl_point = saved_point;
+    free(saved_line);
+
+    // 通知 readline 新行开始，重新绘制输入行
+    rl_on_new_line();
+    rl_redisplay();
+}
+
+void get_group_history_msg(const json &response){
+        std::string group_name = response.value("group_name", "");
+        std::string status = response.value("status", "error");
+    if (status == "success") {
+        auto message = response.value("messages",json::array());
+        // auto message = response["message"];
+        std::cout << "------- 最新历史记录 -------" << std::endl;
+        if(message.empty()){
+            std::cout<< "暂无历史记录"<<std::endl;
+            std::cout << "--------------------------" << std::endl;
+            return;
+        }
+
+        for(const auto&f : message){
+            std::string from = f.value("sender","");
+            std::string content = f.value("content","");
+            std::string timestamp = f.value("timestamp","");
+            
+            std::cout << "[" << group_name << "] " << from <<":"<< content << std::endl;
+        }
+        std::cout << "--------------------------" << std::endl;
+    }else if(status=="fail"){
+        std::string msg = response.value("msg", "未知错误");
+        std::cout <<"[历史记录查询失败] " << msg << std::endl;
+    }else{
+        std::string msg = response.value("msg", "未知错误");
+        std::cerr << "[历史记录查询错误] " << msg << std::endl;
+    }
+}
+
+void send_group_message_msg(const json &response){
+    std::string status = response.value("status", "error");
+    if(status =="success"){
+        ;
+    }else if(status=="fail"){
+        std::string msg = response.value("msg", "未知错误");
+        std::cout <<"[发送失败] " << msg << std::endl;
+    }else{
+        std::string msg = response.value("msg", "未知错误");
+        std::cerr << "[发送错误] " << msg << std::endl;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void receive_message_msg(const json &response){
+    std::string status = response.value("status", "error");
+    if(status =="fail"){
+        // std::string msg = response.value("msg", "未知错误");
+        // std::cerr << "[错误] " << msg << std::endl;
+        ;
+    }
+
+
+    std::string msg = response.value("type1", "error");
+
+    if(msg=="private_file_message"){
+    std::string name = response.value("from", "error");
+
+        std::cout << "收到来自 " << name << "的文件传输" << std::endl;
+    }
+
+    if(msg=="group_file_message"){
+    std::string name = response.value("from", "error");
+    std::string group = response.value("group", "error");
+
+        std::cout << "收到来自 " << group << "群中 "<< name << "的文件传输" << std::endl;
+    }
+
+//type1
+
+// 信息处理记得馆标
+
+
+
+
+
+
+
+
+
+}
+
+
+void get_file_list_msg(const json &response){
+    std::string status = response.value("status", "error");
+    if (status == "success") {
+        auto list = response.value("files",json::array());
+        std::cout << "------- 文件接收 -------" << std::endl;
+        if(list.empty()){
+            std::cout<< "暂无文件"<<std::endl;
+            std::cout << "--------------------------" << std::endl;
+            return;
+        }
+
+        for(const auto&l : list){
+            std::string type = l.value("type","");
+            // std::string content = f.value("content","");
+            // std::string timestamp = f.value("timestamp","");
+            
+            // std::cout << "[" << group_name << "] " << from <<":"<< content << std::endl;
+            if(type == "private"){
+                std::string sender = l.value("sender","");
+                std::string filename = l.value("filename","");
+                std::cout << "来自用户名为:" << sender << "的文件 " << filename << std::endl;
+                // file["type"] = "private";
+                // file["id"] = res->getInt("id");
+                // file["sender"] = res->getString("sender");
+                // file["filename"] = res->getString("filename");
+                // file["filesize"] = res->getString("filesize");
+                // file["filepath"] = res->getString("filepath");
+                // file["timestamp"] = res->getString("timestamp");
+            }
+
+            if(type == "group"){
+                std::string sender = l.value("sender","");
+                std::string filename = l.value("filename","");
+                std::string id = l.value("group_id","");
+                std::cout << "来自用户名为:" << sender << "的文件 " << filename << " 在群id为"<< id << std::endl;
+                // file["type"] = "group";
+                // file["id"] = res->getInt("id");
+                // file["group_id"] = res->getInt("group_id");
+                // file["sender"] = res->getString("sender");
+                // file["filename"] = res->getString("filename");
+                // file["filesize"] = res->getString("filesize");
+                // file["filepath"] = res->getString("filepath");
+                // file["timestamp"] = res->getString("timestamp");
+            }
+        }
+        std::cout << "--------------------------" << std::endl;
+
+    }else if(status=="fail"){
+        std::cout <<"[文件查询失败] " << std::endl;
+    }else{
+        std::cerr << "[文件查询错误] " << std::endl;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+// void receive_file(int sock, std::string token, sem_t& sem) {
+//     json j;
+//     j["type"] = "get_file_list";
+//     j["token"] = token;
+//     send_json(sock, j);
+
+//     sem_wait(&sem);  // 等服务端返回
+
+//     if (last_response["status"] != "ok") {
+//         std::cout << "[错误] 获取文件列表失败: " << last_response["msg"] << std::endl;
+//         return;
+//     }
+
+//     const auto& files = last_response["files"];
+//     if (files.empty()) {
+//         std::cout << "[系统] 当前没有可接收的文件。" << std::endl;
+//         return;
+//     }
+
+//     std::cout << "\n[可接收文件列表]\n";
+//     for (size_t i = 0; i < files.size(); ++i) {
+//         const auto& file = files[i];
+//         std::cout << i + 1 << ". 类型: " << (file["type"] == "private" ? "私聊" : "群聊")
+//                   << " | 来自: " << file["sender"]
+//                   << (file["type"] == "group" ? (" | 群ID: " + std::to_string((int)file["group_id"])) : "")
+//                   << "\n   文件名: " << file["filename"]
+//                   << " | 大小: " << file["filesize"]
+//                   << " | 时间: " << file["timestamp"] << "\n";
+//     }
+
+//     int choice = readline_int("请输入要下载的文件编号: ");
+//     if (choice <= 0 || choice > files.size()) {
+//         std::cout << "[错误] 编号无效。\n";
+//         return;
+//     }
+
+//     const auto& selected = files[choice - 1];
+//     std::string filename = selected["filename"];
+//     std::string filepath = selected["filepath"];
+
+//     std::thread([filename, filepath]() {
+//         const std::string ftp_ip = "10.30.1.215";
+//         const int ftp_port = 2100;
+//         int control_fd = connect_to_server(ftp_ip, ftp_port);
+//         if (control_fd < 0) {
+//             std::cerr << "[错误] 连接 FTP 控制端失败\n";
+//             return;
+//         }
+
+//         std::string local_path = "./downloads/" + filename;  // 可加时间戳避免重复
+//         ftp_retr(control_fd, filename, local_path);
+//         close(control_fd);
+
+//         std::cout << "[系统] 文件下载完成：" << filename << std::endl;
+//     }).detach();
+// }

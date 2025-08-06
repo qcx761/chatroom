@@ -10,7 +10,6 @@
         next2_menu,   // 通讯录
         next21_menu,  // 好友
         next22_menu,  // 群聊
-        next4_menu,   // 消息
 
 
 
@@ -22,13 +21,8 @@ void show_main_menu();
 void show_next_menu();
 void show_next1_menu();
 void show_next11_menu();
-
-
-
-
 void show_next2_menu();
 void show_next3_menu();
-void show_next4_menu();
 void show_next21_menu();
 void show_next22_menu();
 
