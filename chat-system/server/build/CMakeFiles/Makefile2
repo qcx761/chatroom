@@ -64,6 +64,7 @@ CMAKE_BINARY_DIR = /home/kong/plan/chartroom/chat-system/server/build
 
 # The main recursive "all" target.
 all: CMakeFiles/server.dir/all
+all: CMakeFiles/ftpserver.dir/all
 .PHONY : all
 
 # The main recursive "preinstall" target.
@@ -72,6 +73,7 @@ preinstall:
 
 # The main recursive "clean" target.
 clean: CMakeFiles/server.dir/clean
+clean: CMakeFiles/ftpserver.dir/clean
 .PHONY : clean
 
 #=============================================================================
@@ -81,12 +83,12 @@ clean: CMakeFiles/server.dir/clean
 CMakeFiles/server.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/kong/plan/chartroom/chat-system/server/build/CMakeFiles --progress-num=1,2,3,4,5,6,7,8 "Built target server"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/kong/plan/chartroom/chat-system/server/build/CMakeFiles --progress-num=6,7,8,9,10,11,12,13,14 "Built target server"
 .PHONY : CMakeFiles/server.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/server.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/kong/plan/chartroom/chat-system/server/build/CMakeFiles 8
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/kong/plan/chartroom/chat-system/server/build/CMakeFiles 9
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/server.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/kong/plan/chartroom/chat-system/server/build/CMakeFiles 0
 .PHONY : CMakeFiles/server.dir/rule
@@ -99,6 +101,32 @@ server: CMakeFiles/server.dir/rule
 CMakeFiles/server.dir/clean:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/clean
 .PHONY : CMakeFiles/server.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/ftpserver.dir
+
+# All Build rule for target.
+CMakeFiles/ftpserver.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ftpserver.dir/build.make CMakeFiles/ftpserver.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ftpserver.dir/build.make CMakeFiles/ftpserver.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/kong/plan/chartroom/chat-system/server/build/CMakeFiles --progress-num=1,2,3,4,5 "Built target ftpserver"
+.PHONY : CMakeFiles/ftpserver.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/ftpserver.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/kong/plan/chartroom/chat-system/server/build/CMakeFiles 5
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/ftpserver.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/kong/plan/chartroom/chat-system/server/build/CMakeFiles 0
+.PHONY : CMakeFiles/ftpserver.dir/rule
+
+# Convenience name for target.
+ftpserver: CMakeFiles/ftpserver.dir/rule
+.PHONY : ftpserver
+
+# clean rule for target.
+CMakeFiles/ftpserver.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ftpserver.dir/build.make CMakeFiles/ftpserver.dir/clean
+.PHONY : CMakeFiles/ftpserver.dir/clean
 
 #=============================================================================
 # Special targets to cleanup operation of make.

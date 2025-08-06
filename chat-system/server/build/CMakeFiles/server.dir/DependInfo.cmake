@@ -8,6 +8,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
+  "/home/kong/plan/chartroom/chat-system/server/ftpserver.cpp" "CMakeFiles/server.dir/ftpserver.cpp.o" "gcc" "CMakeFiles/server.dir/ftpserver.cpp.o.d"
   "/home/kong/plan/chartroom/chat-system/log/logger.cpp" "CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/log/logger.cpp.o" "gcc" "CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/log/logger.cpp.o.d"
   "/home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp" "CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.o" "gcc" "CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.o.d"
   "/home/kong/plan/chartroom/chat-system/server/json.cpp" "CMakeFiles/server.dir/json.cpp.o" "gcc" "CMakeFiles/server.dir/json.cpp.o.d"

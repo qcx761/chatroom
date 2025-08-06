@@ -1,3 +1,4 @@
 /home/kong/plan/chartroom/chat-system/server/build/CMakeFiles/server.dir
+/home/kong/plan/chartroom/chat-system/server/build/CMakeFiles/ftpserver.dir
 /home/kong/plan/chartroom/chat-system/server/build/CMakeFiles/edit_cache.dir
 /home/kong/plan/chartroom/chat-system/server/build/CMakeFiles/rebuild_cache.dir

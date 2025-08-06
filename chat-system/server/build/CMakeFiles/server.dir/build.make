@@ -139,10 +139,24 @@ CMakeFiles/server.dir/msg.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/server.dir/msg.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/kong/plan/chartroom/chat-system/server/msg.cpp -o CMakeFiles/server.dir/msg.cpp.s
 
+CMakeFiles/server.dir/ftpserver.cpp.o: CMakeFiles/server.dir/flags.make
+CMakeFiles/server.dir/ftpserver.cpp.o: /home/kong/plan/chartroom/chat-system/server/ftpserver.cpp
+CMakeFiles/server.dir/ftpserver.cpp.o: CMakeFiles/server.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/kong/plan/chartroom/chat-system/server/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/server.dir/ftpserver.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/server.dir/ftpserver.cpp.o -MF CMakeFiles/server.dir/ftpserver.cpp.o.d -o CMakeFiles/server.dir/ftpserver.cpp.o -c /home/kong/plan/chartroom/chat-system/server/ftpserver.cpp
+
+CMakeFiles/server.dir/ftpserver.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/server.dir/ftpserver.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/kong/plan/chartroom/chat-system/server/ftpserver.cpp > CMakeFiles/server.dir/ftpserver.cpp.i
+
+CMakeFiles/server.dir/ftpserver.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/server.dir/ftpserver.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/kong/plan/chartroom/chat-system/server/ftpserver.cpp -o CMakeFiles/server.dir/ftpserver.cpp.s
+
 CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.o: CMakeFiles/server.dir/flags.make
 CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.o: /home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp
 CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.o: CMakeFiles/server.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/kong/plan/chartroom/chat-system/server/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/kong/plan/chartroom/chat-system/server/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.o -MF CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.o.d -o CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.o -c /home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp
 
 CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.i: cmake_force
@@ -156,7 +170,7 @@ CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/threadpool/threadpool
 CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/log/logger.cpp.o: CMakeFiles/server.dir/flags.make
 CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/log/logger.cpp.o: /home/kong/plan/chartroom/chat-system/log/logger.cpp
 CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/log/logger.cpp.o: CMakeFiles/server.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/kong/plan/chartroom/chat-system/server/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/log/logger.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/kong/plan/chartroom/chat-system/server/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/log/logger.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/log/logger.cpp.o -MF CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/log/logger.cpp.o.d -o CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/log/logger.cpp.o -c /home/kong/plan/chartroom/chat-system/log/logger.cpp
 
 CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/log/logger.cpp.i: cmake_force
@@ -174,6 +188,7 @@ server_OBJECTS = \
 "CMakeFiles/server.dir/subreactor.cpp.o" \
 "CMakeFiles/server.dir/json.cpp.o" \
 "CMakeFiles/server.dir/msg.cpp.o" \
+"CMakeFiles/server.dir/ftpserver.cpp.o" \
 "CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.o" \
 "CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/log/logger.cpp.o"
 
@@ -185,11 +200,12 @@ server: CMakeFiles/server.dir/server.cpp.o
 server: CMakeFiles/server.dir/subreactor.cpp.o
 server: CMakeFiles/server.dir/json.cpp.o
 server: CMakeFiles/server.dir/msg.cpp.o
+server: CMakeFiles/server.dir/ftpserver.cpp.o
 server: CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.o
 server: CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/log/logger.cpp.o
 server: CMakeFiles/server.dir/build.make
 server: CMakeFiles/server.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/kong/plan/chartroom/chat-system/server/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Linking CXX executable server"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/kong/plan/chartroom/chat-system/server/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Linking CXX executable server"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/server.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

@@ -129,12 +129,77 @@ server/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/build
 .PHONY : server/fast
 
+#=============================================================================
+# Target rules for targets named ftpserver
+
+# Build rule for target.
+ftpserver: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 ftpserver
+.PHONY : ftpserver
+
+# fast build rule for target.
+ftpserver/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ftpserver.dir/build.make CMakeFiles/ftpserver.dir/build
+.PHONY : ftpserver/fast
+
+ftpmain.o: ftpmain.cpp.o
+.PHONY : ftpmain.o
+
+# target to build an object file
+ftpmain.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ftpserver.dir/build.make CMakeFiles/ftpserver.dir/ftpmain.cpp.o
+.PHONY : ftpmain.cpp.o
+
+ftpmain.i: ftpmain.cpp.i
+.PHONY : ftpmain.i
+
+# target to preprocess a source file
+ftpmain.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ftpserver.dir/build.make CMakeFiles/ftpserver.dir/ftpmain.cpp.i
+.PHONY : ftpmain.cpp.i
+
+ftpmain.s: ftpmain.cpp.s
+.PHONY : ftpmain.s
+
+# target to generate assembly for a file
+ftpmain.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ftpserver.dir/build.make CMakeFiles/ftpserver.dir/ftpmain.cpp.s
+.PHONY : ftpmain.cpp.s
+
+ftpserver.o: ftpserver.cpp.o
+.PHONY : ftpserver.o
+
+# target to build an object file
+ftpserver.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/ftpserver.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ftpserver.dir/build.make CMakeFiles/ftpserver.dir/ftpserver.cpp.o
+.PHONY : ftpserver.cpp.o
+
+ftpserver.i: ftpserver.cpp.i
+.PHONY : ftpserver.i
+
+# target to preprocess a source file
+ftpserver.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/ftpserver.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ftpserver.dir/build.make CMakeFiles/ftpserver.dir/ftpserver.cpp.i
+.PHONY : ftpserver.cpp.i
+
+ftpserver.s: ftpserver.cpp.s
+.PHONY : ftpserver.s
+
+# target to generate assembly for a file
+ftpserver.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/ftpserver.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ftpserver.dir/build.make CMakeFiles/ftpserver.dir/ftpserver.cpp.s
+.PHONY : ftpserver.cpp.s
+
 home/kong/plan/chartroom/chat-system/log/logger.o: home/kong/plan/chartroom/chat-system/log/logger.cpp.o
 .PHONY : home/kong/plan/chartroom/chat-system/log/logger.o
 
 # target to build an object file
 home/kong/plan/chartroom/chat-system/log/logger.cpp.o:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/log/logger.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ftpserver.dir/build.make CMakeFiles/ftpserver.dir/home/kong/plan/chartroom/chat-system/log/logger.cpp.o
 .PHONY : home/kong/plan/chartroom/chat-system/log/logger.cpp.o
 
 home/kong/plan/chartroom/chat-system/log/logger.i: home/kong/plan/chartroom/chat-system/log/logger.cpp.i
@@ -143,6 +208,7 @@ home/kong/plan/chartroom/chat-system/log/logger.i: home/kong/plan/chartroom/chat
 # target to preprocess a source file
 home/kong/plan/chartroom/chat-system/log/logger.cpp.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/log/logger.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ftpserver.dir/build.make CMakeFiles/ftpserver.dir/home/kong/plan/chartroom/chat-system/log/logger.cpp.i
 .PHONY : home/kong/plan/chartroom/chat-system/log/logger.cpp.i
 
 home/kong/plan/chartroom/chat-system/log/logger.s: home/kong/plan/chartroom/chat-system/log/logger.cpp.s
@@ -151,6 +217,7 @@ home/kong/plan/chartroom/chat-system/log/logger.s: home/kong/plan/chartroom/chat
 # target to generate assembly for a file
 home/kong/plan/chartroom/chat-system/log/logger.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/log/logger.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ftpserver.dir/build.make CMakeFiles/ftpserver.dir/home/kong/plan/chartroom/chat-system/log/logger.cpp.s
 .PHONY : home/kong/plan/chartroom/chat-system/log/logger.cpp.s
 
 home/kong/plan/chartroom/chat-system/threadpool/threadpool.o: home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.o
@@ -159,6 +226,7 @@ home/kong/plan/chartroom/chat-system/threadpool/threadpool.o: home/kong/plan/cha
 # target to build an object file
 home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.o:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ftpserver.dir/build.make CMakeFiles/ftpserver.dir/home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.o
 .PHONY : home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.o
 
 home/kong/plan/chartroom/chat-system/threadpool/threadpool.i: home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.i
@@ -167,6 +235,7 @@ home/kong/plan/chartroom/chat-system/threadpool/threadpool.i: home/kong/plan/cha
 # target to preprocess a source file
 home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ftpserver.dir/build.make CMakeFiles/ftpserver.dir/home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.i
 .PHONY : home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.i
 
 home/kong/plan/chartroom/chat-system/threadpool/threadpool.s: home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.s
@@ -175,6 +244,7 @@ home/kong/plan/chartroom/chat-system/threadpool/threadpool.s: home/kong/plan/cha
 # target to generate assembly for a file
 home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ftpserver.dir/build.make CMakeFiles/ftpserver.dir/home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.s
 .PHONY : home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.s
 
 json.o: json.cpp.o
@@ -305,7 +375,14 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
+	@echo "... ftpserver"
 	@echo "... server"
+	@echo "... ftpmain.o"
+	@echo "... ftpmain.i"
+	@echo "... ftpmain.s"
+	@echo "... ftpserver.o"
+	@echo "... ftpserver.i"
+	@echo "... ftpserver.s"
 	@echo "... home/kong/plan/chartroom/chat-system/log/logger.o"
 	@echo "... home/kong/plan/chartroom/chat-system/log/logger.i"
 	@echo "... home/kong/plan/chartroom/chat-system/log/logger.s"
