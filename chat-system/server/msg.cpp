@@ -348,101 +348,117 @@ void destory_account_msg(int fd, const json &request) {
                     del_stmt->executeUpdate();
                 }
 
-                // // 2. 删除 friends 表中本人为主账号的记录
-                // {
-                //     auto del_stmt = std::unique_ptr<sql::PreparedStatement>(
-                //         conn->prepareStatement("DELETE FROM friends WHERE account = ?"));
-                //     del_stmt->setString(1, account);
-                //     del_stmt->executeUpdate();
-                // }
+                // 2. 删除 friends 表中本人为主账号的记录
+                {
+                    auto del_stmt = std::unique_ptr<sql::PreparedStatement>(
+                        conn->prepareStatement("DELETE FROM friends WHERE account = ?"));
+                    del_stmt->setString(1, account);
+                    del_stmt->executeUpdate();
+                }
 
-                // // 3. 从其他用户的 friends 列表中移除自己
-                // {
-                //     auto get_all_stmt = std::unique_ptr<sql::PreparedStatement>(
-                //         conn->prepareStatement("SELECT account, friends FROM friends"));
-                //     auto all_res = std::unique_ptr<sql::ResultSet>(get_all_stmt->executeQuery());
+                // 3. 从其他用户的 friends 列表中移除自己
+                {
+                    auto get_all_stmt = std::unique_ptr<sql::PreparedStatement>(
+                        conn->prepareStatement("SELECT account, friends FROM friends"));
+                    auto all_res = std::unique_ptr<sql::ResultSet>(get_all_stmt->executeQuery());
 
-                //     while (all_res->next()) {
-                //         std::string acc = all_res->getString("account");
-                //         json friends = json::parse(all_res->getString("friends"));
-                //         json new_friends = json::array();
-                //         bool changed = false;
+                    while (all_res->next()) {
+                        std::string acc = all_res->getString("account");
+                        json friends = json::parse(std::string(all_res->getString("friends")));
 
-                //         for (const auto &f : friends) {
-                //             if (f.value("account", "") != account) {
-                //                 new_friends.push_back(f);
-                //             } else {
-                //                 changed = true;
-                //             }
-                //         }
+                        //json friends = json::parse(all_res->getString("friends"));
+                        json new_friends = json::array();
+                        bool changed = false;
 
-                //         if (changed) {
-                //             auto update_stmt = std::unique_ptr<sql::PreparedStatement>(
-                //                 conn->prepareStatement("REPLACE INTO friends(account, friends) VALUES (?, ?)"));
-                //             update_stmt->setString(1, acc);
-                //             update_stmt->setString(2, new_friends.dump());
-                //             update_stmt->execute();
-                //         }
-                //     }
-                // }
+                        for (const auto &f : friends) {
+                            if (f.value("account", "") != account) {
+                                new_friends.push_back(f);
+                            } else {
+                                changed = true;
+                            }
+                        }
 
-                // // 4. 删除自己相关的好友请求
-                // {
-                //     auto del_stmt = std::unique_ptr<sql::PreparedStatement>(
-                //         conn->prepareStatement("DELETE FROM friend_requests WHERE sender = ? OR receiver = ?"));
-                //     del_stmt->setString(1, account);
-                //     del_stmt->setString(2, account);
-                //     del_stmt->executeUpdate();
-                // }
+                        if (changed) {
+                            auto update_stmt = std::unique_ptr<sql::PreparedStatement>(
+                                conn->prepareStatement("REPLACE INTO friends(account, friends) VALUES (?, ?)"));
+                            update_stmt->setString(1, acc);
+                            update_stmt->setString(2, new_friends.dump());
+                            update_stmt->execute();
+                        }
+                    }
+                }
 
-                // // 5. 删除私聊消息（发送或接收）
-                // {
-                //     auto del_stmt = std::unique_ptr<sql::PreparedStatement>(
-                //         conn->prepareStatement("DELETE FROM messages WHERE sender = ? OR receiver = ?"));
-                //     del_stmt->setString(1, account);
-                //     del_stmt->setString(2, account);
-                //     del_stmt->executeUpdate();
-                // }
+                // 4. 删除自己相关的好友请求
+                {
+                    auto del_stmt = std::unique_ptr<sql::PreparedStatement>(
+                        conn->prepareStatement("DELETE FROM friend_requests WHERE sender = ? OR receiver = ?"));
+                    del_stmt->setString(1, account);
+                    del_stmt->setString(2, account);
+                    del_stmt->executeUpdate();
+                }
 
-                // // 6. 删除本人创建的群聊（chat_groups 有 ON DELETE CASCADE）
-                // {
-                //     auto del_stmt = std::unique_ptr<sql::PreparedStatement>(
-                //         conn->prepareStatement("DELETE FROM chat_groups WHERE owner_account = ?"));
-                //     del_stmt->setString(1, account);
-                //     del_stmt->executeUpdate();
-                // }
+                // 5. 删除私聊消息（发送或接收）
+                {
+                    auto del_stmt = std::unique_ptr<sql::PreparedStatement>(
+                        conn->prepareStatement("DELETE FROM messages WHERE sender = ? OR receiver = ?"));
+                    del_stmt->setString(1, account);
+                    del_stmt->setString(2, account);
+                    del_stmt->executeUpdate();
+                }
 
-                // // 7. 删除自己在群中的成员记录
-                // {
-                //     auto del_stmt = std::unique_ptr<sql::PreparedStatement>(
-                //         conn->prepareStatement("DELETE FROM group_members WHERE account = ?"));
-                //     del_stmt->setString(1, account);
-                //     del_stmt->executeUpdate();
-                // }
+                // 6. 删除本人创建的群聊（chat_groups 有 ON DELETE CASCADE）
+                {
+                    auto del_stmt = std::unique_ptr<sql::PreparedStatement>(
+                        conn->prepareStatement("DELETE FROM chat_groups WHERE owner_account = ?"));
+                    del_stmt->setString(1, account);
+                    del_stmt->executeUpdate();
+                }
 
-                // // 8. 删除自己发出的加群请求
-                // {
-                //     auto del_stmt = std::unique_ptr<sql::PreparedStatement>(
-                //         conn->prepareStatement("DELETE FROM group_requests WHERE sender = ?"));
-                //     del_stmt->setString(1, account);
-                //     del_stmt->executeUpdate();
-                // }
+                // 7. 删除自己在群中的成员记录
+                {
+                    auto del_stmt = std::unique_ptr<sql::PreparedStatement>(
+                        conn->prepareStatement("DELETE FROM group_members WHERE account = ?"));
+                    del_stmt->setString(1, account);
+                    del_stmt->executeUpdate();
+                }
 
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
+                // 8. 删除自己发出的加群请求
+                {
+                    auto del_stmt = std::unique_ptr<sql::PreparedStatement>(
+                        conn->prepareStatement("DELETE FROM group_requests WHERE sender = ?"));
+                    del_stmt->setString(1, account);
+                    del_stmt->executeUpdate();
+                }
 
+                // 9. 删除群聊消息（如果没有 ON DELETE CASCADE）
+                {
+                    auto del_group_msgs = std::unique_ptr<sql::PreparedStatement>(
+                        conn->prepareStatement("DELETE FROM group_messages WHERE sender = ?"));
+                    del_group_msgs->setString(1, account);
+                    del_group_msgs->executeUpdate();
+                }
                 
-                
+                // 10. 删除文件消息
+                {
+                    auto del_file_msgs = std::unique_ptr<sql::PreparedStatement>(
+                        conn->prepareStatement("DELETE FROM file_messages WHERE sender = ? OR receiver = ?"));
+                    del_file_msgs->setString(1, account);
+                    del_file_msgs->setString(2, account);
+                    del_file_msgs->executeUpdate();
+
+                    auto del_group_file_msgs = std::unique_ptr<sql::PreparedStatement>(
+                        conn->prepareStatement("DELETE FROM group_file_messages WHERE sender = ?"));
+                    del_group_file_msgs->setString(1, account);
+                    del_group_file_msgs->executeUpdate();
+                }
+
+                // 11. 删除群聊阅读状态
+                {
+                    auto del_group_read_status = std::unique_ptr<sql::PreparedStatement>(
+                        conn->prepareStatement("DELETE FROM group_read_status WHERE account = ?"));
+                    del_group_read_status->setString(1, account);
+                    del_group_read_status->executeUpdate();
+                }
                 
                 
                 
@@ -1457,59 +1473,6 @@ void get_friend_info_msg(int fd, const json& request) {
     send_json(fd, response);
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // 查找历史记录
 void get_private_history_msg(int fd, const json& request) {
     json response;
@@ -1857,63 +1820,6 @@ void get_unread_private_messages_msg(int fd, const json& request) {
     }
     send_json(fd, response);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -2500,7 +2406,7 @@ void remove_group_admin_msg(int fd, const json& request) {
 
             if (affected == 0) {
                 response["status"] = "fail";
-                response["msg"] = "Target user is not a member";
+                response["msg"] = "Target user is not a member or admin";
                 send_json(fd, response);
                 return;
             }
@@ -2579,6 +2485,7 @@ void remove_group_member_msg(int fd, const json& request) {
             }
         }
 
+        std::string role;
         // 验证操作者权限（owner 或 admin）
         {
             auto stmt = std::unique_ptr<sql::PreparedStatement>(conn->prepareStatement(
@@ -2594,10 +2501,43 @@ void remove_group_member_msg(int fd, const json& request) {
                 send_json(fd, response);
                 return;
             }
-            std::string role = res->getString("role");
+            role = res->getString("role");
             if (role != "owner" && role != "admin") {
                 response["status"] = "fail";
                 response["msg"] = "Only owner or admin can remove members";
+                send_json(fd, response);
+                return;
+            }
+        }
+     
+        std::string role1;
+        // 检查目标成员身份
+        {
+            auto stmt = std::unique_ptr<sql::PreparedStatement>(conn->prepareStatement(
+                "SELECT role FROM group_members WHERE group_id = ? AND account = ?"
+            ));
+            stmt->setInt(1, group_id);
+            stmt->setString(2, target_account);
+            auto res = std::unique_ptr<sql::ResultSet>(stmt->executeQuery());
+
+            if (res->next()) {
+                role1 = res->getString("role");
+                if (role1 == "owner") {
+                    response["status"] = "fail";
+                    response["msg"] = "Cannot remove group owner";
+                    send_json(fd, response);
+                    return;
+                }
+                
+                if(role1 == "admin" && role == "admin"){
+                    response["status"] = "fail";
+                    response["msg"] = "admin cannot remove admin";
+                    send_json(fd, response);
+                    return;
+                }
+            } else {
+                response["status"] = "fail";
+                response["msg"] = "Target user is not a group member";
                 send_json(fd, response);
                 return;
             }
@@ -3039,44 +2979,6 @@ void handle_group_request_msg(int fd, const json& request) {
     send_json(fd, response);
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // 获取未读消息
 void get_unread_group_messages_msg(int fd, const json& request) {
     json response;
@@ -3338,171 +3240,6 @@ void send_group_message_msg(int fd, const json& request) {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// void send_private_file_msg(int fd, const json& request){
-//     std::cout << "进入 send_private_file_msg" << std::endl;
-//     json response;
-
-//     std::string token = request.value("token", "");
-//     std::string target_name = request.value("target_username", "");
-//     std::string filename = request.value("filename", "");
-//     std::string filesize = request.value("filesize", "");
-//     std::string user_account;
-//     std::string target_account;
-
-// std::cout << "1111111" << std::endl;
-
-//     std::cout << "[调试] token: " << token << std::endl;
-//     std::cout << "[调试] target_name: " << target_name << std::endl;
-//     std::cout << "[调试] filename: " << filename << std::endl;
-//     std::cout << "[调试] filesize: " << filesize << std::endl;
-
-//     if (!verify_token(token, user_account)) {
-//         response["status"] = "fail";
-//         response["msg"] = "Invalid token";
-//         send_json(fd, response);
-//         return;
-//     }
-//     std::cout << "[调试] token 验证通过，发送者 account: " << user_account << std::endl;
-
-// std::cout << "e12e1111" << std::endl;
-//     try {
-//         auto conn = get_mysql_connection();
-
-//         // 查找接收者的 account
-//         {
-//             std::unique_ptr<sql::PreparedStatement> stmt(
-//                 conn->prepareStatement(
-//                     "SELECT JSON_UNQUOTE(JSON_EXTRACT(info, '$.account')) AS account "
-//                     "FROM users WHERE JSON_UNQUOTE(JSON_EXTRACT(info, '$.username')) = ?"));
-//             stmt->setString(1, target_name);
-//             std::unique_ptr<sql::ResultSet> res(stmt->executeQuery());
-//             if (res->next()) {
-//                 target_account = res->getString("account");
-//                 std::cout << "[调试] target_account 查找成功: " << target_account << std::endl;
-//             } else {
-//                 response["status"] = "fail";
-//                 response["msg"] = "Friend user not found";
-//                 send_json(fd, response);
-//                 std::cerr << "[错误] 用户名不存在: " << target_name << std::endl;
-//                 return;
-//             }
-//         }
-
-//         // 查找发送者用户名（user_account -> username）
-//         std::string user_name;
-//         {
-//             std::unique_ptr<sql::PreparedStatement> stmt(
-//                 conn->prepareStatement(
-//                     "SELECT JSON_UNQUOTE(JSON_EXTRACT(info, '$.username')) AS username "
-//                     "FROM users WHERE JSON_UNQUOTE(JSON_EXTRACT(info, '$.account')) = ?"));
-//             stmt->setString(1, user_account);
-//             std::unique_ptr<sql::ResultSet> res(stmt->executeQuery());
-//             if (res->next()) {
-//                 user_name = res->getString("username");
-//                 std::cout << "[调试] 发送者用户名为: " << user_name << std::endl;
-//             }
-//         }
-
-//         // 生成文件存储路径
-//         std::string filepath = "/home/kong/plan/chartroom/chat-system/server/" + filename;
-//         std::cout << "[调试] 文件路径为: " << filepath << std::endl;
-
-//         // 插入文件消息记录
-//         {
-//             std::unique_ptr<sql::PreparedStatement> stmt(
-//                 conn->prepareStatement(
-//                     "INSERT INTO file_messages (sender, receiver, filename, filesize, filepath, is_read, timestamp) "
-//                     "VALUES (?, ?, ?, ?, ?, FALSE, NOW())"));
-//             stmt->setString(1, user_account);
-//             stmt->setString(2, target_account);
-//             stmt->setString(3, filename);
-//             stmt->setString(4, filesize);
-//             stmt->setString(5, filepath);
-
-//             stmt->execute();
-//             std::cout << "[数据库] 文件消息插入成功 ✅" << std::endl;
-//         }
-
-//         // 判断对方是否在线
-//         bool is_online = redis.exists("online:" + target_account);
-//         std::cout << "[调试] 用户是否在线: " << is_online << std::endl;
-
-//         if (is_online) {
-//             int target_fd = get_fd_by_account(target_account);
-//             std::cout << "[调试] 对方在线，FD = " << target_fd << std::endl;
-
-//             if (target_fd != -1) {
-//                 json notify;
-//                 notify["type"] = "receive_message";
-//                 notify["type1"] = "private_file_message";
-//                 notify["from"] = user_name;
-//                 notify["filename"] = filename;
-//                 notify["filesize"] = filesize;
-
-//                 send_json(target_fd, notify);
-//                 std::cout << "[系统] 已推送文件消息给在线用户" << std::endl;
-//             } else {
-//                 std::cerr << "[错误] 获取用户 fd 失败！" << std::endl;
-//             }
-//         } else {
-//             std::cout << "[系统] 接收方不在线，将在上线时推送离线消息" << std::endl;
-//         }
-
-//     } catch (const sql::SQLException& e) {
-//         std::cerr << "[数据库异常] " << e.what() << std::endl;
-//         response["status"] = "fail";
-//         response["msg"] = "Database error";
-//         send_json(fd, response);
-//     }
-// }
-
-
-
-
-
-
-
-
 // 转发给用户
 void send_private_file_msg(int fd, const json& request){
     std::cout <<"进入 send_private_file_msg" << std::endl;
@@ -3715,16 +3452,6 @@ void send_group_file_msg(int fd, const json& request){
                 }
             }
         }
-
-
-
-
-
-
-
-
-
-
 
 
 

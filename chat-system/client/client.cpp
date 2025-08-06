@@ -333,7 +333,6 @@ void Client::epoll_thread_func(){
                         continue;
                     }   
 
-
                     // 处理通知
                     if(type=="receive_message"){
                         receive_message_msg(j);

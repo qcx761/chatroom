@@ -366,6 +366,21 @@ void get_friend_info(int sock, string token,sem_t& sem){
 void send_private_message(int sock,string token, sem_t& sem) {
     system("clear");
     cout << "========== 私聊 ==========" << endl;
+    cout << "---------- 好友列表 ----------" << endl;
+
+
+
+    json mm;
+    mm["type"]="show_friend_list";
+    mm["token"]=token;
+    send_json(sock,mm);
+    sem_wait(&sem); // 等待信号量
+
+
+    cout << "-----------------------------" << endl;
+
+
+
 
     string target_username = readline_string("请输入想私聊的用户名 : ");
     if (target_username.empty()) {
@@ -520,8 +535,22 @@ void receive_file(int sock,string token,sem_t& sem){
     j["token"] = token;
     send_json(sock, j);
     sem_wait(&sem);
+    // string filename = readline_string("请输入想接收的文件名 : ");
+    // string path1 = readline_string("请输入想放在的路径 : ");
+
+
+
     string filename = readline_string("请输入想接收的文件名 : ");
-    string path1 = readline_string("请输入想放在的路径 : ");
+if (!filename.empty() && filename.back() == '\n') {
+    filename.pop_back();  // 直接删掉最后一个字符
+}
+
+string path1 = readline_string("请输入想放在的路径 : ");
+if (!path1.empty() && path1.back() == '\n') {
+    path1.pop_back();
+}
+
+
 
 
 if (path1.empty()) {
@@ -533,12 +562,7 @@ if (path1.back() != '/'){
 }
 
     string path = path1 + filename;
-    // json m;
-    // m["type"] = "retr_file";
-    // m["token"] = token;
-    // m["path"] = path;
-    // send_json(sock, j);
-    // sem_wait(&sem);
+
 
     std::thread([sock, token, path, filename]() {
         const std::string ftp_ip = "10.30.1.215";
@@ -645,6 +669,22 @@ void join_group(int sock,string token,sem_t& sem){
 
 void quit_group(int sock,string token,sem_t& sem){
     system("clear");
+    
+
+
+    cout << "---------- 群列表 ----------" << endl;
+    json jj;
+    jj["type"] = "show_group_list";
+    jj["token"] = token;
+    send_json(sock, jj);
+    sem_wait(&sem);
+    cout << "-----------------------------" << endl;
+
+
+
+
+
+
     string group_name = readline_string("输入要退出的群聊名称 : ");
     json j;
     j["type"] = "quit_group";
@@ -657,6 +697,15 @@ void quit_group(int sock,string token,sem_t& sem){
 
 void show_group_members(int sock,string token,sem_t& sem){
     system("clear");
+
+    cout << "---------- 群列表 ----------" << endl;
+    json jj;
+    jj["type"] = "show_group_list";
+    jj["token"] = token;
+    send_json(sock, jj);
+    sem_wait(&sem);
+    cout << "-----------------------------" << endl;
+
     string group_name = readline_string("输入要查看成员的群聊名称 : ");
     json j;
     j["type"] = "show_group_members";
@@ -681,7 +730,28 @@ void create_group(int sock,string token,sem_t& sem){
 
 void set_group_admin(int sock,string token,sem_t& sem){
     system("clear");
+
+    cout << "---------- 群列表 ----------" << endl;
+    json jj;
+    jj["type"] = "show_group_list";
+    jj["token"] = token;
+    send_json(sock, jj);
+    sem_wait(&sem);
+    cout << "-----------------------------" << endl;
+
     string group_name = readline_string("输入群聊名称 : ");
+
+
+    cout << "---------- 群成员列表 ----------" << endl;
+    json jjj;
+    jjj["type"] = "show_group_members";
+    jjj["token"] = token;
+    jjj["group_name"] = group_name;
+    send_json(sock, jjj);
+    sem_wait(&sem);
+    cout << "-------------------------------" << endl;
+
+
     string target_user = readline_string("输入要设为管理员的用户名 : ");
     json j;
     j["type"] = "set_group_admin";
@@ -695,7 +765,26 @@ void set_group_admin(int sock,string token,sem_t& sem){
 
 void remove_group_admin(int sock,string token,sem_t& sem){
     system("clear");
+
+    cout << "---------- 群列表 ----------" << endl;
+    json jj;
+    jj["type"] = "show_group_list";
+    jj["token"] = token;
+    send_json(sock, jj);
+    sem_wait(&sem);
+    cout << "-----------------------------" << endl;
+
     string group_name = readline_string("输入群聊名称 : ");
+
+    cout << "---------- 群成员列表 ----------" << endl;
+    json jjj;
+    jjj["type"] = "show_group_members";
+    jjj["token"] = token;
+    jjj["group_name"] = group_name;
+    send_json(sock, jjj);
+    sem_wait(&sem);
+    cout << "-------------------------------" << endl;
+
     string target_user = readline_string("输入要移除管理员权限的用户名 : ");
     json j;
     j["type"] = "remove_group_admin";
@@ -709,7 +798,26 @@ void remove_group_admin(int sock,string token,sem_t& sem){
 
 void remove_group_member(int sock,string token,sem_t& sem){
     system("clear");
+
+    cout << "---------- 群列表 ----------" << endl;
+    json jj;
+    jj["type"] = "show_group_list";
+    jj["token"] = token;
+    send_json(sock, jj);
+    sem_wait(&sem);
+    cout << "-----------------------------" << endl;
+
     string group_name = readline_string("输入群聊名称 : ");
+
+    cout << "---------- 群成员列表 ----------" << endl;
+    json jjj;
+    jjj["type"] = "show_group_members";
+    jjj["token"] = token;
+    jjj["group_name"] = group_name;
+    send_json(sock, jjj);
+    sem_wait(&sem);
+    cout << "-------------------------------" << endl;
+
     string target_user = readline_string("输入要移除的成员用户名 : ");
     json j;
     j["type"] = "remove_group_member";
@@ -723,6 +831,15 @@ void remove_group_member(int sock,string token,sem_t& sem){
 
 void add_group_member(int sock,string token,sem_t& sem){
     system("clear");
+
+    cout << "---------- 群列表 ----------" << endl;
+    json jj;
+    jj["type"] = "show_group_list";
+    jj["token"] = token;
+    send_json(sock, jj);
+    sem_wait(&sem);
+    cout << "-----------------------------" << endl;
+
     string group_name = readline_string("输入群聊名称 : ");
     string new_member = readline_string("输入新成员用户名 : ");
     json j;
@@ -737,6 +854,15 @@ void add_group_member(int sock,string token,sem_t& sem){
 
 void dismiss_group(int sock,string token,sem_t& sem){
     system("clear");
+
+    cout << "---------- 群列表 ----------" << endl;
+    json jj;
+    jj["type"] = "show_group_list";
+    jj["token"] = token;
+    send_json(sock, jj);
+    sem_wait(&sem);
+    cout << "-----------------------------" << endl;
+
     string group_name = readline_string("输入要解散的群聊名称 : ");
     json j;
     j["type"] = "dismiss_group";
@@ -749,6 +875,15 @@ void dismiss_group(int sock,string token,sem_t& sem){
 
 void getandhandle_group_request(int sock,string token,sem_t& sem){
     system("clear");
+
+    cout << "---------- 群列表 ----------" << endl;
+    json jj;
+    jj["type"] = "show_group_list";
+    jj["token"] = token;
+    send_json(sock, jj);
+    sem_wait(&sem);
+    cout << "-----------------------------" << endl;
+
     std::cout << "请求列表" << std::endl;
     string group_name = readline_string("输入查询的群名 : ");
     
@@ -821,6 +956,15 @@ void getandhandle_group_request(int sock,string token,sem_t& sem){
 void send_group_message(int sock,string token,sem_t& sem){
 system("clear");
     cout << "========== 群聊 ==========" << endl;
+
+
+    cout << "---------- 群列表 ----------" << endl;
+    json jj;
+    jj["type"] = "show_group_list";
+    jj["token"] = token;
+    send_json(sock, jj);
+    sem_wait(&sem);
+    cout << "-----------------------------" << endl;
 
     string target_group = readline_string("请输入想群聊的群名 : ");
     if (target_group.empty()) {
@@ -1106,7 +1250,7 @@ pair<string, int> enter_passive_mode(int control_fd) {
     std::string buf = read_ftp_response_line(control_fd);
 
 
-    cout << "[调试] 服务器PASV响应: " << buf << endl;
+    // cout << "[调试] 服务器PASV响应: " << buf << endl;
 
     // 解析类似 "227 Entering Passive Mode (h1,h2,h3,h4,p1,p2)"
     int h1,h2,h3,h4,p1,p2;
@@ -1118,7 +1262,7 @@ pair<string, int> enter_passive_mode(int control_fd) {
     string ip = to_string(h1) + "." + to_string(h2) + "." + to_string(h3) + "." + to_string(h4);
     int port = p1 * 256 + p2;
 
-    cout << "[调试] 解析得到IP: " << ip << ", 端口: " << port << endl;
+    // cout << "[调试] 解析得到IP: " << ip << ", 端口: " << port << endl;
 
     return {ip, port};
 }

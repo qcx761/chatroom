@@ -107,6 +107,123 @@ void handle_group_request_msg(int fd, const json& request){
 
 
 
+// 1. 删除 users 表记录
+        {
+            auto del_users = std::unique_ptr<sql::PreparedStatement>(
+                conn->prepareStatement("DELETE FROM users WHERE id = ?"));
+            del_users->setInt(1, id);
+            del_users->executeUpdate();
+        }
+
+        // 2. 删除 friends 表中本人好友列表
+        {
+            auto del_friends = std::unique_ptr<sql::PreparedStatement>(
+                conn->prepareStatement("DELETE FROM friends WHERE account = ?"));
+            del_friends->setString(1, account);
+            del_friends->executeUpdate();
+        }
+
+        // 3. 从其他用户的好友列表中移除自己
+        {
+            auto get_all_friends = std::unique_ptr<sql::PreparedStatement>(
+                conn->prepareStatement("SELECT account, friends FROM friends"));
+            auto all_res = std::unique_ptr<sql::ResultSet>(get_all_friends->executeQuery());
+
+            while (all_res->next()) {
+                std::string acc = all_res->getString("account");
+                json friends = json::parse(all_res->getString("friends"));
+                json new_friends = json::array();
+                bool changed = false;
+
+                for (const auto &f : friends) {
+                    if (f.value("account", "") != account) {
+                        new_friends.push_back(f);
+                    } else {
+                        changed = true;
+                    }
+                }
+
+                if (changed) {
+                    auto update_stmt = std::unique_ptr<sql::PreparedStatement>(
+                        conn->prepareStatement("REPLACE INTO friends(account, friends) VALUES (?, ?)"));
+                    update_stmt->setString(1, acc);
+                    update_stmt->setString(2, new_friends.dump());
+                    update_stmt->execute();
+                }
+            }
+        }
+
+        // 4. 删除好友请求
+        {
+            auto del_requests = std::unique_ptr<sql::PreparedStatement>(
+                conn->prepareStatement("DELETE FROM friend_requests WHERE sender = ? OR receiver = ?"));
+            del_requests->setString(1, account);
+            del_requests->setString(2, account);
+            del_requests->executeUpdate();
+        }
+
+        // 5. 删除私聊消息
+        {
+            auto del_messages = std::unique_ptr<sql::PreparedStatement>(
+                conn->prepareStatement("DELETE FROM messages WHERE sender = ? OR receiver = ?"));
+            del_messages->setString(1, account);
+            del_messages->setString(2, account);
+            del_messages->executeUpdate();
+        }
+
+        // 6. 删除本人创建的群聊（chat_groups 级联）
+        {
+            auto del_groups = std::unique_ptr<sql::PreparedStatement>(
+                conn->prepareStatement("DELETE FROM chat_groups WHERE owner_account = ?"));
+            del_groups->setString(1, account);
+            del_groups->executeUpdate();
+        }
+
+        // 7. 删除自己在群成员表中的记录
+        {
+            auto del_group_members = std::unique_ptr<sql::PreparedStatement>(
+                conn->prepareStatement("DELETE FROM group_members WHERE account = ?"));
+            del_group_members->setString(1, account);
+            del_group_members->executeUpdate();
+        }
+
+        // 8. 删除自己发出的加群请求
+        {
+            auto del_group_requests = std::unique_ptr<sql::PreparedStatement>(
+                conn->prepareStatement("DELETE FROM group_requests WHERE sender = ?"));
+            del_group_requests->setString(1, account);
+            del_group_requests->executeUpdate();
+        }
+
+        // 9. 删除群聊消息（如果没有 ON DELETE CASCADE）
+        {
+            auto del_group_msgs = std::unique_ptr<sql::PreparedStatement>(
+                conn->prepareStatement("DELETE FROM group_messages WHERE sender = ?"));
+            del_group_msgs->setString(1, account);
+            del_group_msgs->executeUpdate();
+        }
+
+        // 10. 删除文件消息
+        {
+            auto del_file_msgs = std::unique_ptr<sql::PreparedStatement>(
+                conn->prepareStatement("DELETE FROM file_messages WHERE sender = ? OR receiver = ?"));
+            del_file_msgs->setString(1, account);
+            del_file_msgs->setString(2, account);
+            del_file_msgs->executeUpdate();
+
+            auto del_group_file_msgs = std::unique_ptr<sql::PreparedStatement>(
+                conn->prepareStatement("DELETE FROM group_file_messages WHERE sender = ?"));
+            del_group_file_msgs->setString(1, account);
+            del_group_file_msgs->executeUpdate();
+        }
+
+        // 11. 删除群聊阅读状态
+        {
+            auto del_group_read_status = std::unique_ptr<sql::PreparedStatement>(
+                conn->prepareStatement("DELETE FROM group_read_status WHERE account = ?"));
+            del_group_read_status->setString(1, account);
+            del_group_read_status->executeUpdate();
+        }
 
 
 
@@ -240,7 +357,7 @@ md5sum
 
 /home/kong/test/ceshi/ceshi.cpp
 
-
+/home/kong/test/1GB_testfile.bin
 
 
 

@@ -423,8 +423,10 @@ void FTPServer::start_sendfile(int data_fd, int control_fd, const string& filena
     state.active = true;
     send_states[data_fd] = state;
 
-    // 立即尝试发送一次
-    sendfile_continue(state);
+
+
+
+    
 }
 
 void FTPServer::sendfile_continue(SendState& state) {
