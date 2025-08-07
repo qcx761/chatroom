@@ -1,3 +1,0 @@
-/home/kong/plan/chartroom/chat-system/client/build/CMakeFiles/client.dir
-/home/kong/plan/chartroom/chat-system/client/build/CMakeFiles/edit_cache.dir
-/home/kong/plan/chartroom/chat-system/client/build/CMakeFiles/rebuild_cache.dir
