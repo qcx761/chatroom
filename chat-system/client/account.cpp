@@ -600,7 +600,7 @@ if (!path1.empty() && path1.back() == '\n') {
 
 
 if (path1.empty()) {
-    path1 = "../filereceive";  // 默认保存
+    path1 = "./";  // 默认保存
 }
 
 if (path1.back() != '/'){
