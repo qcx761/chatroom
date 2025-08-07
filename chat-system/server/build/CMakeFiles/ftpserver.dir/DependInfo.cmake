@@ -10,7 +10,6 @@ set(CMAKE_DEPENDS_LANGUAGES
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/home/kong/plan/chartroom/chat-system/server/ftpmain.cpp" "CMakeFiles/ftpserver.dir/ftpmain.cpp.o" "gcc" "CMakeFiles/ftpserver.dir/ftpmain.cpp.o.d"
   "/home/kong/plan/chartroom/chat-system/server/ftpserver.cpp" "CMakeFiles/ftpserver.dir/ftpserver.cpp.o" "gcc" "CMakeFiles/ftpserver.dir/ftpserver.cpp.o.d"
-  "/home/kong/plan/chartroom/chat-system/log/logger.cpp" "CMakeFiles/ftpserver.dir/home/kong/plan/chartroom/chat-system/log/logger.cpp.o" "gcc" "CMakeFiles/ftpserver.dir/home/kong/plan/chartroom/chat-system/log/logger.cpp.o.d"
   "/home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp" "CMakeFiles/ftpserver.dir/home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.o" "gcc" "CMakeFiles/ftpserver.dir/home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.o.d"
   )
 

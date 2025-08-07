@@ -177,30 +177,6 @@ client.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/client.cpp.s
 .PHONY : client.cpp.s
 
-home/kong/plan/chartroom/chat-system/log/logger.o: home/kong/plan/chartroom/chat-system/log/logger.cpp.o
-.PHONY : home/kong/plan/chartroom/chat-system/log/logger.o
-
-# target to build an object file
-home/kong/plan/chartroom/chat-system/log/logger.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/home/kong/plan/chartroom/chat-system/log/logger.cpp.o
-.PHONY : home/kong/plan/chartroom/chat-system/log/logger.cpp.o
-
-home/kong/plan/chartroom/chat-system/log/logger.i: home/kong/plan/chartroom/chat-system/log/logger.cpp.i
-.PHONY : home/kong/plan/chartroom/chat-system/log/logger.i
-
-# target to preprocess a source file
-home/kong/plan/chartroom/chat-system/log/logger.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/home/kong/plan/chartroom/chat-system/log/logger.cpp.i
-.PHONY : home/kong/plan/chartroom/chat-system/log/logger.cpp.i
-
-home/kong/plan/chartroom/chat-system/log/logger.s: home/kong/plan/chartroom/chat-system/log/logger.cpp.s
-.PHONY : home/kong/plan/chartroom/chat-system/log/logger.s
-
-# target to generate assembly for a file
-home/kong/plan/chartroom/chat-system/log/logger.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/home/kong/plan/chartroom/chat-system/log/logger.cpp.s
-.PHONY : home/kong/plan/chartroom/chat-system/log/logger.cpp.s
-
 home/kong/plan/chartroom/chat-system/threadpool/threadpool.o: home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.o
 .PHONY : home/kong/plan/chartroom/chat-system/threadpool/threadpool.o
 
@@ -336,9 +312,6 @@ help:
 	@echo "... client.o"
 	@echo "... client.i"
 	@echo "... client.s"
-	@echo "... home/kong/plan/chartroom/chat-system/log/logger.o"
-	@echo "... home/kong/plan/chartroom/chat-system/log/logger.i"
-	@echo "... home/kong/plan/chartroom/chat-system/log/logger.s"
 	@echo "... home/kong/plan/chartroom/chat-system/threadpool/threadpool.o"
 	@echo "... home/kong/plan/chartroom/chat-system/threadpool/threadpool.i"
 	@echo "... home/kong/plan/chartroom/chat-system/threadpool/threadpool.s"

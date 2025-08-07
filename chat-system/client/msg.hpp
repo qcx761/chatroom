@@ -108,3 +108,5 @@ void get_file_list_msg(const json &response);
 
 
 void receive_message_msg(const json &response);
+
+void offline_summary_msg(const json &response);

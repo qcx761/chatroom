@@ -7,7 +7,6 @@ set(CMAKE_CXX_STANDARD 17)
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
     ../threadpool
-    ../log
     /usr/local/include         # redis++ & hiredis
     /usr/include/mysql-cppconn-8  # MySQL C++ Connector headers（路径可能不同）
 )
@@ -27,7 +26,6 @@ add_executable(server
     msg.cpp
     ftpserver.cpp
     ../threadpool/threadpool.cpp
-    ../log/logger.cpp
 )
 
 target_link_libraries(server
@@ -41,7 +39,6 @@ add_executable(ftpserver
     ftpmain.cpp
     ftpserver.cpp
     ../threadpool/threadpool.cpp
-    ../log/logger.cpp
 )
 
 target_link_libraries(ftpserver
@@ -59,7 +56,6 @@ target_link_libraries(ftpserver
 # include_directories(
 #     ${CMAKE_CURRENT_SOURCE_DIR}
 #     ../threadpool
-#     ../log
 #     /usr/local/include         # redis++ & hiredis
 #     /usr/include/mysql-cppconn-8  # MySQL C++ Connector headers（路径可能不同）
 # )
@@ -77,7 +73,6 @@ target_link_libraries(ftpserver
 #     json.cpp
 #     msg.cpp
 #     ../threadpool/threadpool.cpp
-#     ../log/logger.cpp
 # )
 
 # # 链接 redis++、hiredis、mysqlcppconn

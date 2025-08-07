@@ -2246,7 +2246,14 @@ void handle_group_request_msg(int fd, const json& request){
 //     }
 
 //     string input = readline_string("输入处理编号(0 退出): ");
-//     int choice = stoi(input);
+    // int choice;
+    // try {
+    //     choice = std::stoi(input);
+    // } catch (const std::exception& e) {
+    //     std::cout << "输入错误已取消处理。" << std::endl;
+    //     waiting();
+    //     return;
+    // }
 
 //     // flushInput();
 // // 要不要取消锁

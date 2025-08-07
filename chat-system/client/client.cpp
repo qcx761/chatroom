@@ -5,12 +5,12 @@
 #include"msg.hpp"  // 信息处理函数
 using namespace std;
 
-Client::Client(std::string ip, int port) :logger(Logger::Level::DEBUG, "client.log")
+Client::Client(std::string ip, int port)
 {
     sock = socket(AF_INET, SOCK_STREAM, 0);
     if (sock < 0)
     {
-        LOG_ERROR(logger, "socket failed");
+        perror("socket failed");
         exit(1);
     }
 
@@ -21,25 +21,23 @@ Client::Client(std::string ip, int port) :logger(Logger::Level::DEBUG, "client.l
 
     if (connect(sock, (sockaddr *)&addr, sizeof(addr)) < 0)
     {
-        LOG_ERROR(logger, "connect failed");
+        perror("connect failed");
         exit(1);
     }
 
 
     int flags=fcntl(sock, F_GETFL) ;
     if (flags == -1) {
-        LOG_ERROR(logger, "fcntl F_GETFL failed");
-
+        perror("fcntl F_GETFL failed");
         exit(1);
     }
     if (fcntl(sock, F_SETFL, flags | O_NONBLOCK) == -1) {
-        LOG_ERROR(logger, "fcntl F_SETFL failed");
-
+        perror("fcntl F_SETFL failed");
         exit(1);
     }
     epfd = epoll_create1(0);
         if (epfd == -1) {
-        LOG_ERROR(logger, "epoll_create1 failed");
+        perror("epoll_create1 failed");
         exit(1);
     }
     epoll_event ev{};
@@ -85,7 +83,7 @@ void Client::epoll_thread_func(){
             if (errno == EINTR) {
                 continue;
             }
-            LOG_ERROR(logger, "epoll_wait failed");
+            perror("epoll_wait failed");
             break;
         }
 
@@ -333,22 +331,29 @@ void Client::epoll_thread_func(){
                         continue;
                     }   
 
-                    // 处理通知
+                    // 处理在线通知
                     if(type=="receive_message"){
                         receive_message_msg(j);
-                        // sem_post(&this->sem);
                         continue;
                     }   
 
-
-
-
+                    // 处理离线通知
+                    if(type=="offline_summary"){
+                        offline_summary_msg(j);
+                        continue;
+                    }   
 
                     if(type=="get_file_list"){
                         get_file_list_msg(j);
                         sem_post(&this->sem);
                         continue;
-                    }                      
+                    }                 
+                    
+                    
+
+
+
+
                     // if(type==""){
                     //     _msg(j);
                     //     sem_post(&this->sem);
@@ -379,11 +384,6 @@ void Client::epoll_thread_func(){
 
 
 
-                    // if(type=="send_private_file"){
-                    //     send_private_file_msg(j);
-                    //     sem_post(&this->sem);
-                    //     continue;
-                    // }   
 
 
                     // if(type=="send_group_file"){
@@ -392,11 +392,7 @@ void Client::epoll_thread_func(){
                     //     continue;
                     // }  
 
-                    // if(type==""){
-                    //     _msg(j);
-                    //     sem_post(&this->sem);
-                    //     continue;
-                    // }  
+
 
 
 
@@ -488,7 +484,7 @@ void Client::epoll_thread_func(){
 
             } else {
                 // 监听的其他fd触发了，异常处理,一般不会进入
-                LOG_ERROR(logger, "未知文件描述符事件");
+            perror("未知文件描述符事件");
                 break;
             }
         }

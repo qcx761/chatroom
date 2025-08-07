@@ -1,6 +1,7 @@
 {
     "C_Cpp.errorSquiggles": "disabled",
     "files.associations": {
+        "*.dbclient-js": "javascript",
         "any": "cpp",
         "array": "cpp",
         "atomic": "cpp",
@@ -73,6 +74,9 @@
         "source_location": "cpp",
         "cinttypes": "cpp",
         "unordered_set": "cpp",
-        "shared_mutex": "cpp"
+        "shared_mutex": "cpp",
+        "complex": "cpp",
+        "set": "cpp",
+        "typeindex": "cpp"
     }
 }

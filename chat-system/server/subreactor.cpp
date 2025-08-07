@@ -4,7 +4,7 @@
 
 using namespace std;
 
-SubReactor::SubReactor(threadpool* pool) :thread_pool(pool){
+SubReactor::SubReactor(threadpool* pool) : thread_pool(pool){
     epfd = epoll_create1(0);
     running = true;
     event_thread = std::thread(&SubReactor::run, this);
@@ -249,13 +249,6 @@ void SubReactor::run() {
                 });
                 continue;
             }else if(type=="send_private_file"){
-
-
-
-
-
-                
-
                 thread_pool->enqueue([fd, request]() {
                   send_private_file_msg(fd,request);
                 });

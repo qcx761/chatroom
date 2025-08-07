@@ -325,7 +325,8 @@ void receive_private_message_msg(const json &response) {
     if (from == current_chat_target) {
         std::cout << "[" << from << "]: > " << message << std::endl;
     } else {
-        std::cout << "[新消息来自 " << from << "]: " << message << std::endl;
+        // std::cout << "[新消息来自 " << from << "]: " << message << std::endl;
+        std::cout << "[新消息来自 " << from << "]" << std::endl;
         // 这里你可以做未读提醒等
     }
 
@@ -803,39 +804,77 @@ void send_group_message_msg(const json &response){
 
 
 
+
 void receive_message_msg(const json &response){
     std::string status = response.value("status", "error");
     if(status =="fail"){
-        // std::string msg = response.value("msg", "未知错误");
-        // std::cerr << "[错误] " << msg << std::endl;
         ;
     }
 
+    std::lock_guard<std::mutex> lock(io_mutex);
 
-    std::string msg = response.value("type1", "error");
+    // 保存当前输入文本和光标位置
+    int saved_point = rl_point;
+
+    // 保存当前 readline 输入行内容
+    char* saved_line = rl_copy_text(0, rl_end);
+
+    // 清除当前行并把光标移到行首
+    rl_replace_line("", 0);
+    std::cout << "\33[2K\r";
+
+
+
+    std::string msg = response.value("type1", "");
 
     if(msg=="private_file_message"){
-    std::string name = response.value("from", "error");
+    std::string name = response.value("from", "");
 
         std::cout << "收到来自 " << name << "的文件传输" << std::endl;
     }
 
     if(msg=="group_file_message"){
-    std::string name = response.value("from", "error");
-    std::string group = response.value("group", "error");
+    std::string name = response.value("from", "");
+    std::string group = response.value("group", "");
 
         std::cout << "收到来自 " << group << "群中 "<< name << "的文件传输" << std::endl;
     }
 
-//type1
+    if(msg=="add_friend_message"){
+    std::string name = response.value("user_name", "");
 
-// 信息处理记得馆标
+    std::cout << "收到来自 " << name << "的好友请求" << std::endl;
+    }
+
+    if(msg=="pass_friend_message"){
+    std::string name = response.value("user_name", "");
+
+    std::cout << name << " 已经通过你的的好友请求" << std::endl;
+    }
+
+    if(msg=="add_group_message"){
+    std::string name = response.value("name", "");
+    int id = response.value("id", 0);
 
 
+    std::cout << "收到来自 " << name << "的加群请求 群id:" << id << std::endl;
+    }
+
+    if(msg=="pass_group_message"){
+    int id = response.value("id", 0);
+
+    std::cout << "你的加群id:" << id << " 请求已被通过" << id << std::endl;
+    }
 
 
+    // 恢复之前的用户输入
+    rl_replace_line(saved_line, 0);
+    rl_point = saved_point;
+    free(saved_line);
 
-
+    // 通知 readline 新行开始，重新绘制输入行
+    rl_on_new_line();
+    rl_redisplay();
 
 
 
@@ -899,67 +938,43 @@ void get_file_list_msg(const json &response){
 
 
 
+// 登录发送摘要
+void offline_summary_msg(const json &response) {
+    if (response.contains("status") && response["status"] == "success") {
+        std::cout << "\n你有新的离线消息摘要:\n";
+
+        if (response.contains("messages") && response["messages"].is_array()) {
+            const auto& messages = response["messages"];
+
+            if (messages.empty()) {
+                std::cout << "没有新的离线消息。\n";
+                return;
+            }
+
+            for (const auto& msg : messages) {
+                std::string sender = msg.value("sender", "未知发送者");
+                std::string type = msg.value("message_type", "未知类型");
+                int count = msg.value("count", 0);
+
+                std::string type_str;
+                if (type == "private_text") type_str = "私聊";
+                else if (type == "private_file") type_str = "私聊文件";
+                else if (type == "group_text") type_str = "群聊";
+                else if (type == "group_file") type_str = "群聊文件";
+                else type_str = "未知";
+
+                std::cout << " 来自 [" << sender << "] 的 " << type_str
+                          << " 消息，共 " << count << " 条。\n";
+            }
+        } else {
+            std::cout << "服务器返回了空的消息列表。\n";
+        }
+    } else {
+        std::cout << "获取离线摘要失败：" << response.value("msg", "未知错误") << std::endl;
+    }
+}
 
 
 
 
 
-
-
-
-// void receive_file(int sock, std::string token, sem_t& sem) {
-//     json j;
-//     j["type"] = "get_file_list";
-//     j["token"] = token;
-//     send_json(sock, j);
-
-//     sem_wait(&sem);  // 等服务端返回
-
-//     if (last_response["status"] != "ok") {
-//         std::cout << "[错误] 获取文件列表失败: " << last_response["msg"] << std::endl;
-//         return;
-//     }
-
-//     const auto& files = last_response["files"];
-//     if (files.empty()) {
-//         std::cout << "[系统] 当前没有可接收的文件。" << std::endl;
-//         return;
-//     }
-
-//     std::cout << "\n[可接收文件列表]\n";
-//     for (size_t i = 0; i < files.size(); ++i) {
-//         const auto& file = files[i];
-//         std::cout << i + 1 << ". 类型: " << (file["type"] == "private" ? "私聊" : "群聊")
-//                   << " | 来自: " << file["sender"]
-//                   << (file["type"] == "group" ? (" | 群ID: " + std::to_string((int)file["group_id"])) : "")
-//                   << "\n   文件名: " << file["filename"]
-//                   << " | 大小: " << file["filesize"]
-//                   << " | 时间: " << file["timestamp"] << "\n";
-//     }
-
-//     int choice = readline_int("请输入要下载的文件编号: ");
-//     if (choice <= 0 || choice > files.size()) {
-//         std::cout << "[错误] 编号无效。\n";
-//         return;
-//     }
-
-//     const auto& selected = files[choice - 1];
-//     std::string filename = selected["filename"];
-//     std::string filepath = selected["filepath"];
-
-//     std::thread([filename, filepath]() {
-//         const std::string ftp_ip = "10.30.1.215";
-//         const int ftp_port = 2100;
-//         int control_fd = connect_to_server(ftp_ip, ftp_port);
-//         if (control_fd < 0) {
-//             std::cerr << "[错误] 连接 FTP 控制端失败\n";
-//             return;
-//         }
-
-//         std::string local_path = "./downloads/" + filename;  // 可加时间戳避免重复
-//         ftp_retr(control_fd, filename, local_path);
-//         close(control_fd);
-
-//         std::cout << "[系统] 文件下载完成：" << filename << std::endl;
-//     }).detach();
-// }

@@ -100,6 +100,7 @@ std::mutex fd_mutex;
 //     PRIMARY KEY (group_id, account)
 // );
 
+// 文件信息
 
 // CREATE TABLE file_messages (
 //     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -112,6 +113,8 @@ std::mutex fd_mutex;
 //     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
 // );
 
+//群文件信息
+
 // CREATE TABLE group_file_messages (
 //     id INT AUTO_INCREMENT PRIMARY KEY,
 //     sender VARCHAR(64) NOT NULL,
@@ -120,6 +123,17 @@ std::mutex fd_mutex;
 //     filesize VARCHAR(64),
 //     filepath VARCHAR(1024) NOT NULL,
 //     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+// );
+
+// 离线信息
+
+// CREATE TABLE offline_message_counter (
+//     id INT AUTO_INCREMENT PRIMARY KEY,
+//     account VARCHAR(255) NOT NULL,          -- 接收者账号
+//     sender VARCHAR(255) NOT NULL,           -- 发送者账号或群名
+//     message_type VARCHAR(50) NOT NULL,      -- private_text / private_file / group_text / group_file
+//     count INT DEFAULT 0,                    -- 离线消息数量
+//     UNIQUE KEY (account, sender, message_type)
 // );
 
 // 通过 account 获取 fd
@@ -173,6 +187,7 @@ bool verify_token(const std::string& token, std::string& out_account) {
 
 // 注册处理函数
 void sign_up_msg(int fd, const json &request) {
+    std::cout << "[DEBUG] fd: " << fd << " -> sign_up_msg()" << std::endl;
     json response;
     response["type"] = "sign_up";
     std::string account = request.value("account", "");
@@ -234,6 +249,7 @@ void sign_up_msg(int fd, const json &request) {
 
 // 登录处理函数
 void log_in_msg(int fd, const json &request) {
+    std::cout << "[DEBUG] fd: " << fd << " -> log_in_msg()" << std::endl;
     json response;
     response["type"] = "log_in";
     std::string account = request.value("account", "");
@@ -301,10 +317,15 @@ void log_in_msg(int fd, const json &request) {
     }
 
     send_json(fd, response);
+    if(response["status"] == "success"){
+        // 发送离线消息
+        send_offline_summary_on_login(account, fd);
+    }
 }
 
 // 删除账户处理函数
 void destory_account_msg(int fd, const json &request) {
+    std::cout << "[DEBUG] fd: " << fd << " -> destory_account_msg()" << std::endl;
     json response;
     response["type"] = "destory_account";
     std::string token = request.value("token", "");
@@ -484,6 +505,8 @@ void destory_account_msg(int fd, const json &request) {
 
 // 退出帐号处理函数
 void quit_account_msg(int fd, const json &request){
+    std::cout << "[DEBUG] fd: " << fd << " -> quit_account_msg()" << std::endl;
+
     json response;
     response["type"] = "quit_account";
     std::string token = request.value("token", "");
@@ -518,6 +541,8 @@ void quit_account_msg(int fd, const json &request){
 
 // 显示用户名处理函数
 void username_view_msg(int fd, const json &request){
+    std::cout << "[DEBUG] fd: " << fd << " -> username_view_msg()" << std::endl;
+
     json response;
     response["type"] = "username_view";
     std::string token = request.value("token", "");
@@ -558,6 +583,8 @@ void username_view_msg(int fd, const json &request){
 
 // 改变用户名处理函数
 void username_change_msg(int fd, const json &request){
+    std::cout << "[DEBUG] fd: " << fd << " -> username_change_msg()" << std::endl;
+
     json response;
     response["type"] = "username_change";
     std::string token = request.value("token", "");
@@ -641,6 +668,8 @@ void username_change_msg(int fd, const json &request){
 
 // 修改密码处理函数
 void password_change_msg(int fd, const json &request) {
+    std::cout << "[DEBUG] fd: " << fd << " -> password_change_msg()" << std::endl;
+
     json response;
     response["type"] = "password_change";
     std::string token = request.value("token", "");
@@ -696,6 +725,7 @@ void password_change_msg(int fd, const json &request) {
 
 // 展示好友列表，包括在线状态和是否屏蔽
 void show_friend_list_msg(int fd, const json& request) {
+    std::cout << "[DEBUG] fd: " << fd << " -> show_friend_list_msg()" << std::endl;
     json response;
     response["type"] = "show_friend_list";
     std::string token = request.value("token", "");
@@ -763,6 +793,8 @@ void show_friend_list_msg(int fd, const json& request) {
 
 // 屏蔽好友
 void mute_friend_msg(int fd, const json& request) {
+    std::cout << "[DEBUG] fd: " << fd << " -> mute_friend_msg()" << std::endl;
+
     json response;
     response["type"] = "mute_friend";
 
@@ -853,6 +885,8 @@ void mute_friend_msg(int fd, const json& request) {
 
 // 取消屏蔽好友（通过好友用户名）
 void unmute_friend_msg(int fd, const json& request) {
+    std::cout << "[DEBUG] fd: " << fd << " -> unmute_friend_msg()" << std::endl;
+
     json response;
     response["type"] = "unmute_friend";
     std::string token = request.value("token", "");
@@ -941,6 +975,8 @@ void unmute_friend_msg(int fd, const json& request) {
 
 // 删除好友
 void remove_friend_msg(int fd, const json& request) {
+    std::cout << "[DEBUG] fd: " << fd << " -> remove_friend_msg()" << std::endl;
+
     json response;
     response["type"] = "remove_friend";
 
@@ -1027,6 +1063,8 @@ void remove_friend_msg(int fd, const json& request) {
 
 // 添加好友
 void add_friend_msg(int fd, const json& request) {
+    std::cout << "[DEBUG] fd: " << fd << " -> add_friend_msg()" << std::endl;
+
     json response;
     response["type"] = "add_friend";
     std::string token = request.value("token", "");
@@ -1043,6 +1081,19 @@ void add_friend_msg(int fd, const json& request) {
     try {
         auto conn = get_mysql_connection();
 
+                //帐号查询名字
+        std::string user_name;
+        {
+            std::unique_ptr<sql::PreparedStatement> stmt(
+                conn->prepareStatement(
+                    "SELECT JSON_UNQUOTE(JSON_EXTRACT(info, '$.username')) AS username "
+                    "FROM users WHERE JSON_UNQUOTE(JSON_EXTRACT(info, '$.account')) = ?"));
+            stmt->setString(1, sender);
+            std::unique_ptr<sql::ResultSet> res(stmt->executeQuery());
+            if (res->next()) {
+                user_name = res->getString("username");
+            }
+        }
         // 查找目标用户账号
         std::string target_account;
         {
@@ -1056,6 +1107,7 @@ void add_friend_msg(int fd, const json& request) {
                 target_account = res->getString("account");
             }
         }
+        bool is_online = redis.exists("online:" + target_account);
 
         if (target_account.empty()) {
             response["status"] = "fail";
@@ -1113,8 +1165,6 @@ void add_friend_msg(int fd, const json& request) {
 
                     response["status"] = "success";
                     response["msg"] = "Friend request refreshed";
-                    send_json(fd, response);
-                    return;
                 } else if (status == "accepted") {
                     // 再次确认好友关系，防止误删
                     std::unique_ptr<sql::PreparedStatement> stmt_check(
@@ -1149,8 +1199,6 @@ void add_friend_msg(int fd, const json& request) {
 
                     response["status"] = "success";
                     response["msg"] = "Friend request re-sent";
-                    send_json(fd, response);
-                    return;
                 } else if (status == "rejected") {
                     // 重新发起请求
                     std::unique_ptr<sql::PreparedStatement> update_stmt(
@@ -1161,9 +1209,27 @@ void add_friend_msg(int fd, const json& request) {
 
                     response["status"] = "success";
                     response["msg"] = "Friend request re-sent";
+                }
+
+
+        if (is_online) {
+            int target_fd = get_fd_by_account(target_account);
+            json resp;
+            resp["type"] = "receive_message";
+            resp["type1"] = "add_friend_message";
+            resp["status"] = "success";
+            resp["user_name"] = user_name;
+            std::cout << "[DEBUG] 发送的 JSON:\n" << resp.dump(4) << std::endl;
+            if (target_fd != -1) {
+                send_json(target_fd, resp);
+            }
+        }else{
+                    ;
+//离线暂无处理
+
+        }
                     send_json(fd, response);
                     return;
-                }
             }
         }
 
@@ -1176,6 +1242,45 @@ void add_friend_msg(int fd, const json& request) {
             stmt->setString(2, target_account);
             stmt->execute();
         }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        if (is_online) {
+            int target_fd = get_fd_by_account(target_account);
+            json resp;
+            resp["type"] = "receive_message";
+            resp["type1"] = "add_friend_message";
+            resp["status"] = "success";
+            resp["user_name"] = user_name;
+            std::cout << "[DEBUG] 发送的 JSON:\n" << resp.dump(4) << std::endl;
+            if (target_fd != -1) {
+                send_json(target_fd, resp);
+            }
+        }else{
+                    ;
+//离线暂无处理
+
+        }
+
+
+
+
+
+
+
 
         response["status"] = "success";
         response["msg"] = "Friend request sent";
@@ -1190,6 +1295,8 @@ void add_friend_msg(int fd, const json& request) {
 
 // 拉取好友申请
 void get_friend_requests_msg(int fd, const json& request) {
+    std::cout << "[DEBUG] fd: " << fd << " -> get_friend_requests_msg()" << std::endl;
+
     json response;
     response["type"] = "get_friend_requests";
     std::string token = request.value("token", "");
@@ -1247,6 +1354,8 @@ void get_friend_requests_msg(int fd, const json& request) {
 
 // 处理好友申请
 void handle_friend_request_msg(int fd, const json& request) {
+    std::cout << "[DEBUG] fd: " << fd << " -> handle_friend_request_msg()" << std::endl;
+    
     json response;
     response["type"] = "handle_friend_request";
 
@@ -1367,6 +1476,26 @@ void handle_friend_request_msg(int fd, const json& request) {
 
             response["status"] = "success";
             response["msg"] = "Friend request accepted";
+
+
+        bool is_online = redis.exists("online:" + sender);
+
+        if (is_online) {
+            int target_fd = get_fd_by_account(sender);
+            json resp;
+            resp["type"] = "receive_message";
+            resp["type1"] = "pass_friend_message";
+            resp["status"] = "success";
+            resp["user_name"] = from_username;
+            if (target_fd != -1) {
+                send_json(target_fd, resp);
+            }
+        }else{
+                    ;
+//离线暂无处理
+
+        }
+
         } else if (action == "reject") {
             std::unique_ptr<sql::PreparedStatement> stmt(
                 conn->prepareStatement(
@@ -1390,6 +1519,8 @@ void handle_friend_request_msg(int fd, const json& request) {
 
 // 查询好友
 void get_friend_info_msg(int fd, const json& request) {
+    std::cout << "[DEBUG] fd: " << fd << " -> get_friend_info_msg()" << std::endl;
+
     json response;
     response["type"] = "get_friend_info";
     std::string token = request.value("token", "");
@@ -1475,6 +1606,8 @@ void get_friend_info_msg(int fd, const json& request) {
 
 // 查找历史记录
 void get_private_history_msg(int fd, const json& request) {
+    std::cout << "[DEBUG] fd: " << fd << " -> get_private_history_msg()" << std::endl;
+
     json response;
     response["type"] = "get_private_history";
     std::string token = request.value("token", "");
@@ -1584,6 +1717,8 @@ void get_private_history_msg(int fd, const json& request) {
 
 // 发送私聊信息
 void send_private_message_msg(int fd, const json& request) {
+    std::cout << "[DEBUG] fd: " << fd << " -> send_private_message_msg()" << std::endl;
+
     json response, response1;
         // 服务端返回发送信息
     response["type"] = "send_private_message";
@@ -1688,11 +1823,37 @@ void send_private_message_msg(int fd, const json& request) {
 
             send_json(target_fd, response1);
         }else{
-                    ;
-        //离线
-        // 上线在哪里调用通知函数
-        // 离线要怎么实现用户上线提示和发送信息
-        // 上线的离线消息发送逻辑，遍历消息表输出未读消息
+
+
+
+    // 离线处理逻辑：更新计数表
+    try {
+        auto conn = get_mysql_connection();
+        std::unique_ptr<sql::PreparedStatement> stmt(
+            conn->prepareStatement(
+                "INSERT INTO offline_message_counter(account, sender, message_type, count) "
+                "VALUES (?, ?, ?, 1) "
+                "ON DUPLICATE KEY UPDATE count = count + 1"
+            ));
+        stmt->setString(1, target_account);              // 接收者
+        stmt->setString(2, user_account);                // 发送者
+        stmt->setString(3, "private_text");              // 消息类型（按你的业务逻辑调整）
+        stmt->execute();
+    } catch (const std::exception& e) {
+        ;
+    }
+
+
+
+
+
+
+
+                    
+//离线
+// 上线在哪里调用通知函数
+// 离线要怎么实现用户上线提示和发送信息
+// 上线的离线消息发送逻辑，遍历消息表输出未读消息
         }
 
         response["status"] = "success";
@@ -1707,6 +1868,8 @@ void send_private_message_msg(int fd, const json& request) {
 
 // 获取未读私聊消息
 void get_unread_private_messages_msg(int fd, const json& request) {
+    std::cout << "[DEBUG] fd: " << fd << " -> get_unread_private_messages_msg()" << std::endl;
+
     json response;
     response["type"] = "get_unread_private_messages";
 
@@ -1835,6 +1998,8 @@ void get_unread_private_messages_msg(int fd, const json& request) {
 
 // 显示加入的群
 void show_group_list_msg(int fd, const json& request) {
+    std::cout << "[DEBUG] fd: " << fd << " -> show_group_list_msg()" << std::endl;
+
     json response;
     response["type"] = "show_group_list";
 
@@ -1885,6 +2050,8 @@ void show_group_list_msg(int fd, const json& request) {
 
 // 申请群
 void join_group_msg(int fd, const json& request) {
+    std::cout << "[DEBUG] fd: " << fd << " -> join_group_msg()" << std::endl;
+
     json response;
     response["type"] = "join_group";
     std::string token = request.value("token", "");
@@ -1981,6 +2148,53 @@ void join_group_msg(int fd, const json& request) {
             stmt->execute();
         }
 
+
+        {
+        auto stmt = std::unique_ptr<sql::PreparedStatement>(
+            conn->prepareStatement(
+                "SELECT account FROM group_members WHERE group_id = ? AND role IN ('owner', 'admin')"
+            )
+        );
+        stmt->setInt(1, group_id);
+        auto res = std::unique_ptr<sql::ResultSet>(stmt->executeQuery());
+
+        while (res->next()) {
+            std::string account = res->getString("account");
+            //帐号查询名字
+            std::string user_name;
+            {
+                std::unique_ptr<sql::PreparedStatement> stmt1(
+                    conn->prepareStatement(
+                        "SELECT JSON_UNQUOTE(JSON_EXTRACT(info, '$.username')) AS username "
+                        "FROM users WHERE JSON_UNQUOTE(JSON_EXTRACT(info, '$.account')) = ?"));
+                stmt1->setString(1, sender_account);
+                std::unique_ptr<sql::ResultSet> res(stmt1->executeQuery());
+                if (res->next()) {
+                    user_name = res->getString("username");
+                }
+            }
+
+            bool is_online = redis.exists("online:" + account);
+            if (is_online) {
+                int target_fd = get_fd_by_account(account);
+                json resp;
+                resp["type"] = "receive_message";
+                resp["type1"] = "add_group_message";
+                resp["name"] = user_name;
+                resp["id"] = group_id;
+
+                if (target_fd != -1) {
+                    send_json(target_fd, resp);
+                }
+                }else{
+                    ;
+//离线暂无处理
+
+                }
+            }   
+
+        }
+
         response["status"] = "success";
         response["msg"] = "Group join request sent";
 
@@ -1994,6 +2208,8 @@ void join_group_msg(int fd, const json& request) {
 
 // 退出群
 void quit_group_msg(int fd, const json& request){
+    std::cout << "[DEBUG] fd: " << fd << " -> quit_group_msg()" << std::endl;
+
     json response;
     response["type"] = "quit_group";
     std::string token = request.value("token", "");
@@ -2053,6 +2269,8 @@ void quit_group_msg(int fd, const json& request){
 
 // 显示群成员
 void show_group_members_msg(int fd, const json& request) {
+    std::cout << "[DEBUG] fd: " << fd << " -> show_group_members_msg()" << std::endl;
+
     json response;
     response["type"] = "show_group_members";
     std::string token = request.value("token", "");
@@ -2138,6 +2356,8 @@ void show_group_members_msg(int fd, const json& request) {
 
 // 创建群
 void create_group_msg(int fd, const json& request) {
+    std::cout << "[DEBUG] fd: " << fd << " -> create_group_msg()" << std::endl;
+
     json response;
     response["type"] = "create_group";
 
@@ -2213,6 +2433,8 @@ void create_group_msg(int fd, const json& request) {
 
 // 设置管理员
 void set_group_admin_msg(int fd, const json& request) {
+    std::cout << "[DEBUG] fd: " << fd << " -> set_group_admin_msg()" << std::endl;
+
     json response;
     response["type"] = "set_group_admin";
     std::string token = request.value("token", "");
@@ -2325,6 +2547,8 @@ void set_group_admin_msg(int fd, const json& request) {
 
 // 移除管理员
 void remove_group_admin_msg(int fd, const json& request) {
+    std::cout << "[DEBUG] fd: " << fd << " -> remove_group_admin_msg()" << std::endl;
+
     json response;
     response["type"] = "remove_group_admin";
     std::string token = request.value("token", "");
@@ -2425,6 +2649,8 @@ void remove_group_admin_msg(int fd, const json& request) {
 
 // 移除群成员
 void remove_group_member_msg(int fd, const json& request) {
+    std::cout << "[DEBUG] fd: " << fd << " -> remove_group_member_msg()" << std::endl;
+
     json response;
     response["type"] = "remove_group_member";
     std::string token = request.value("token", "");
@@ -2528,7 +2754,7 @@ void remove_group_member_msg(int fd, const json& request) {
                     send_json(fd, response);
                     return;
                 }
-                
+
                 if(role1 == "admin" && role == "admin"){
                     response["status"] = "fail";
                     response["msg"] = "admin cannot remove admin";
@@ -2571,6 +2797,8 @@ void remove_group_member_msg(int fd, const json& request) {
  
 // 拉成员
 void add_group_member_msg(int fd, const json& request) {
+    std::cout << "[DEBUG] fd: " << fd << " -> add_group_member_msg()" << std::endl;
+
     json response;
     response["type"] = "add_group_member";
 
@@ -2734,6 +2962,8 @@ void add_group_member_msg(int fd, const json& request) {
 
 // 解散群
 void dismiss_group_msg(int fd, const json& request) {
+    std::cout << "[DEBUG] fd: " << fd << " -> dismiss_group_msg()" << std::endl;
+
     json response;
     response["type"] = "dismiss_group";
     std::string token = request.value("token", "");
@@ -2820,6 +3050,8 @@ void dismiss_group_msg(int fd, const json& request) {
 
 // 获取群申请
 void get_group_requests_msg(int fd, const json& request) {
+    std::cout << "[DEBUG] fd: " << fd << " -> get_group_requests_msg()" << std::endl;
+
     json response;
     response["type"] = "get_group_requests";
     std::string token = request.value("token", "");
@@ -2917,6 +3149,8 @@ void get_group_requests_msg(int fd, const json& request) {
 
 // 处理群申请
 void handle_group_request_msg(int fd, const json& request) {
+    std::cout << "[DEBUG] fd: " << fd << " -> handle_group_request_msg()" << std::endl;
+
     json response;
     response["type"] = "handle_group_request";
     std::string token = request.value("token", "");
@@ -2970,6 +3204,44 @@ void handle_group_request_msg(int fd, const json& request) {
         stmt->setString(2, from_username);
         stmt->execute();
 
+
+        if(action == "accept"){
+
+        std::string target_account;
+        {
+            std::unique_ptr<sql::PreparedStatement> stmt(
+                conn->prepareStatement(
+                    "SELECT JSON_UNQUOTE(JSON_EXTRACT(info, '$.account')) AS account "
+                    "FROM users WHERE JSON_UNQUOTE(JSON_EXTRACT(info, '$.username')) = ?"));
+            stmt->setString(1, from_username);
+            std::unique_ptr<sql::ResultSet> res(stmt->executeQuery());
+            if (res->next()) {
+                target_account = res->getString("account");
+            }
+        }
+        bool is_online = redis.exists("online:" + target_account);
+
+//         // 在线则推送消息
+        if (is_online) {
+            int target_fd = get_fd_by_account(target_account);
+                json resp;
+                resp["type"] = "receive_message";
+                resp["type1"] = "pass_group_message";
+                resp["id"] = group_id;
+
+            if (target_fd != -1) {
+                send_json(target_fd, resp);
+            }
+        }else{
+
+
+
+
+                    ;
+//离线暂无处理
+        }
+        }
+
         response["status"] = "success";
         response["msg"] = (action == "accept") ? "Request accepted" : "Request rejected";
     } catch (const std::exception& e) {
@@ -2981,6 +3253,8 @@ void handle_group_request_msg(int fd, const json& request) {
 
 // 获取未读消息
 void get_unread_group_messages_msg(int fd, const json& request) {
+    std::cout << "[DEBUG] fd: " << fd << " -> get_unread_group_messages_msg()" << std::endl;
+
     json response;
     response["type"] = "get_unread_group_messages";
     std::string token = request.value("token", "");
@@ -3069,6 +3343,8 @@ void get_unread_group_messages_msg(int fd, const json& request) {
 
 // 获取群历史信息
 void get_group_history_msg(int fd, const json& request) {
+    std::cout << "[DEBUG] fd: " << fd << " -> get_group_history_msg()" << std::endl;
+
     json response;
     response["type"] = "get_group_history";
     std::string token = request.value("token", "");
@@ -3138,6 +3414,8 @@ void get_group_history_msg(int fd, const json& request) {
 
 // 发送群聊消息
 void send_group_message_msg(int fd, const json& request) {
+    std::cout << "[DEBUG] fd: " << fd << " -> send_group_message_msg()" << std::endl;
+
     json response,push_msg;
     response["type"] = "send_group_message";
     push_msg["type"] = "receive_group_messages";
@@ -3222,6 +3500,29 @@ void send_group_message_msg(int fd, const json& request) {
                     if (member_fd != -1) {
                         send_json(member_fd, push_msg);
                     }
+                } else {
+//离线                
+
+
+
+                // 离线处理逻辑：更新计数表
+                try {
+                    auto conn = get_mysql_connection();
+                    std::unique_ptr<sql::PreparedStatement> stmt(
+                        conn->prepareStatement(
+                            "INSERT INTO offline_message_counter(account, sender, message_type, count) "
+                            "VALUES (?, ?, ?, 1) "
+                            "ON DUPLICATE KEY UPDATE count = count + 1"
+                        ));
+                    stmt->setString(1, member);              // 接收者
+                    stmt->setString(2, group_name);                // 发送者
+                    stmt->setString(3, "group_text");              // 消息类型（按你的业务逻辑调整）
+                    stmt->execute();
+                } catch (const std::exception& e) {
+                    ;
+                }
+
+
                 }
             }
         }
@@ -3242,6 +3543,8 @@ void send_group_message_msg(int fd, const json& request) {
 
 // 转发给用户
 void send_private_file_msg(int fd, const json& request){
+    std::cout << "[DEBUG] fd: " << fd << " -> send_private_file_msg()" << std::endl;
+
     std::cout <<"进入 send_private_file_msg" << std::endl;
     json response;
     // response["type"] = "send_private_file";
@@ -3338,10 +3641,51 @@ void send_private_file_msg(int fd, const json& request){
             send_json(target_fd, response);
         }else{
                     ;
-//         //离线
-//         // 上线在哪里调用通知函数
-//         // 离线要怎么实现用户上线提示和发送信息
-//         // 上线的离线消息发送逻辑，遍历消息表输出未读消息
+//离线
+
+
+
+
+
+
+    // 离线处理逻辑：更新计数表
+    try {
+        auto conn = get_mysql_connection();
+        std::unique_ptr<sql::PreparedStatement> stmt(
+            conn->prepareStatement(
+                "INSERT INTO offline_message_counter(account, sender, message_type, count) "
+                "VALUES (?, ?, ?, 1) "
+                "ON DUPLICATE KEY UPDATE count = count + 1"
+            ));
+        stmt->setString(1, target_account);              // 接收者
+        stmt->setString(2, user_name);                // 发送者
+        stmt->setString(3, "private_file");              // 消息类型（按你的业务逻辑调整）
+        stmt->execute();
+    } catch (const std::exception& e) {
+        ;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         }
 
 
@@ -3353,6 +3697,8 @@ void send_private_file_msg(int fd, const json& request){
 
 
 void send_group_file_msg(int fd, const json& request){
+    std::cout << "[DEBUG] fd: " << fd << " -> send_group_file_msg()" << std::endl;
+
     json response;
     // response["type"] = "send_group_file";
 
@@ -3448,6 +3794,23 @@ void send_group_file_msg(int fd, const json& request){
                     }
                 } else {
 //离线
+
+                    // 离线处理逻辑：更新计数表
+                    try {
+                        auto conn = get_mysql_connection();
+                        std::unique_ptr<sql::PreparedStatement> stmt(
+                            conn->prepareStatement(
+                                "INSERT INTO offline_message_counter(account, sender, message_type, count) "
+                                "VALUES (?, ?, ?, 1) "
+                                "ON DUPLICATE KEY UPDATE count = count + 1"
+                            ));
+                        stmt->setString(1, member_account);              // 接收者
+                        stmt->setString(2, group_name);                // 发送者
+                        stmt->setString(3, "group_file");              // 消息类型（按你的业务逻辑调整）
+                        stmt->execute();
+                    } catch (const std::exception& e) {
+                        std::cerr << "[offline_message_counter] Error: " << e.what() << std::endl;
+                    }
                     ;
                 }
             }
@@ -3467,6 +3830,8 @@ void send_group_file_msg(int fd, const json& request){
 
 
 void get_file_list_msg(int fd, const json& request){
+    std::cout << "[DEBUG] fd: " << fd << " -> get_file_list_ms()" << std::endl;
+
     std::cout <<"进入 get_file_list_msg" << std::endl;
     json response;
     response["type"] = "get_file_list";
@@ -3572,7 +3937,47 @@ try {
 
 
 
+void send_offline_summary_on_login(const std::string& account, int fd) {
+    try {
+        auto conn = get_mysql_connection();
 
+        // 查询所有未读消息摘要
+        std::unique_ptr<sql::PreparedStatement> stmt(
+            conn->prepareStatement(
+                "SELECT sender, message_type, count "
+                "FROM offline_message_counter WHERE account = ?"));
+        stmt->setString(1, account);
+        auto res = std::unique_ptr<sql::ResultSet>(stmt->executeQuery());
+
+        json summary;
+        summary["type"] = "offline_summary";
+        summary["status"] = "success";
+        json messages = json::array();
+
+        while (res->next()) {
+            json entry;
+            entry["sender"] = res->getString("sender");
+            entry["message_type"] = res->getString("message_type");
+            entry["count"] = res->getInt("count");
+            messages.push_back(entry);
+        }
+
+        summary["messages"] = messages;
+
+        // 2. 向客户端发送摘要
+        send_json(fd, summary);
+
+        // 3. 自动清零（删除对应统计）
+        std::unique_ptr<sql::PreparedStatement> clear_stmt(
+            conn->prepareStatement(
+                "DELETE FROM offline_message_counter WHERE account = ?"));
+        clear_stmt->setString(1, account);
+        clear_stmt->execute();
+
+    } catch (const std::exception& e) {
+        std::cerr << "[send_offline_summary_on_login] Error: " << e.what() << std::endl;
+    }
+}
 
 
 

@@ -687,6 +687,7 @@ void send_group_file_msg(int fd, const json& request){
 
 
 
+/home/kong/test/ceshi/5g_file.bin
 
 
 
@@ -871,6 +872,99 @@ CREATE TABLE offline_file_notifications (
 
 
 
+        bool is_online = redis.exists("online:" + target_account);
+
+
+        // 在线则推送消息
+        if (is_online) {
+            int target_fd = get_fd_by_account(target_account);
+            if (target_fd == -1) {
+                response["status"] = "fail";
+                response["msg"] = "Failed to get target user fd";
+                send_json(fd, response);
+                return;
+            }
+
+            response1["from"] = user_account;
+            response1["to"] = target_account;
+            response1["message"] = message;
+            response1["muted"] = target_muted_user;
+
+            send_json(target_fd, response1);
+        }else{
+                    ;
+//离线
+// 上线在哪里调用通知函数
+// 离线要怎么实现用户上线提示和发送信息
+// 上线的离线消息发送逻辑，遍历消息表输出未读消息
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+        bool is_online = redis.exists("online:" + target_account);
+
+        if (is_online) {
+            int target_fd = get_fd_by_account(target_account);
+            if (target_fd == -1) {
+                return;
+            }
+
+            json resp;
+            resp["type"] = "receive_message";
+            resp["type1"] = ;
+            resp["state"] = ;
+
+            send_json(target_fd, resp);
+        }else{
+                    ;
+//离线
+
+        }
+
+
+
+
+
+        bool is_online = redis.exists("online:" + target_account);
+
+//         // 在线则推送消息
+        if (is_online) {
+            int target_fd = get_fd_by_account(target_account);
+                json response;
+                response["type"] = "receive_message";
+                response["type1"] = "private_file_message";
+
+            if (target_fd == -1) {
+                response["status"] = "fail";
+                response["msg"] = "Failed to get target user fd";
+                send_json(fd, response);
+                return;
+            }
+
+            response["from"] = user_name;
+//             response1["message"] = message;
+
+
+            send_json(target_fd, response);
+        }else{
+                    ;
+//离线
+// 上线在哪里调用通知函数
+// 离线要怎么实现用户上线提示和发送信息
+// 上线的离线消息发送逻辑，遍历消息表输出未读消息
+        }
+
+
+}
 
 
 
@@ -887,6 +981,69 @@ CREATE TABLE offline_file_notifications (
 
 
 
+void FTPServer::handle_stor_data(int data_fd, int control_fd) {
+    auto it = stor_states.find(data_fd);
+    if (it == stor_states.end()) {
+        cerr << "No stor state for data_fd: " << data_fd << endl;
+        close_connection(data_fd);
+        return;
+    }
+
+    static size_t total_received = 0;  // 统计本次上传已接收的字节数
+
+    char buf[4096];
+    while (true) {
+        ssize_t n = recv(data_fd, buf, sizeof(buf), 0);
+
+        if (n > 0) {
+            total_received += n;
+            cout << "\r上传进度: " << total_received / 1024 << " KB   " << flush;
+            cout << "\r上传进度: " << total_received / (1024*1024) << " MB   " << flush;
+
+            // 处理 write() 可能部分写入的情况
+            ssize_t total_written = 0;
+            while (total_written < n) {
+                ssize_t written = write(it->second.file_fd, buf + total_written, n - total_written);
+                if (written < 0) {
+                    if (errno == EAGAIN || errno == EWOULDBLOCK) break;
+                    perror("write error");
+                    close(it->second.file_fd);
+                    stor_states.erase(it);
+                    close_connection(data_fd);
+                    return;
+                }
+                total_written += written;
+            }
+
+        } else if (n == 0) {
+            // 客户端关闭了数据连接（传输完成）
+            std::cout << "[服务端] 客户端关闭数据连接，发送 226" << std::endl;
+
+            close(it->second.file_fd);
+            stor_states.erase(it);
+            close_connection(data_fd);
+
+            const char* msg = "226 Transfer complete.\r\n";
+            send(control_fd, msg, strlen(msg), 0);
+            total_received = 0;  // 重置统计数
+
+            return;
+        } else {
+            if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                // 没有更多数据了，等下一次 epoll 再进来
+                break;
+            } else {
+                // 发生错误
+                perror("recv error");
+                close(it->second.file_fd);
+                stor_states.erase(it);
+                close_connection(data_fd);
+                total_received = 0;
+                return;
+            }
+        }
+    }
+}
 
 
 
@@ -898,3 +1055,137 @@ CREATE TABLE offline_file_notifications (
 
 
 
+
+
+
+CREATE TABLE offline_message_counter (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    account VARCHAR(255) NOT NULL,          -- 接收者账号
+    sender VARCHAR(255) NOT NULL,           -- 发送者账号或群名
+    message_type VARCHAR(50) NOT NULL,      -- private_text / private_file / group_text / group_file
+    count INT DEFAULT 0,                    -- 离线消息数量
+    UNIQUE KEY (account, sender, message_type)
+);
+
+
+
+    // 离线处理逻辑：更新计数表
+    try {
+        auto conn = get_mysql_connection();
+        std::unique_ptr<sql::PreparedStatement> stmt(
+            conn->prepareStatement(
+                "INSERT INTO offline_message_counter(account, sender, message_type, count) "
+                "VALUES (?, ?, ?, 1) "
+                "ON DUPLICATE KEY UPDATE count = count + 1"
+            ));
+        stmt->setString(1, target_account);              // 接收者
+        stmt->setString(2, user_account);                // 发送者
+        stmt->setString(3, "private_text");              // 消息类型（按你的业务逻辑调整）
+        stmt->execute();
+    } catch (const std::exception& e) {
+        std::cerr << "[offline_message_counter] Error: " << e.what() << std::endl;
+    }
+
+    send_offline_summary_on_login(account, fd);
+
+
+void send_offline_summary_on_login(const std::string& account, int fd) {
+    try {
+        auto conn = get_mysql_connection();
+
+        // 1. 查询所有未读消息摘要
+        std::unique_ptr<sql::PreparedStatement> stmt(
+            conn->prepareStatement(
+                "SELECT sender, message_type, count "
+                "FROM offline_message_counter WHERE account = ?"));
+        stmt->setString(1, account);
+        auto res = std::unique_ptr<sql::ResultSet>(stmt->executeQuery());
+
+        json summary;
+        summary["type"] = "offline_summary";
+        summary["status"] = "success";
+        json messages = json::array();
+
+        while (res->next()) {
+            json entry;
+            entry["sender"] = res->getString("sender");
+            entry["message_type"] = res->getString("message_type");
+            entry["count"] = res->getInt("count");
+            messages.push_back(entry);
+        }
+
+        summary["messages"] = messages;
+
+        // 2. 向客户端发送摘要
+        send_json(fd, summary);
+
+        // 3. 自动清零（删除对应统计）
+        std::unique_ptr<sql::PreparedStatement> clear_stmt(
+            conn->prepareStatement(
+                "DELETE FROM offline_message_counter WHERE account = ?"));
+        clear_stmt->setString(1, account);
+        clear_stmt->execute();
+
+    } catch (const std::exception& e) {
+        std::cerr << "[send_offline_summary_on_login] Error: " << e.what() << std::endl;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+void FTPServer::handle_stor_data(int data_fd, int control_fd) {
+    auto it = stor_states.find(data_fd);
+    if (it == stor_states.end()) {
+        cerr << "No stor state for data_fd: " << data_fd << endl;
+        close_connection(data_fd);
+        return;
+    }
+
+    static size_t total_received = 0;  // 统计本次上传已接收的字节数
+
+    char buf[4096];
+    while (true) {
+        ssize_t n = recv(data_fd, buf, sizeof(buf), 0);
+        if (n > 0) {
+            total_received += n;
+            cout << "\r上传进度: " << total_received / 1024 << " KB   " << flush;
+
+            ssize_t written = write(it->second.file_fd, buf, n);
+            if (written != n) {
+                perror("write error");
+                close(it->second.file_fd);
+                stor_states.erase(it);
+                close_connection(data_fd);
+                return;
+            }
+        } else if (n == 0) {
+            cout << endl << "[服务端] 客户端关闭数据连接，发送 226" << endl;
+            close(it->second.file_fd);
+            stor_states.erase(it);
+            close_connection(data_fd);
+            const char* msg = "226 Transfer complete.\r\n";
+            send(control_fd, msg, strlen(msg), 0);
+            total_received = 0;  // 重置统计数
+            return;
+        } else {
+            if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                break;
+            } else {
+                perror("recv error");
+                close(it->second.file_fd);
+                stor_states.erase(it);
+                close_connection(data_fd);
+                total_received = 0;
+                return;
+            }
+        }
+    }
+}

@@ -4,7 +4,7 @@
 # compile CXX with /usr/bin/c++
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/usr/include/mysql-cppconn-8 -I/usr/include/readline -I/home/kong/plan/chartroom/chat-system/client -I/home/kong/plan/chartroom/chat-system/client/../threadpool -I/home/kong/plan/chartroom/chat-system/client/../log
+CXX_INCLUDES = -I/usr/include/mysql-cppconn-8 -I/usr/include/readline
 
 CXX_FLAGS = -std=gnu++17
 

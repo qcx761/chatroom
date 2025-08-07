@@ -232,5 +232,4 @@ CMakeFiles/client.dir/main.cpp.o: \
  /usr/include/readline/readline.h /usr/include/readline/rlstdc.h \
  /usr/include/readline/rltypedefs.h /usr/include/readline/keymaps.h \
  /usr/include/readline/chardefs.h /usr/include/readline/tilde.h \
- /usr/include/readline/history.h \
- /home/kong/plan/chartroom/chat-system/client/../log/logger.hpp
+ /usr/include/readline/history.h

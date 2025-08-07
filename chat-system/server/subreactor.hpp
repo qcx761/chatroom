@@ -11,7 +11,6 @@
 #include <nlohmann/json.hpp>
 
 
-#include "../log/logger.hpp"
 #include "../threadpool/threadpool.hpp"
 
 using json = nlohmann::json;

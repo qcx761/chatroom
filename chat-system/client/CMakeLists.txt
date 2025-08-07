@@ -23,13 +23,6 @@ add_executable(client
     json.cpp
     msg.cpp
     ../threadpool/threadpool.cpp
-    ../log/logger.cpp
-)
-
-target_include_directories(client PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ../threadpool
-    ../log
 )
 
 # 关键部分：添加 readline 和 history 库

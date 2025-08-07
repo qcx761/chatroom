@@ -16,7 +16,6 @@
 
 
 #include "../threadpool/threadpool.hpp"
-#include "../log/logger.hpp"
 
 class Server
 {
@@ -31,7 +30,6 @@ private:
     threadpool thread_pool;
     std::vector<SubReactor *> workers;
 
-    Logger logger;
 };
 
 

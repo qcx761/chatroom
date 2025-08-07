@@ -20,7 +20,6 @@
 #include <readline/readline.h>   // 主要函数 readline()
 #include <readline/history.h>    // 可选：支持历史记录
 
-#include "../log/logger.hpp"
 // #include "../threadpool/threadpool.hpp"
 
 class Client
@@ -61,7 +60,6 @@ std::string token;  // 存储token
     int epfd=-1;
     int sock=-1;
     int port;
-    Logger logger;
     std::atomic<bool> running = true;
     std::thread input_thread;
     std::thread net_thread;

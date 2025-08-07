@@ -395,7 +395,7 @@ cout <<"数据连接 fd="<< data_fd <<endl;
 }
 
 void FTPServer::start_sendfile(int data_fd, int control_fd, const string& filename) {
-    std::string root_dir = "/home/kong/plan/chartroom/chat-system/server/";
+    std::string root_dir = "/home/kong/plan/chartroom/chat-system/server/file/";
     std::string full_path = root_dir + filename;
     int file_fd = open(full_path.c_str(), O_RDONLY);
 
@@ -426,7 +426,7 @@ void FTPServer::start_sendfile(int data_fd, int control_fd, const string& filena
 
 
 
-    
+
 }
 
 void FTPServer::sendfile_continue(SendState& state) {
@@ -443,6 +443,9 @@ void FTPServer::sendfile_continue(SendState& state) {
                 return;
             }
         }
+// 这里添加进度显示代码
+int percent = (int)((double)state.offset / state.filesize * 100);
+cout << "下载进度: " << percent << "%   " << "\n" << flush;
     }
     // 文件发送完毕
     close(state.file_fd);
@@ -457,7 +460,7 @@ void FTPServer::sendfile_continue(SendState& state) {
 }
 
 void FTPServer::start_stor(int data_fd, int control_fd, const string& filename) {
-    const std::string root_dir = "/home/kong/plan/chartroom/chat-system/server/";
+    const std::string root_dir = "/home/kong/plan/chartroom/chat-system/server/file/";
     std::string save_path = root_dir + filename;
 
     int file_fd = open(save_path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
@@ -482,21 +485,43 @@ void FTPServer::handle_stor_data(int data_fd, int control_fd) {
         return;
     }
 
+static size_t total_received = 0;  // 统计本次上传已接收的字节数
+
+
     char buf[4096];
     while (true) {
         ssize_t n = recv(data_fd, buf, sizeof(buf), 0);
 
         if (n > 0) {
+total_received += n;
+cout << "上传进度: " << total_received / 1024 << " KB   " << "\n" << flush;
+cout << "上传进度: " << total_received / (1024*1024) << " MB   " << "\n" << flush;
             // 正常接收到数据，写入文件
-            std::cout << "[服务端] recv() 接收到: " << n << " 字节" << std::endl;
-            ssize_t written = write(it->second.file_fd, buf, n);
-            if (written != n) {
-                perror("write error");
-                close(it->second.file_fd);
-                stor_states.erase(it);
-                close_connection(data_fd);
-                return;
+            // std::cout << "[服务端] recv() 接收到: " << n << " 字节" << std::endl;
+
+            // ssize_t written = write(it->second.file_fd, buf, n);
+            // if (written != n) {
+            //     perror("write error");
+            //     close(it->second.file_fd);
+            //     stor_states.erase(it);
+            //     close_connection(data_fd);
+            //     return;
+            // }
+
+            ssize_t total_written = 0;
+            while (total_written < n) {
+                ssize_t written = write(it->second.file_fd, buf + total_written, n - total_written);
+                if (written < 0) {
+                    if (errno == EAGAIN || errno == EWOULDBLOCK) break;
+                    perror("write error");
+                    close(it->second.file_fd);
+                    stor_states.erase(it);
+                    close_connection(data_fd);
+                    return;
+                }
+                total_written += written;
             }
+
         } else if (n == 0) {
             // 客户端关闭了数据连接（传输完成）
             std::cout << "[服务端] 客户端关闭数据连接，发送 226" << std::endl;
@@ -507,6 +532,8 @@ void FTPServer::handle_stor_data(int data_fd, int control_fd) {
 
             const char* msg = "226 Transfer complete.\r\n";
             send(control_fd, msg, strlen(msg), 0);
+total_received = 0;  // 重置统计数
+
 
             return;
         } else {
@@ -519,6 +546,7 @@ void FTPServer::handle_stor_data(int data_fd, int control_fd) {
                 close(it->second.file_fd);
                 stor_states.erase(it);
                 close_connection(data_fd);
+total_received = 0;
                 return;
             }
         }

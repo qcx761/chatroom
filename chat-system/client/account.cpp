@@ -232,6 +232,18 @@ void add_friend(int sock,string token,sem_t& sem){
 void remove_friend(int sock,string token,sem_t& sem){
     system("clear");
     // cout <<"删除用户 :" << endl;
+    cout << "---------- 好友列表 ----------" << endl;
+
+
+
+    json mm;
+    mm["type"]="show_friend_list";
+    mm["token"]=token;
+    send_json(sock,mm);
+    sem_wait(&sem); // 等待信号量
+
+
+    cout << "-----------------------------" << endl;
     string username = readline_string("请输入想删除的用户名  :");
 
     json j;
@@ -249,6 +261,18 @@ void remove_friend(int sock,string token,sem_t& sem){
 void unmute_friend(int sock,string token,sem_t& sem){
     system("clear");
     // cout <<"解除屏蔽用户 :" << endl;
+    cout << "---------- 好友列表 ----------" << endl;
+
+
+
+    json mm;
+    mm["type"]="show_friend_list";
+    mm["token"]=token;
+    send_json(sock,mm);
+    sem_wait(&sem); // 等待信号量
+
+
+    cout << "-----------------------------" << endl;
     string target_username = readline_string("请输入想解除屏蔽的用户名  :");
 
 
@@ -266,6 +290,18 @@ void unmute_friend(int sock,string token,sem_t& sem){
 
 void mute_friend(int sock,string token,sem_t& sem){
     system("clear");
+    cout << "---------- 好友列表 ----------" << endl;
+
+
+
+    json mm;
+    mm["type"]="show_friend_list";
+    mm["token"]=token;
+    send_json(sock,mm);
+    sem_wait(&sem); // 等待信号量
+
+
+    cout << "-----------------------------" << endl;
     // cout <<"屏蔽用户 :" << endl;
     string target_username = readline_string("请输入想屏蔽的用户名  :");
 
@@ -298,16 +334,24 @@ void getandhandle_friend_request(int sock,string token,sem_t& sem){
     }
 
     string input = readline_string("输入处理编号(0 退出): ");
-    int choice = stoi(input);
 
-    // flushInput();
-// 要不要取消锁
+    // int choice = stoi(input);
+    int choice;
+    try {
+        choice = std::stoi(input);
+    } catch (const std::exception& e) {
+        std::cout << "输入错误已取消处理。" << std::endl;
+        waiting();
+        return;
+    }
+
+
     std::string from_username;
 {
     std::lock_guard<std::mutex> lock(friend_requests_mutex);
 
     if (choice <= 0 || choice > global_friend_requests.size()) {
-        std::cout << "已取消处理。" << std::endl;
+        std::cout << "输入错误已取消处理。" << std::endl;
         waiting();
         return;
     }
@@ -545,8 +589,9 @@ if (!filename.empty() && filename.back() == '\n') {
     filename.pop_back();  // 直接删掉最后一个字符
 }
 
-string path1 = readline_string("请输入想放在的路径 : ");
+string path1 = readline_string("请输入想放在的路径（直接回车保存默认路径） : ");
 if (!path1.empty() && path1.back() == '\n') {
+    // 删除换行符
     path1.pop_back();
 }
 
@@ -900,7 +945,15 @@ void getandhandle_group_request(int sock,string token,sem_t& sem){
     }
 
     string input = readline_string("输入处理编号(0 退出): ");
-    int choice = stoi(input);
+    // int choice = stoi(input);
+    int choice;
+    try {
+        choice = std::stoi(input);
+    } catch (const std::exception& e) {
+        std::cout << "输入错误已取消处理。" << std::endl;
+        waiting();
+        return;
+    }
 
     std::string from_username;
     {
@@ -1335,7 +1388,7 @@ void ftp_stor(int control_fd, const std::string& filename, const std::string& fi
             break;
         }
         remaining -= sent;
-        std::cout << "sendfile sent bytes: " << sent << ", remaining: " << remaining << std::endl;
+        // std::cout << "sendfile sent bytes: " << sent << ", remaining: " << remaining << std::endl;
     }
 
     shutdown(data_fd, SHUT_WR);

@@ -200,7 +200,6 @@ CMakeFiles/client.dir/client.cpp.o: \
  /usr/include/readline/rlstdc.h /usr/include/readline/rltypedefs.h \
  /usr/include/readline/keymaps.h /usr/include/readline/chardefs.h \
  /usr/include/readline/tilde.h /usr/include/readline/history.h \
- /home/kong/plan/chartroom/chat-system/client/../log/logger.hpp \
  /home/kong/plan/chartroom/chat-system/client/json.hpp \
  /usr/include/nlohmann/json.hpp /usr/include/c++/13/algorithm \
  /usr/include/c++/13/bits/stl_algo.h \

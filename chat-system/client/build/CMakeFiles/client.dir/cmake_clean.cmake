@@ -3,8 +3,6 @@ file(REMOVE_RECURSE
   "CMakeFiles/client.dir/account.cpp.o.d"
   "CMakeFiles/client.dir/client.cpp.o"
   "CMakeFiles/client.dir/client.cpp.o.d"
-  "CMakeFiles/client.dir/home/kong/plan/chartroom/chat-system/log/logger.cpp.o"
-  "CMakeFiles/client.dir/home/kong/plan/chartroom/chat-system/log/logger.cpp.o.d"
   "CMakeFiles/client.dir/home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.o"
   "CMakeFiles/client.dir/home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.o.d"
   "CMakeFiles/client.dir/json.cpp.o"

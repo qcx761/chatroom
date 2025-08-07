@@ -1,8 +1,6 @@
 file(REMOVE_RECURSE
   "CMakeFiles/server.dir/ftpserver.cpp.o"
   "CMakeFiles/server.dir/ftpserver.cpp.o.d"
-  "CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/log/logger.cpp.o"
-  "CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/log/logger.cpp.o.d"
   "CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.o"
   "CMakeFiles/server.dir/home/kong/plan/chartroom/chat-system/threadpool/threadpool.cpp.o.d"
   "CMakeFiles/server.dir/json.cpp.o"

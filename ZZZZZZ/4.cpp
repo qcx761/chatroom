@@ -270,7 +270,15 @@ void getandhandle_friend_request(int sock, string token, sem_t& sem) {
     }
 
     string input = readline_string("输入处理编号(0 退出): ");
-    int choice = stoi(input);
+    // int choice = stoi(input);
+    int choice;
+    try {
+        choice = std::stoi(input);
+    } catch (const std::exception& e) {
+        std::cout << "输入错误已取消处理。" << std::endl;
+        waiting();
+        return;
+    }
 
     if (choice <= 0 || choice > global_friend_requests.size()) {
         cout << "已取消处理。" << endl;

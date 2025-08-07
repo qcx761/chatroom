@@ -322,7 +322,6 @@ CMakeFiles/server.dir/main.cpp.o: \
  /usr/include/nlohmann/ordered_map.hpp /usr/include/c++/13/any \
  /usr/include/nlohmann/detail/macro_unscope.hpp \
  /usr/include/nlohmann/thirdparty/hedley/hedley_undef.hpp \
- /home/kong/plan/chartroom/chat-system/server/../log/logger.hpp \
  /home/kong/plan/chartroom/chat-system/server/../threadpool/threadpool.hpp \
  /usr/include/c++/13/queue /usr/include/c++/13/deque \
  /usr/include/c++/13/bits/stl_deque.h /usr/include/c++/13/bits/deque.tcc \
