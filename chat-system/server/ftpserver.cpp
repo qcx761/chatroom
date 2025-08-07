@@ -494,7 +494,7 @@ static size_t total_received = 0;  // 统计本次上传已接收的字节数
 
         if (n > 0) {
 total_received += n;
-cout << "上传进度: " << total_received / 1024 << " KB   " << "\n" << flush;
+// cout << "上传进度: " << total_received / 1024 << " KB   " << "\n" << flush;
 cout << "上传进度: " << total_received / (1024*1024) << " MB   " << "\n" << flush;
             // 正常接收到数据，写入文件
             // std::cout << "[服务端] recv() 接收到: " << n << " 字节" << std::endl;

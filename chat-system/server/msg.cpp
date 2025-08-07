@@ -43,7 +43,7 @@ std::mutex fd_mutex;
 //     id INT AUTO_INCREMENT PRIMARY KEY,      -- 消息唯一ID，自增主键
 //     sender VARCHAR(64),                     -- 发送者账号
 //     receiver VARCHAR(64),                   -- 接收者账号
-//     content TEXT,                           -- 消息内容，文本类型
+//     content MEDIUMTEXT,                           -- 消息内容，文本类型
 //     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,  -- 消息发送时间，默认当前时间
 //     is_online BOOLEAN DEFAULT FALSE,       -- 发送时接收者是否在线，默认为否
 //     is_read BOOLEAN DEFAULT FALSE          -- 消息是否已读标志，默认为否
@@ -65,7 +65,7 @@ std::mutex fd_mutex;
 //     id INT PRIMARY KEY AUTO_INCREMENT,               -- 消息ID
 //     group_id INT NOT NULL,                           -- 所属群ID
 //     sender VARCHAR(64) NOT NULL,                     -- 发送者账号
-//     content TEXT NOT NULL,                           -- 消息内容
+//     MEDIUMTEXT TEXT NOT NULL,                           -- 消息内容
 //     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP    -- 发送时间
 // );
 
@@ -304,9 +304,17 @@ void log_in_msg(int fd, const json &request) {
             account_fd_map[account] = fd;
         }
 
+        // 检查是否已登录（在线）
+        if (redis.exists("online:" + account)) {
+            response["status"] = "fail";
+            response["msg"] = "Account already logged in";
+            send_json(fd, response);
+            return;
+        }
+
         redis.set(token_key, token_info.dump());
-        redis.expire(token_key, 36000); //token有十个小时有效期
-        redis.setex("online:" + account, 36000, "1");
+        redis.expire(token_key, 7200); //token有两个个小时有效期
+        redis.setex("online:" + account, 7200, "1");
 
         response["status"] = "success";
         response["msg"] = "Login successful";

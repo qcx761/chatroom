@@ -542,6 +542,7 @@ file_req["filename"] = filename;
 file_req["filesize"] = filesize;
 send_json(sock, file_req);
 
+cout << "文件上传完成" << endl;
             }).detach();
 
             cout << "[系统] 文件上传已开始，后台进行中..." << endl;
@@ -559,7 +560,7 @@ send_json(sock, file_req);
         msg["message"]=message;
 
         send_json(sock, msg);
-        sem_wait(&sem);  
+        //sem_wait(&sem);  
 
     }
 }
@@ -1162,7 +1163,7 @@ system("clear");
         msg["message"]=message;
 
         send_json(sock, msg);
-        sem_wait(&sem);  
+        // sem_wait(&sem);  
 
     }
 }

@@ -373,3 +373,334 @@ void send_private_message(int sock, const string& token, sem_t& sem) {
         sem_wait(&sem);
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#pragma once
+#include <atomic>
+#include <string>
+#include <ctime>
+
+class Client {
+public:
+    Client(std::string ip, int port);
+    void run();  // 启动客户端主循环（含心跳检测）
+
+private:
+    int sock;
+    int epfd;
+    std::atomic<time_t> last_response_time;
+    static constexpr int TIMEOUT_SECONDS = 60;
+
+    void handle_server_response();
+    void handle_timeout_check();
+};
+
+
+
+
+
+
+
+
+
+
+
+
+#include "Client.h"
+#include <iostream>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/socket.h>
+#include <sys/epoll.h>
+#include <arpa/inet.h>
+#include <cstring>
+
+Client::Client(std::string ip, int port)
+{
+    last_response_time.store(time(NULL));  // 初始化心跳时间
+
+    sock = socket(AF_INET, SOCK_STREAM, 0);
+    if (sock < 0) {
+        perror("socket failed");
+        exit(1);
+    }
+
+    sockaddr_in addr{};
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(port);
+    inet_pton(AF_INET, ip.c_str(), &addr.sin_addr);
+
+    if (connect(sock, (sockaddr *)&addr, sizeof(addr)) < 0) {
+        perror("connect failed");
+        exit(1);
+    }
+
+    // 设置非阻塞
+    int flags = fcntl(sock, F_GETFL);
+    if (flags == -1 || fcntl(sock, F_SETFL, flags | O_NONBLOCK) == -1) {
+        perror("fcntl failed");
+        exit(1);
+    }
+
+    epfd = epoll_create1(0);
+    if (epfd == -1) {
+        perror("epoll_create1 failed");
+        exit(1);
+    }
+
+    epoll_event ev{};
+    ev.data.fd = sock;
+    ev.events = EPOLLIN | EPOLLET;
+    epoll_ctl(epfd, EPOLL_CTL_ADD, sock, &ev);
+}
+
+void Client::run()
+{
+    epoll_event events[10];
+
+    while (true) {
+        int n = epoll_wait(epfd, events, 10, 1000);  // 等待最多1秒
+        if (n < 0) {
+            perror("epoll_wait error");
+            break;
+        }
+
+        bool had_response = false;
+
+        for (int i = 0; i < n; ++i) {
+            if (events[i].data.fd == sock && (events[i].events & EPOLLIN)) {
+                handle_server_response();
+                had_response = true;
+            }
+        }
+
+        if (!had_response) {
+            handle_timeout_check();
+        }
+
+        // 可选：定期向服务器发送心跳
+        const char* ping = "PING";
+        send(sock, ping, strlen(ping), 0);
+    }
+}
+
+void Client::handle_server_response()
+{
+    char buffer[1024];
+    int n = recv(sock, buffer, sizeof(buffer), 0);
+    if (n <= 0) {
+        std::cout << "[客户端] 服务器断开连接。\n";
+        close(sock);
+        exit(0);
+    }
+
+    buffer[n] = '\0';
+    std::cout << "[客户端] 收到消息：" << buffer << std::endl;
+
+    // 更新最后响应时间
+    last_response_time.store(time(NULL));
+}
+
+void Client::handle_timeout_check()
+{
+    time_t now = time(NULL);
+    time_t last = last_response_time.load();
+
+    if (now - last > TIMEOUT_SECONDS) {
+        std::cout << "[客户端] 超过 " << TIMEOUT_SECONDS << " 秒未收到服务器响应，断开连接。\n";
+        close(sock);
+        exit(0);
+    }
+}
+
+
+#pragma once
+#include <atomic>
+#include <string>
+#include <ctime>
+
+class Client {
+public:
+    Client(std::string ip, int port);
+    void run();  // 启动客户端主循环（含心跳检测）
+
+private:
+    int sock;
+    int epfd;
+    std::atomic<time_t> last_response_time;
+    static constexpr int TIMEOUT_SECONDS = 60;
+
+    void handle_server_response();
+    void handle_timeout_check();
+};
+
+
+
+
+
+
+
+void epoll_thread_func(Client *client) {
+    client->last_response_time.store(time(NULL)); // 初始化心跳计时
+
+    int epfd = epoll_create1(0);
+    if (epfd == -1) {
+        perror("epoll_create1");
+        return;
+    }
+    client->epfd = epfd;
+
+    struct epoll_event event{};
+    event.data.fd = client->sock;
+    event.events = EPOLLIN;
+    epoll_ctl(epfd, EPOLL_CTL_ADD, client->sock, &event);
+
+    struct epoll_event events[1024];
+
+    time_t last_ping_time = time(NULL);
+
+    while (client->running) {
+        int n = epoll_wait(epfd, events, 1024, 1000); // 1秒超时，方便检测断线
+
+        if (n == -1) {
+            perror("epoll_wait");
+            break;
+        }
+
+        time_t now = time(NULL);
+
+        // 发送心跳包，每30秒一次
+        if (now - last_ping_time > 30) {
+            const char* ping_msg = R"({"type":"ping"})";
+            send(client->sock, ping_msg, strlen(ping_msg), 0);
+            last_ping_time = now;
+        }
+
+        if (n == 0) {
+            // 超时没有事件，检查心跳超时
+            if (now - client->last_response_time.load() > client->TIMEOUT_SECONDS) {
+                std::cout << "[客户端] 超过 " << client->TIMEOUT_SECONDS << " 秒未收到服务器响应，断开连接。\n";
+                client->running = false;
+                client->login_success.store(false);
+                client->token.clear();
+                client->state = main_menu;
+
+                close(client->sock);
+                client->sock = -1;
+                close(client->epfd);
+                client->epfd = -1;
+
+                sem_post(&client->sem);  // 防止死锁
+                return;
+            }
+            continue;
+        }
+
+        for (int i = 0; i < n; i++) {
+            if (events[i].data.fd == client->sock) {
+                if (events[i].events & EPOLLIN) {
+                    char buffer[1024];
+                    ssize_t count = recv(client->sock, buffer, sizeof(buffer) - 1, 0);
+                    if (count <= 0) {
+                        std::cout << "[客户端] 服务器断开连接。\n";
+                        client->running = false;
+                        client->login_success.store(false);
+                        client->token.clear();
+                        client->state = main_menu;
+
+                        close(client->sock);
+                        client->sock = -1;
+                        close(client->epfd);
+                        client->epfd = -1;
+
+                        sem_post(&client->sem);
+                        return;
+                    }
+                    buffer[count] = '\0';
+
+                    // 这里你可以打印或处理消息
+                    // std::cout << "[收到] " << buffer << std::endl;
+
+                    // 收到任何消息都重置心跳计时
+                    client->last_response_time.store(time(NULL));
+                }
+            }
+        }
+    }
+
+    close(client->sock);
+    close(client->epfd);
+}
+
+
+
+
+// CREATE TABLE messages (
+//     id INT AUTO_INCREMENT PRIMARY KEY,      -- 消息唯一ID，自增主键
+//     sender VARCHAR(64),                     -- 发送者账号
+//     receiver VARCHAR(64),                   -- 接收者账号
+//     content TEXT,                           -- 消息内容，文本类型
+//     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,  -- 消息发送时间，默认当前时间
+//     is_online BOOLEAN DEFAULT FALSE,       -- 发送时接收者是否在线，默认为否
+//     is_read BOOLEAN DEFAULT FALSE          -- 消息是否已读标志，默认为否
+// );
+
+
+
+
+// 群消息：group_messages
+
+// CREATE TABLE group_messages (
+//     id INT PRIMARY KEY AUTO_INCREMENT,               -- 消息ID
+//     group_id INT NOT NULL,                           -- 所属群ID
+//     sender VARCHAR(64) NOT NULL,                     -- 发送者账号
+//     content TEXT NOT NULL,                           -- 消息内容
+//     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP    -- 发送时间
+// );
+
+
+
+MEDIUMTEXT
+
+CREATE TABLE messages (
+    id INT AUTO_INCREMENT PRIMARY KEY,      -- 消息唯一ID，自增主键
+    sender VARCHAR(64),                     -- 发送者账号
+    receiver VARCHAR(64),                   -- 接收者账号
+    content MEDIUMTEXT,                           -- 消息内容，文本类型
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,  -- 消息发送时间，默认当前时间
+    is_online BOOLEAN DEFAULT FALSE,       -- 发送时接收者是否在线，默认为否
+    is_read BOOLEAN DEFAULT FALSE          -- 消息是否已读标志，默认为否
+);
+
+
+群消息：group_messages
+
+CREATE TABLE group_messages (
+    id INT PRIMARY KEY AUTO_INCREMENT,               -- 消息ID
+    group_id INT NOT NULL,                           -- 所属群ID
+    sender VARCHAR(64) NOT NULL,                     -- 发送者账号
+    content MEDIUMTEXT NOT NULL,                           -- 消息内容
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP    -- 发送时间
+);
