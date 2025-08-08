@@ -65,3 +65,13 @@ void send_private_file_msg(int fd, const json& request);
 void get_file_list_msg(int fd, const json& request);
 void send_offline_summary_on_login(const std::string& account, int fd);
 
+
+
+
+
+
+
+
+bool redis_key_exists(const std::string &token);
+void refresh_online_status(const std::string &token);
+

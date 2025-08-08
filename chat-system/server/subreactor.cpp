@@ -63,13 +63,21 @@ void SubReactor::run() {
                 continue;
             }
 
-            // 更新心跳
-            // {
-            //     std::lock_guard<std::mutex> lock(conn_mtx);
-            //     heartbeats[fd] = std::chrono::steady_clock::now();
-            // }
-
             std::string type=request.value("type","");
+
+            if (type == "heartbeat") {
+                cout<<"收到心跳检测来自fd="<< fd << endl;
+                std::string token = request.value("token", "");
+                bool valid = redis_key_exists(token); // 你自己实现的验证函数
+                if (valid) {
+                    // 更新心跳或在线状态
+                    refresh_online_status(token);
+                } else {
+                        ;
+                }
+
+                continue; 
+            }
 
             if(type=="log_in"){
                 thread_pool->enqueue([fd, request]() {

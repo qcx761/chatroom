@@ -66,6 +66,9 @@ void Client::start() {
     net_thread = std::thread(&Client::epoll_thread_func, this);
     // 启动用户输入线程
     input_thread = std::thread(&Client::user_thread_func, this);
+    //心跳检测
+    heartbeat_thread = std::thread(&Client::heartbeat_thread_func, this);
+
 }
 
 void Client::stop() {
@@ -73,7 +76,27 @@ void Client::stop() {
 
     if (net_thread.joinable()) net_thread.join();
     if (input_thread.joinable()) input_thread.join();
+    if (heartbeat_thread.joinable()) heartbeat_thread.join();
 }
+
+
+
+void Client::heartbeat_thread_func() {
+    cout <<"进入心跳检测"<<endl;
+
+    while (running) {
+        // 只有登录成功且token非空才发送心跳
+        if (login_success.load() && !token.empty()) {
+            json heartbeat_msg;
+            heartbeat_msg["type"] = "heartbeat";
+            heartbeat_msg["token"] = token;
+
+            send_json(sock,heartbeat_msg);
+        }
+        std::this_thread::sleep_for(std::chrono::seconds(5));
+    }
+}
+
 
 void Client::epoll_thread_func(){
     epoll_event events[1024];

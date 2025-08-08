@@ -136,6 +136,40 @@ std::mutex fd_mutex;
 //     UNIQUE KEY (account, sender, message_type)
 // );
 
+
+
+bool redis_key_exists(const std::string &token) {
+    std::string token_key = "token:" + token;
+    return redis.exists(token_key) > 0;
+}
+
+void refresh_online_status(const std::string& token) {
+    try {
+        std::string token_key = "token:" + token;
+        // std::string token_val = redis.get(token_key);
+        auto token_val_opt = redis.get(token_key);
+        if (!token_val_opt) {
+            // key不存在，直接返回或其他处理
+            return;
+        }
+
+        // 解析JSON
+        json token_info = json::parse(*token_val_opt);
+        std::string account = token_info.value("account", "");
+        if (account.empty()) {
+            std::cerr << "No account info in token data\n";
+            return;
+        }
+
+        // 刷新在线状态，设置15秒过期
+        redis.setex("online:" + account, 15, "1");
+    } catch (const std::exception& e) {
+        std::cerr << "Exception in refresh_online_status: " << e.what() << std::endl;
+    }
+}
+
+
+
 // 通过 account 获取 fd
 int get_fd_by_account(const std::string& account) {
     std::lock_guard<std::mutex> lock(fd_mutex);
@@ -289,6 +323,14 @@ void log_in_msg(int fd, const json &request) {
             return;
         }
 
+        // 检查是否已登录（在线）
+        if (redis.exists("online:" + account)) {
+            response["status"] = "fail";
+            response["msg"] = "Account already logged in";
+            send_json(fd, response);
+            return;
+        }
+
         // 密码正确，生成token，存redis，存JSON字符串
         // Redis redis("tcp://127.0.0.1:6379");
         std::string token = generate_token();
@@ -304,18 +346,11 @@ void log_in_msg(int fd, const json &request) {
             account_fd_map[account] = fd;
         }
 
-        // 检查是否已登录（在线）
-        if (redis.exists("online:" + account)) {
-            response["status"] = "fail";
-            response["msg"] = "Account already logged in";
-            send_json(fd, response);
-            return;
-        }
 
         redis.set(token_key, token_info.dump());
         redis.expire(token_key, 7200); //token有两个个小时有效期
-        redis.setex("online:" + account, 7200, "1");
-
+        // redis.setex("online:" + account, 7200, "1");
+redis.setex("online:" + account, 15, "1");
         response["status"] = "success";
         response["msg"] = "Login successful";
         response["token"] = token;

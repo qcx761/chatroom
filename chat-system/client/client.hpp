@@ -72,4 +72,10 @@ std::string token;  // 存储token
 
         void epoll_thread_func();   // 网络线程
         void user_thread_func();    // 用户交互线程
+
+
+
+    std::thread heartbeat_thread;    // 新增心跳线程
+
+    void heartbeat_thread_func();    // 新增心跳线程函数声明
 };
