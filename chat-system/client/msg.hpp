@@ -1,7 +1,7 @@
 #pragma once
 
 #include <nlohmann/json.hpp>
-#include <sw/redis++/redis++.h>  // Redis 库头文件
+// #include <sw/redis++/redis++.h>  // Redis 库头文件
 #include<iostream>
 
 #include <readline/readline.h>
@@ -10,10 +10,8 @@
 
 
 using json = nlohmann::json;
-using namespace sw::redis;
+// using namespace sw::redis;
 
-// std::vector<json> global_friend_requests;
-// std::mutex friend_requests_mutex;
 
 // 定义
 // 用来判断用户所在的界面 记录用户在和谁私聊
