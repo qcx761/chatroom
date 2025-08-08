@@ -354,7 +354,6 @@ void get_private_history_msg(const json &response){
 
         for(const auto&f : message){
             std::string from = f.value("from","");
-            std::string to = f.value("to","");
             std::string content = f.value("content","");
             std::string timestamp = f.value("timestamp","");
             // std::cout << "[" << from << "]: " << " > "<<content << " " << timestamp << std::endl;

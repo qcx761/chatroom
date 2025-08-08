@@ -451,6 +451,9 @@ void send_private_message(int sock,string token, sem_t& sem) {
     cout << "- 输入 /help 获取提示" << endl;
     while (true) {
         string message = readline_string("> ");
+            // if (message.empty()) {
+            //     continue;
+            // }
         if (message == "/exit") {
             // 退出当前私聊用户
             current_chat_target = "";
@@ -1045,6 +1048,9 @@ system("clear");
     cout << "- 输入 /help 获取提示" << endl;
     while (true) {
         string message = readline_string("> ");
+        // if (message.empty()) {
+        //     continue;
+        // }
         if (message == "/exit") {
             // 退出当前群聊
             current_chat_group = "";

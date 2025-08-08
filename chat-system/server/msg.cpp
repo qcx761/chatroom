@@ -1227,7 +1227,6 @@ void add_friend_msg(int fd, const json& request) {
             resp["type1"] = "add_friend_message";
             resp["status"] = "success";
             resp["user_name"] = user_name;
-            std::cout << "[DEBUG] 发送的 JSON:\n" << resp.dump(4) << std::endl;
             if (target_fd != -1) {
                 send_json(target_fd, resp);
             }
@@ -1382,6 +1381,19 @@ void handle_friend_request_msg(int fd, const json& request) {
     try {
         auto conn = get_mysql_connection();
 
+                std::string receiver_name;
+        {
+            std::unique_ptr<sql::PreparedStatement> stmt(
+                conn->prepareStatement(
+                    "SELECT JSON_UNQUOTE(JSON_EXTRACT(info, '$.username')) AS username "
+                    "FROM users WHERE JSON_UNQUOTE(JSON_EXTRACT(info, '$.account')) = ?"));
+            stmt->setString(1, receiver);
+            std::unique_ptr<sql::ResultSet> res(stmt->executeQuery());
+            if (res->next()) {
+                receiver_name = res->getString("username");
+            }
+        }
+
         std::string sender;
         {
             std::unique_ptr<sql::PreparedStatement> stmt(
@@ -1494,7 +1506,7 @@ void handle_friend_request_msg(int fd, const json& request) {
             resp["type"] = "receive_message";
             resp["type1"] = "pass_friend_message";
             resp["status"] = "success";
-            resp["user_name"] = from_username;
+            resp["user_name"] = receiver_name;
             if (target_fd != -1) {
                 send_json(target_fd, resp);
             }
@@ -1702,9 +1714,22 @@ void get_private_history_msg(int fd, const json& request) {
 
         json messages = json::array();
         while (msg_res->next()) {
+            std::string sender =msg_res->getString("sender");
+        //帐号查询名字
+        std::string sender_name;
+        {
+            std::unique_ptr<sql::PreparedStatement> stmt(
+                conn->prepareStatement(
+                    "SELECT JSON_UNQUOTE(JSON_EXTRACT(info, '$.username')) AS username "
+                    "FROM users WHERE JSON_UNQUOTE(JSON_EXTRACT(info, '$.account')) = ?"));
+            stmt->setString(1, sender);
+            std::unique_ptr<sql::ResultSet> res(stmt->executeQuery());
+            if (res->next()) {
+                sender_name = res->getString("username");
+            }
+        }
             messages.push_back({
-                {"from", msg_res->getString("sender")},
-                {"to", msg_res->getString("receiver")},
+                {"from", sender_name},
                 {"content", msg_res->getString("content")},
                 {"timestamp", msg_res->getString("timestamp")}
             });
@@ -1748,6 +1773,20 @@ void send_private_message_msg(int fd, const json& request) {
     std::string target_account;
     try {
         auto conn = get_mysql_connection();
+
+        //帐号查询名字
+        std::string user_name;
+        {
+            std::unique_ptr<sql::PreparedStatement> stmt(
+                conn->prepareStatement(
+                    "SELECT JSON_UNQUOTE(JSON_EXTRACT(info, '$.username')) AS username "
+                    "FROM users WHERE JSON_UNQUOTE(JSON_EXTRACT(info, '$.account')) = ?"));
+            stmt->setString(1, user_account);
+            std::unique_ptr<sql::ResultSet> res(stmt->executeQuery());
+            if (res->next()) {
+                user_name = res->getString("username");
+            }
+        }    
 
         // 查找对方账号
         {
@@ -1824,8 +1863,7 @@ void send_private_message_msg(int fd, const json& request) {
                 return;
             }
 
-            response1["from"] = user_account;
-            response1["to"] = target_account;
+            response1["from"] = user_name;
             response1["message"] = message;
             response1["muted"] = target_muted_user;
 
@@ -1853,15 +1891,6 @@ void send_private_message_msg(int fd, const json& request) {
 
 
 
-
-
-
-
-                    
-//离线
-// 上线在哪里调用通知函数
-// 离线要怎么实现用户上线提示和发送信息
-// 上线的离线消息发送逻辑，遍历消息表输出未读消息
         }
 
         response["status"] = "success";
@@ -1962,9 +1991,21 @@ void get_unread_private_messages_msg(int fd, const json& request) {
             std::unique_ptr<sql::ResultSet> res(stmt->executeQuery());
 
             while (res->next()) {
+                    //帐号查询名字
+                    std::string user_name;
+                    {
+                        std::unique_ptr<sql::PreparedStatement> stmt1(
+                            conn->prepareStatement(
+                                "SELECT JSON_UNQUOTE(JSON_EXTRACT(info, '$.username')) AS username "
+                                "FROM users WHERE JSON_UNQUOTE(JSON_EXTRACT(info, '$.account')) = ?"));
+                        stmt1->setString(1, friend_account);
+                        std::unique_ptr<sql::ResultSet> res(stmt1->executeQuery());
+                        if (res->next()) {
+                            user_name = res->getString("username");
+                        }
+                    }
                 messages.push_back({
-                    {"from", friend_account},
-                    {"to", user_account},
+                    {"from", user_name},
                     {"content", res->getString("content")},
                     {"timestamp", res->getString("timestamp")}
                 });
@@ -3317,8 +3358,22 @@ void get_unread_group_messages_msg(int fd, const json& request) {
             while (res->next()) {
                 int msg_id = res->getInt("id");
                 if (msg_id > max_id) max_id = msg_id;
+                    std::string sender = res->getString("sender");
+                    //帐号查询名字
+                    std::string sender_name;
+                    {
+                        std::unique_ptr<sql::PreparedStatement> stmt1(
+                            conn->prepareStatement(
+                                "SELECT JSON_UNQUOTE(JSON_EXTRACT(info, '$.username')) AS username "
+                                "FROM users WHERE JSON_UNQUOTE(JSON_EXTRACT(info, '$.account')) = ?"));
+                        stmt1->setString(1, sender);
+                        std::unique_ptr<sql::ResultSet> res(stmt1->executeQuery());
+                        if (res->next()) {
+                            sender_name = res->getString("username");
+                        }
+                    }
                 messages.push_back({
-                    {"sender", res->getString("sender")},
+                    {"sender", sender_name},
                     {"content", res->getString("content")},
                     {"timestamp", res->getString("timestamp")}
                 });
@@ -3400,8 +3455,22 @@ void get_group_history_msg(int fd, const json& request) {
 
         json history = json::array();
         while (res->next()) {
+            std::string sender =res->getString("sender");
+        //帐号查询名字
+        std::string sender_name;
+        {
+            std::unique_ptr<sql::PreparedStatement> stmt1(
+                conn->prepareStatement(
+                    "SELECT JSON_UNQUOTE(JSON_EXTRACT(info, '$.username')) AS username "
+                    "FROM users WHERE JSON_UNQUOTE(JSON_EXTRACT(info, '$.account')) = ?"));
+            stmt1->setString(1, sender);
+            std::unique_ptr<sql::ResultSet> res(stmt1->executeQuery());
+            if (res->next()) {
+                sender_name = res->getString("username");
+            }
+        }
             history.push_back({
-                {"sender", res->getString("sender")},
+                {"sender", sender_name},
                 {"content", res->getString("content")},
                 {"timestamp", res->getString("timestamp")}
             });
@@ -3488,9 +3557,22 @@ void send_group_message_msg(int fd, const json& request) {
             stmt->executeUpdate();
         }
 
+        //帐号查询名字
+        std::string user_name;
+        {
+            std::unique_ptr<sql::PreparedStatement> stmt(
+                conn->prepareStatement(
+                    "SELECT JSON_UNQUOTE(JSON_EXTRACT(info, '$.username')) AS username "
+                    "FROM users WHERE JSON_UNQUOTE(JSON_EXTRACT(info, '$.account')) = ?"));
+            stmt->setString(1, user_account);
+            std::unique_ptr<sql::ResultSet> res(stmt->executeQuery());
+            if (res->next()) {
+                user_name = res->getString("username");
+            }
+        }
         // 准备推送内容
         push_msg["group_name"] = group_name;
-        push_msg["from"] = user_account;
+        push_msg["from"] = user_name;
         push_msg["message"] = message;
 
         // 推送给所有在线群成员（除了自己）
@@ -3963,8 +4045,22 @@ void send_offline_summary_on_login(const std::string& account, int fd) {
         json messages = json::array();
 
         while (res->next()) {
+            std::string sender = res->getString("sender");
+                    //帐号查询名字
+                std::string sender_name;
+                {
+                    std::unique_ptr<sql::PreparedStatement> stmt1(
+                        conn->prepareStatement(
+                            "SELECT JSON_UNQUOTE(JSON_EXTRACT(info, '$.username')) AS username "
+                            "FROM users WHERE JSON_UNQUOTE(JSON_EXTRACT(info, '$.account')) = ?"));
+                    stmt1->setString(1, sender);
+                    std::unique_ptr<sql::ResultSet> res(stmt1->executeQuery());
+                    if (res->next()) {
+                        sender_name = res->getString("username");
+                    }
+                }
             json entry;
-            entry["sender"] = res->getString("sender");
+            entry["sender"] = sender_name;
             entry["message_type"] = res->getString("message_type");
             entry["count"] = res->getInt("count");
             messages.push_back(entry);
