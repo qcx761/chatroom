@@ -1788,8 +1788,6 @@ void send_private_message_msg(int fd, const json& request) {
     std::cout << "[DEBUG] fd: " << fd << " -> send_private_message_msg()" << std::endl;
 
     json response, response1;
-        // 服务端返回发送信息
-    response["type"] = "send_private_message";
         // 好友服务端接收信息
     response1["type"] = "receive_private_message";
 
@@ -1799,6 +1797,7 @@ void send_private_message_msg(int fd, const json& request) {
 
     std::string user_account;
     if (!verify_token(token, user_account)) {
+        response["type"] = "send_private_message";
         response["status"] = "fail";
         response["msg"] = "Invalid token";
         send_json(fd, response);
@@ -1834,6 +1833,7 @@ void send_private_message_msg(int fd, const json& request) {
             if (res->next()) {
                 target_account = res->getString("account");
             } else {
+                response["type"] = "send_private_message";
                 response["status"] = "fail";
                 response["msg"] = "Friend user not found";
                 send_json(fd, response);
@@ -1862,6 +1862,7 @@ void send_private_message_msg(int fd, const json& request) {
         }
 
         if (!is_friend) {
+            response["type"] = "send_private_message";
             response["status"] = "fail";
             response["msg"] = "This user is not your friend";
             send_json(fd, response);
@@ -1869,6 +1870,7 @@ void send_private_message_msg(int fd, const json& request) {
         }
 
         if (target_muted_user) {
+            response["type"] = "send_private_message";
             response["status"] = "fail";
             response["msg"] = "You are muted by the target user";
             send_json(fd, response);
@@ -1892,6 +1894,7 @@ void send_private_message_msg(int fd, const json& request) {
         if (is_online) {
             int target_fd = get_fd_by_account(target_account);
             if (target_fd == -1) {
+                response["type"] = "send_private_message";
                 response["status"] = "fail";
                 response["msg"] = "Failed to get target user fd";
                 send_json(fd, response);
@@ -1904,39 +1907,188 @@ void send_private_message_msg(int fd, const json& request) {
 
             send_json(target_fd, response1);
         }else{
-
-
-
-    // 离线处理逻辑：更新计数表
-    try {
-        auto conn = get_mysql_connection();
-        std::unique_ptr<sql::PreparedStatement> stmt(
-            conn->prepareStatement(
-                "INSERT INTO offline_message_counter(account, sender, message_type, count) "
-                "VALUES (?, ?, ?, 1) "
-                "ON DUPLICATE KEY UPDATE count = count + 1"
-            ));
-        stmt->setString(1, target_account);              // 接收者
-        stmt->setString(2, user_account);                // 发送者
-        stmt->setString(3, "private_text");              // 消息类型（按你的业务逻辑调整）
-        stmt->execute();
-    } catch (const std::exception& e) {
-        ;
-    }
-
-
-
+            // 离线处理逻辑：更新计数表
+            try {
+                auto conn = get_mysql_connection();
+                std::unique_ptr<sql::PreparedStatement> stmt(
+                    conn->prepareStatement(
+                        "INSERT INTO offline_message_counter(account, sender, message_type, count) "
+                        "VALUES (?, ?, ?, 1) "
+                        "ON DUPLICATE KEY UPDATE count = count + 1"
+                    ));
+                stmt->setString(1, target_account);              // 接收者
+                stmt->setString(2, user_account);                // 发送者
+                stmt->setString(3, "private_text");              // 消息类型（按你的业务逻辑调整）
+                stmt->execute();
+            } catch (const std::exception& e) {
+                ;
+            }
         }
 
-        response["status"] = "success";
-        send_json(fd, response);
-
     } catch (const std::exception& e) {
+        response["type"] = "send_private_message";
         response["status"] = "error";
         response["msg"] = std::string("Exception: ") + e.what();
         send_json(fd, response);
     }
 }
+
+
+
+// // 发送私聊信息
+// void send_private_message_msg(int fd, const json& request) {
+//     std::cout << "[DEBUG] fd: " << fd << " -> send_private_message_msg()" << std::endl;
+
+//     json response, response1;
+//         // 服务端返回发送信息
+//     response["type"] = "send_private_message";
+//         // 好友服务端接收信息
+//     response1["type"] = "receive_private_message";
+
+//     std::string token = request.value("token", "");
+//     std::string target_username = request.value("target_username", "");
+//     std::string message = request.value("message", "");
+
+//     std::string user_account;
+//     if (!verify_token(token, user_account)) {
+//         response["status"] = "fail";
+//         response["msg"] = "Invalid token";
+//         send_json(fd, response);
+//         return;
+//     }
+
+//     std::string target_account;
+//     try {
+//         auto conn = get_mysql_connection();
+
+//         //帐号查询名字
+//         std::string user_name;
+//         {
+//             std::unique_ptr<sql::PreparedStatement> stmt(
+//                 conn->prepareStatement(
+//                     "SELECT JSON_UNQUOTE(JSON_EXTRACT(info, '$.username')) AS username "
+//                     "FROM users WHERE JSON_UNQUOTE(JSON_EXTRACT(info, '$.account')) = ?"));
+//             stmt->setString(1, user_account);
+//             std::unique_ptr<sql::ResultSet> res(stmt->executeQuery());
+//             if (res->next()) {
+//                 user_name = res->getString("username");
+//             }
+//         }    
+
+//         // 查找对方账号
+//         {
+//             std::unique_ptr<sql::PreparedStatement> stmt(
+//                 conn->prepareStatement(
+//                     "SELECT JSON_UNQUOTE(JSON_EXTRACT(info, '$.account')) AS account "
+//                     "FROM users WHERE JSON_UNQUOTE(JSON_EXTRACT(info, '$.username')) = ?"));
+//             stmt->setString(1, target_username);
+//             std::unique_ptr<sql::ResultSet> res(stmt->executeQuery());
+//             if (res->next()) {
+//                 target_account = res->getString("account");
+//             } else {
+//                 response["status"] = "fail";
+//                 response["msg"] = "Friend user not found";
+//                 send_json(fd, response);
+//                 return;
+//             }
+//         }
+
+//         // 判断自己是否为对方好友（自己是否在对方好友列表中）
+//         bool is_friend = false;
+//         bool target_muted_user = false;
+//         {
+//             std::unique_ptr<sql::PreparedStatement> stmt(
+//                 conn->prepareStatement("SELECT friends FROM friends WHERE account = ?"));
+//             stmt->setString(1, target_account);
+//             std::unique_ptr<sql::ResultSet> res(stmt->executeQuery());
+//             if (res->next()) {
+//                 json friends = json::parse(std::string(res->getString("friends")));
+//                 for (const auto& f : friends) {
+//                     if (f.value("account", "") == user_account) {
+//                         is_friend = true;
+//                         target_muted_user = f.value("muted", false);
+//                         break;
+//                     }
+//                 }
+//             }
+//         }
+
+//         if (!is_friend) {
+//             response["status"] = "fail";
+//             response["msg"] = "This user is not your friend";
+//             send_json(fd, response);
+//             return;
+//         }
+
+//         if (target_muted_user) {
+//             response["status"] = "fail";
+//             response["msg"] = "You are muted by the target user";
+//             send_json(fd, response);
+//             return;
+//         }
+
+//         // 储存消息到mysql
+//         bool is_online = redis.exists("online:" + target_account);
+//         {
+//             std::unique_ptr<sql::PreparedStatement> stmt(
+//                 conn->prepareStatement(
+//                     "INSERT INTO messages (sender, receiver, content, is_online, is_read) VALUES (?, ?, ?, ?, FALSE)"));
+//             stmt->setString(1, user_account);
+//             stmt->setString(2, target_account);
+//             stmt->setString(3, message);
+//             stmt->setBoolean(4, is_online);
+//             stmt->execute();
+//         }
+
+//         // 在线则推送消息
+//         if (is_online) {
+//             int target_fd = get_fd_by_account(target_account);
+//             if (target_fd == -1) {
+//                 response["status"] = "fail";
+//                 response["msg"] = "Failed to get target user fd";
+//                 send_json(fd, response);
+//                 return;
+//             }
+
+//             response1["from"] = user_name;
+//             response1["message"] = message;
+//             response1["muted"] = target_muted_user;
+
+//             send_json(target_fd, response1);
+//         }else{
+
+
+
+//             // 离线处理逻辑：更新计数表
+//             try {
+//                 auto conn = get_mysql_connection();
+//                 std::unique_ptr<sql::PreparedStatement> stmt(
+//                     conn->prepareStatement(
+//                         "INSERT INTO offline_message_counter(account, sender, message_type, count) "
+//                         "VALUES (?, ?, ?, 1) "
+//                         "ON DUPLICATE KEY UPDATE count = count + 1"
+//                     ));
+//                 stmt->setString(1, target_account);              // 接收者
+//                 stmt->setString(2, user_account);                // 发送者
+//                 stmt->setString(3, "private_text");              // 消息类型（按你的业务逻辑调整）
+//                 stmt->execute();
+//             } catch (const std::exception& e) {
+//                 ;
+//             }
+
+
+
+//         }
+
+//         response["status"] = "success";
+//         send_json(fd, response);
+
+//     } catch (const std::exception& e) {
+//         response["status"] = "error";
+//         response["msg"] = std::string("Exception: ") + e.what();
+//         send_json(fd, response);
+//     }
+// }
 
 // 获取未读私聊消息
 void get_unread_private_messages_msg(int fd, const json& request) {

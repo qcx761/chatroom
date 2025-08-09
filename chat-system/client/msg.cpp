@@ -309,7 +309,11 @@ void receive_private_message_msg(const json &response) {
         return;
     }
 
-    std::lock_guard<std::mutex> lock(io_mutex);
+    // 打印新消息
+    if (from == current_chat_target) {
+        std::cout << "[" << from << "]: > " << message << std::endl;
+    } else {
+            std::lock_guard<std::mutex> lock(io_mutex);
 
     // 保存当前输入文本和光标位置
     int saved_point = rl_point;
@@ -320,17 +324,11 @@ void receive_private_message_msg(const json &response) {
     // 清除当前行并把光标移到行首
     rl_replace_line("", 0);
     std::cout << "\33[2K\r";
-
-    // 打印新消息
-    if (from == current_chat_target) {
-        std::cout << "[" << from << "]: > " << message << std::endl;
-    } else {
-        // std::cout << "[新消息来自 " << from << "]: " << message << std::endl;
-        std::cout << "[新消息来自 " << from << "]" << std::endl;
+        std::cout << "[新消息来自 " << from << "]: " << message << std::endl;
+        // std::cout << "[新消息来自 " << from << "]" << std::endl;
         // 这里你可以做未读提醒等
-    }
 
-    // 恢复之前的用户输入
+            // 恢复之前的用户输入
     rl_replace_line(saved_line, 0);
     rl_point = saved_point;
     free(saved_line);
@@ -338,6 +336,9 @@ void receive_private_message_msg(const json &response) {
     // 通知 readline 新行开始，重新绘制输入行
     rl_on_new_line();
     rl_redisplay();
+    }
+
+
 }
 
 void get_private_history_msg(const json &response){

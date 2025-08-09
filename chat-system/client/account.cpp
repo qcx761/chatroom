@@ -411,22 +411,14 @@ void send_private_message(int sock,string token, sem_t& sem) {
     system("clear");
     cout << "========== 私聊 ==========" << endl;
     cout << "---------- 好友列表 ----------" << endl;
-
-
-
     json mm;
     mm["type"]="show_friend_list";
     mm["token"]=token;
     send_json(sock,mm);
     sem_wait(&sem); // 等待信号量
-
-
     cout << "-----------------------------" << endl;
 
-
-
-
-    string target_username = readline_string("请输入想私聊的用户名 : ");
+    string target_username = readline_string("请输入想私聊的用户名(必须是好友) : ");
     if (target_username.empty()) {
         cout << "[错误] 用户名不能为空" << endl;
         return;
@@ -450,20 +442,15 @@ void send_private_message(int sock,string token, sem_t& sem) {
     cout << "- 输入 /exit 退出" << endl;
     cout << "- 输入 /help 获取提示" << endl;
     while (true) {
-        string message = readline_string("");
+        // string message = readline_string("");
         // string message = readline_string("> ");
             // if (message.empty()) {
             //     continue;
             // }
+        std::string message;   // 用来接收每一行的字符串变量
 
-
-// std::string message;   // 用来接收每一行的字符串变量
-
-// std::getline(std::cin,message);
-// std::cout << message <<std::endl;
-
-
-
+        std::getline(std::cin,message);
+        // std::cout << message <<std::endl;
 
         if (message == "/exit") {
             // 退出当前私聊用户
@@ -507,31 +494,20 @@ void send_private_message(int sock,string token, sem_t& sem) {
             if(path.empty()){
                 cout << "未输入路径" << endl;
                 cout << "[系统] 已退出文件传输模式。" << endl;
-    waiting();
-                break;
+                waiting();
+                continue;
             }
-
-
-
 
             // 提取文件名和大小
             std::ifstream file(path, std::ios::binary | std::ios::ate);
             if (!file) {
                 cout << "[错误] 文件打开失败！" << endl;
-                break;
+                waiting();
+                continue;
             }
             long long filesize_ll = file.tellg();
             std::string filesize = std::to_string(filesize_ll);
             string filename = path.substr(path.find_last_of("/") + 1);
-
-
-
-
-
-// 文件传输
-// 记得通知
-
-
 
             std::thread([sock, token, target_username , path, filename,filesize]() {
                 const std::string ftp_ip = "10.30.1.215";
@@ -540,32 +516,26 @@ void send_private_message(int sock,string token, sem_t& sem) {
                 int control_fd = connect_to_server(ftp_ip, ftp_port);
                 if (control_fd < 0) {
                     std::cerr << "[错误] 连接FTP控制端失败\n" << endl;
-                    return;
+                    waiting();
+                    // continue;
                 }
 
                 ftp_stor(control_fd, filename, path);
-
                 close(control_fd);
+                // 文件发送成功告诉服务端推送文件
+                json file_req;
+                file_req["type"] = "send_private_file";
+                file_req["token"] = token;
+                file_req["target_username"] = target_username;
+                file_req["filename"] = filename;
+                file_req["filesize"] = filesize;
+                send_json(sock, file_req);
 
-
-// 文件发送成功告诉服务端推送文件
-json file_req;
-file_req["type"] = "send_private_file";
-file_req["token"] = token;
-file_req["target_username"] = target_username;
-file_req["filename"] = filename;
-file_req["filesize"] = filesize;
-send_json(sock, file_req);
-
-cout << "文件上传完成" << endl;
+                cout << "文件上传完成" << endl;
             }).detach();
-
             cout << "[系统] 文件上传已开始，后台进行中..." << endl;
             continue;
         }
-
-
-
 
 
         json msg;
@@ -573,10 +543,7 @@ cout << "文件上传完成" << endl;
         msg["token"]=token;
         msg["target_username"]=target_username;
         msg["message"]=message;
-
         send_json(sock, msg);
-        //sem_wait(&sem);  
-
     }
 }
 

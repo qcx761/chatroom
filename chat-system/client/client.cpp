@@ -292,7 +292,6 @@ void Client::epoll_thread_func() {
 
                     if(type=="send_private_message"){
                         send_private_message_msg(j);
-                        //sem_post(&this->sem);
                         continue;
                     }   
 
