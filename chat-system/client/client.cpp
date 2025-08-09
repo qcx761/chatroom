@@ -42,7 +42,7 @@ Client::Client(std::string ip, int port)
     }
     epoll_event ev{};
     ev.data.fd = sock;
-    ev.events = EPOLLIN | EPOLLET;
+    ev.events = EPOLLIN ;
     epoll_ctl(epfd, EPOLL_CTL_ADD, sock, &ev);
 
 
@@ -98,38 +98,84 @@ void Client::heartbeat_thread_func() {
 }
 
 
-void Client::epoll_thread_func(){
+void Client::epoll_thread_func() {
     epoll_event events[1024];
-    while(running){
+    while (running) {
         int n = epoll_wait(epfd, events, 1024, -1);
         if (n == -1) {
-            if (errno == EINTR) {
-                continue;
-            }
+            if (errno == EINTR) continue;
             perror("epoll_wait failed");
             break;
         }
 
-        for(int i=0; i < n; i++){
-            json j;
+        for (int i = 0; i < n; ++i) {
             int fd = events[i].data.fd;
             uint32_t evs = events[i].events;
 
             if ((evs & EPOLLERR) || (evs & EPOLLHUP) || (evs & EPOLLRDHUP)) {
-                cout << "服务器断开连接\n";
+                std::cout << "服务器断开连接\n";
                 running = false;
                 return;
             }
 
             if (fd == sock) {
-                int ret = receive_json(sock, j);
-                std::string type = j["type"];
-                // 接收服务端发送的信息，并且解放阻塞线程的信号量
-                
+                char buf[4096];
+                while (true) {
+                    ssize_t nrecv = recv(fd, buf, sizeof(buf), 0);
+                    if (nrecv > 0) {
+                        fd_buffers[fd].append(buf, nrecv);
+                    } else if (nrecv == 0) {
+                        std::cout << "服务器关闭连接\n";
+                        running = false;
+                        return;
+                    } else {
+                        if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                            break;  // 数据读完
+                        } else {
+                            perror("recv failed");
+                            running = false;
+                            return;
+                        }
+                    }
+                }
 
+                // 解析完整包循环
+                auto& buffer = fd_buffers[fd];
+                while (true) {
+                    if (buffer.size() < 4) break; // 不够长度头
 
-                if (ret == 0) {
+                    uint32_t len_net = 0;
+                    memcpy(&len_net, buffer.data(), 4);
+                    uint32_t len = ntohl(len_net);
 
+                    if (len == 0 || len > 10 * 1024 * 1024) {
+                        std::cout << "无效数据长度\n";
+                        running = false;
+                        return;
+                    }
+
+                    if (buffer.size() < 4 + len) break; // 数据不完整，等待下一次
+
+                    std::string json_str = buffer.substr(4, len);
+                    json j;
+                    try {
+                        j = json::parse(json_str);
+                    } catch (...) {
+                        std::cout << "JSON解析失败\n";
+                        running = false;
+                        return;
+                    }
+
+                    buffer.erase(0, 4 + len);
+
+                    // --- 消息处理逻辑 ---
+
+                    std::string type = j.value("type", "");
+
+                    if (type.empty()){
+                        continue;
+                    }
+                    
                     // 超时登录处理
                     if(j["msg"]=="Invalid or expired token"){
                         cout <<"登录超时请重新登录。"<<endl;
@@ -372,143 +418,26 @@ void Client::epoll_thread_func(){
                         continue;
                     }                 
                     
-                    
-
-
-
-
-                    // if(type==""){
-                    //     _msg(j);
-                    //     sem_post(&this->sem);
-                    //     continue;
-                    // }                      
-                    // if(type==""){
-                    //     _msg(j);
-                    //     sem_post(&this->sem);
-                    //     continue;
-                    // }  
-
-
-
-                    // if(type=="receive_file"){
-                    //     _msg(j);
-                    //     sem_post(&this->sem);
-                    //     continue;
-                    // }  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                    // if(type=="send_group_file"){
-                    //     send_group_file_msg(j);
-                    //     sem_post(&this->sem);
-                    //     continue;
-                    // }  
-
-
-
-
-
-
-
-
-
-
-
-
-
-                    if(type==""){
+                    //if(type==""){
                         //_msg(j);
                         //state=main_menu;
                         //login_success.store(false);
                         //token.clear();
-                        sem_post(&this->sem);
-                        continue;
-                    }
-
-
-
-
-
-
-
-                    if(type==""){
-                        //_msg(j);
-                        //state=main_menu;
-                        //login_success.store(false);
-                        //token.clear();
-                        sem_post(&this->sem);
-                        continue;
-                    }
-                    if(type==""){
-                        //_msg(j);
-                        //state=main_menu;
-                        //login_success.store(false);
-                        //token.clear();
-                        sem_post(&this->sem);
-                        continue;
-                    }
-                    if(type==""){
-                        //_msg(j);
-                        //state=main_menu;
-                        //login_success.store(false);
-                        //token.clear();
-                        sem_post(&this->sem);
-                        continue;
-                    }
-                    if(type==""){
-                        //_msg(j);
-                        //state=main_menu;
-                        //login_success.store(false);
-                        //token.clear();
-                        sem_post(&this->sem);
-                        continue;
-                    }
-                    if(type==""){
-                        //_msg(j);
-                        //state=main_menu;
-                        //login_success.store(false);
-                        //token.clear();
-                        sem_post(&this->sem);
-                        continue;
-                    }
-                    if(type==""){
-                        //_msg(j);
-                        //state=main_menu;
-                        //login_success.store(false);
-                        //token.clear();
-                        sem_post(&this->sem);
-                        continue;
-                    }
+                        //sem_post(&this->sem);
+                        //continue;
+                    //}
 
                     if(type=="error"){
                     // 处理错误信息
                     }
-                    std::cout << "收到未知消息" << std::endl;
-                } else if (ret == -1) {
-                    cout << "接收数据失败或服务器关闭连接\n";
-                    running = false;
-                    return;
-                }else{
-                    // 不会进入
-                    return;
+                    else {
+                        std::cout << "收到未知消息类型: " << type << std::endl;
+                    }
                 }
-
-
             } else {
-                // 监听的其他fd触发了，异常处理,一般不会进入
-            perror("未知文件描述符事件");
-                break;
+                perror("未知fd事件");
+                running = false;
+                return;
             }
         }
     }

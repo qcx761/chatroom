@@ -15,6 +15,9 @@
 #include <sys/epoll.h>     
 #include <unistd.h>        
 
+#include <unordered_map>
+
+
 #include"menu.hpp"
 
 #include <readline/readline.h>   // 主要函数 readline()
@@ -52,6 +55,12 @@ public:
 
 
 private:
+
+
+    std::unordered_map<int, std::string> fd_buffers;
+
+
+
 
 std::string token;  // 存储token
 

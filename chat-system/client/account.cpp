@@ -450,10 +450,21 @@ void send_private_message(int sock,string token, sem_t& sem) {
     cout << "- 输入 /exit 退出" << endl;
     cout << "- 输入 /help 获取提示" << endl;
     while (true) {
-        string message = readline_string("> ");
+        string message = readline_string("");
+        // string message = readline_string("> ");
             // if (message.empty()) {
             //     continue;
             // }
+
+
+// std::string message;   // 用来接收每一行的字符串变量
+
+// std::getline(std::cin,message);
+// std::cout << message <<std::endl;
+
+
+
+
         if (message == "/exit") {
             // 退出当前私聊用户
             current_chat_target = "";
@@ -496,6 +507,7 @@ void send_private_message(int sock,string token, sem_t& sem) {
             if(path.empty()){
                 cout << "未输入路径" << endl;
                 cout << "[系统] 已退出文件传输模式。" << endl;
+    waiting();
                 break;
             }
 
@@ -1093,6 +1105,7 @@ system("clear");
             if(path.empty()){
                 cout << "未输入路径" << endl;
                 cout << "[系统] 已退出文件传输模式。" << endl;
+    waiting();
                 break;
             }
 

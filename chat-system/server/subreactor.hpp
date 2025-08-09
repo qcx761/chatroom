@@ -9,6 +9,8 @@
 #include <cstring>
 #include <iostream>
 #include <nlohmann/json.hpp>
+#include <unordered_map>
+
 
 
 #include "../threadpool/threadpool.hpp"
@@ -28,6 +30,7 @@ private:
     // void heartbeatCheck();
 
     threadpool *thread_pool;
+    std::unordered_map<int, std::string> fd_buffers;
     
 
     int epfd;
