@@ -3314,9 +3314,10 @@ void handle_group_request_msg(int fd, const json& request) {
     std::string group_name = request.value("group_name", "");
     std::string from_username = request.value("from_username", "");
     std::string action = request.value("action", "reject");
-    std::string user_account;
+    std::string user1_account;
+    std::string from_account;
 
-    if (!verify_token(token, user_account)) {
+    if (!verify_token(token, user1_account)) {
         response["status"] = "fail";
         response["msg"] = "Invalid token";
         send_json(fd, response);
@@ -3327,6 +3328,29 @@ void handle_group_request_msg(int fd, const json& request) {
         auto conn = mysql_pool.getConnection();
 
         // auto conn = get_mysql_connection();
+
+
+        std::string from_account;
+        {
+            auto stmt = std::unique_ptr<sql::PreparedStatement>(conn->prepareStatement(
+                "SELECT JSON_UNQUOTE(JSON_EXTRACT(info, '$.account')) AS account "
+                "FROM users "
+                "WHERE JSON_UNQUOTE(JSON_EXTRACT(info, '$.username')) = ?"
+            ));
+
+            stmt->setString(1, from_username);
+            auto res = std::unique_ptr<sql::ResultSet>(stmt->executeQuery());
+            if (!res->next()) {
+                response["status"] = "fail";
+                response["msg"] = "Target user not found";
+                send_json(fd, response);
+                return;
+            }
+            from_account = res->getString("account");
+        }
+
+
+
 
         int group_id;
         {
@@ -3351,7 +3375,7 @@ void handle_group_request_msg(int fd, const json& request) {
                     "INSERT IGNORE INTO group_members (group_id, account, role) VALUES (?, ?, 'member')"
                 ));
                 stmt->setInt(1, group_id);
-                stmt->setString(2, from_username);
+                stmt->setString(2, from_account);
                 stmt->execute();
             }
         }
@@ -3360,29 +3384,17 @@ void handle_group_request_msg(int fd, const json& request) {
             "DELETE FROM group_requests WHERE group_id = ? AND sender = ?"
         ));
         stmt->setInt(1, group_id);
-        stmt->setString(2, from_username);
+        stmt->setString(2, from_account);
         stmt->execute();
 
 
         if(action == "accept"){
 
-        std::string target_account;
-        {
-            std::unique_ptr<sql::PreparedStatement> stmt(
-                conn->prepareStatement(
-                    "SELECT JSON_UNQUOTE(JSON_EXTRACT(info, '$.account')) AS account "
-                    "FROM users WHERE JSON_UNQUOTE(JSON_EXTRACT(info, '$.username')) = ?"));
-            stmt->setString(1, from_username);
-            std::unique_ptr<sql::ResultSet> res(stmt->executeQuery());
-            if (res->next()) {
-                target_account = res->getString("account");
-            }
-        }
-        bool is_online = redis.exists("online:" + target_account);
+        bool is_online = redis.exists("online:" + from_account);
 
 //         // 在线则推送消息
         if (is_online) {
-            int target_fd = get_fd_by_account(target_account);
+            int target_fd = get_fd_by_account(from_account);
                 json resp;
                 resp["type"] = "receive_message";
                 resp["type1"] = "pass_group_message";
