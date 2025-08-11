@@ -169,8 +169,8 @@ void refresh_online_status(const std::string& token) {
             return;
         }
 
-        // 刷新在线状态，设置15秒过期
-        redis.setex("online:" + account, 15, "1");
+        // 刷新在线状态，设置30秒过期
+        redis.setex("online:" + account, 30, "1");
     } catch (const std::exception& e) {
         std::cerr << "Exception in refresh_online_status: " << e.what() << std::endl;
     }
@@ -362,7 +362,7 @@ void log_in_msg(int fd, const json &request) {
         redis.set(token_key, token_info.dump());
         redis.expire(token_key, 7200); //token有两个个小时有效期
         // redis.setex("online:" + account, 7200, "1");
-        redis.setex("online:" + account, 15, "1");
+        redis.setex("online:" + account, 30, "1");
         response["status"] = "success";
         response["msg"] = "Login successful";
         response["token"] = token;
