@@ -2,6 +2,7 @@
 #include "json.hpp"
 #include "msg.hpp"
 
+std::string unique_account;
 
 string readline_string(const string& prompt) {
     char* input = readline(prompt.c_str());
@@ -18,7 +19,7 @@ void waiting() {
 
 // void flushInput() {
 //     cin.clear();
-//     cin.ignore(numeric_limits<streamsize>::max(), '\n');
+//     cin.ignore(numeric_limits<streamsize>::max(), '\n'); 
 // }
 
 // 关闭终端回显，读一行密码
@@ -88,6 +89,8 @@ void log_in(int sock,sem_t& sem) {
 
     string account = readline_string("请输入帐号   :");
     string password = get_password("请输入密码   :");
+
+    unique_account = account;
 
     j["account"] = account;
     j["password"] = password;
@@ -398,15 +401,6 @@ void get_friend_info(int sock, string token,sem_t& sem){
     waiting();
 }
 
-
-
-
-
-
-
-
-
-
 void send_private_message(int sock,string token, sem_t& sem) {
     system("clear");
     cout << "========== 私聊 ==========" << endl;
@@ -418,7 +412,8 @@ void send_private_message(int sock,string token, sem_t& sem) {
     sem_wait(&sem); // 等待信号量
     cout << "-----------------------------" << endl;
 
-    string target_username = readline_string("请输入想私聊的用户名(必须是好友) : ");
+    string target_username = readline_string("私聊的用户名 : ");
+
     if (target_username.empty()) {
         cout << "[错误] 用户名不能为空" << endl;
         return;
@@ -426,13 +421,13 @@ void send_private_message(int sock,string token, sem_t& sem) {
     // 设置当前私聊用户
     current_chat_target = target_username;
 
-    // 拉取离线消息
-    json req;
-    req["type"] = "get_unread_private_messages";
-    req["token"] = token;
-    req["target_username"] = target_username;
-    send_json(sock, req);
-    sem_wait(&sem); // 等待信号量
+    // // 拉取离线消息
+    // json req;
+    // req["type"] = "get_unread_private_messages";
+    // req["token"] = token;
+    // req["target_username"] = target_username;
+    // send_json(sock, req);
+    // sem_wait(&sem); // 等待信号量
 
     cout << "进入与 [" << target_username << "] 的私聊模式" << endl;
     cout << "提示："<< endl;
@@ -507,9 +502,19 @@ void send_private_message(int sock,string token, sem_t& sem) {
             }
             long long filesize_ll = file.tellg();
             std::string filesize = std::to_string(filesize_ll);
-            string filename = path.substr(path.find_last_of("/") + 1);
+            // string filename = path.substr(path.find_last_of("/") + 1);
 
-            std::thread([sock, token, target_username , path, filename,filesize]() {
+
+
+// 修改filename作为 account+是否群消息(p/g)+filename
+
+            string filename1 = path.substr(path.find_last_of("/") + 1);
+            string filename = "p" + unique_account + filename1;
+
+
+
+
+            std::thread([sock, token, target_username , path, filename,filesize,filename1]() {
                 const std::string ftp_ip = "10.30.1.215";
                 const int ftp_port = 2100;
 
@@ -517,7 +522,7 @@ void send_private_message(int sock,string token, sem_t& sem) {
                 if (control_fd < 0) {
                     std::cerr << "[错误] 连接FTP控制端失败\n" << endl;
                     waiting();
-                    // continue;
+                    return;
                 }
 
                 ftp_stor(control_fd, filename, path);
@@ -527,7 +532,7 @@ void send_private_message(int sock,string token, sem_t& sem) {
                 file_req["type"] = "send_private_file";
                 file_req["token"] = token;
                 file_req["target_username"] = target_username;
-                file_req["filename"] = filename;
+                file_req["filename"] = filename1;
                 file_req["filesize"] = filesize;
                 send_json(sock, file_req);
 
@@ -547,14 +552,6 @@ void send_private_message(int sock,string token, sem_t& sem) {
     }
 }
 
-
-
-
-
-
-
-
-
 void receive_file(int sock,string token,sem_t& sem){
     system("clear");
     json j;
@@ -567,16 +564,58 @@ void receive_file(int sock,string token,sem_t& sem){
 
 
 
-    string filename = readline_string("请输入想接收的文件名 : ");
-if (!filename.empty() && filename.back() == '\n') {
-    filename.pop_back();  // 直接删掉最后一个字符
-}
+    string filename1 = readline_string("请输入想接收的文件名 : ");
+    if(filename1.empty()){
+        std::cout << "输入错误" << std::endl;
+        waiting();
+        return;
+    }
+    if (!filename1.empty() && filename1.back() == '\n') {
+        filename1.pop_back();  // 直接删掉最后一个字符
+    }
 
-string path1 = readline_string("请输入想放在的路径（直接回车保存默认路径） : ");
-if (!path1.empty() && path1.back() == '\n') {
-    // 删除换行符
-    path1.pop_back();
-}
+
+    string typee = readline_string("请输入文件的类型(群文件:g / 个人文件:p) : ");
+    if(typee.empty()){
+        std::cout << "输入错误" << std::endl;
+        waiting();
+        return;
+    }
+    if (!typee.empty() && typee.back() == '\n') {
+        typee.pop_back();  // 直接删掉最后一个字符
+    }
+
+
+    string account = readline_string("请输入文件发送者的帐号 : ");
+    if(account.empty()){
+        std::cout << "输入错误" << std::endl;
+        waiting();
+        return;
+    }
+    if (!account.empty() && account.back() == '\n') {
+        account.pop_back();  // 直接删掉最后一个字符
+    }
+
+
+
+    std::string filename = typee + account + filename1;
+
+
+
+
+
+
+
+
+
+
+
+
+    string path1 = readline_string("请输入想放在的路径（直接回车保存默认路径） : ");
+    if (!path1.empty() && path1.back() == '\n') {
+        // 删除换行符
+        path1.pop_back();
+    }
 
 
 
@@ -589,7 +628,7 @@ if (path1.back() != '/'){
     path1 += '/';
 }
 
-    string path = path1 + filename;
+    string path = path1 + filename1;
 
 
     std::thread([sock, token, path, filename]() {
@@ -620,58 +659,6 @@ if (path1.back() != '/'){
 
     waiting();
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 void show_group_list(int sock, string token, sem_t &sem){
     system("clear");
@@ -974,21 +961,6 @@ void getandhandle_group_request(int sock,string token,sem_t& sem){
     waiting();
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 void send_group_message(int sock,string token,sem_t& sem){
 system("clear");
     cout << "========== 群聊 ==========" << endl;
@@ -1002,7 +974,7 @@ system("clear");
     sem_wait(&sem);
     cout << "-----------------------------" << endl;
 
-    string target_group = readline_string("请输入想群聊的群名 : ");
+    string target_group = readline_string("群聊名 : ");
     if (target_group.empty()) {
         cout << "[错误] 群名不能为空" << endl;
         return;
@@ -1010,13 +982,13 @@ system("clear");
     // 设置当前群聊
     current_chat_group = target_group;
 
-    // 拉取离线消息
-    json req;
-    req["type"] = "get_unread_group_messages";
-    req["token"] = token;    
-    req["group_name"] = target_group;
-    send_json(sock, req);
-    sem_wait(&sem); // 等待信号量
+    // // 拉取离线消息
+    // json req;
+    // req["type"] = "get_unread_group_messages";
+    // req["token"] = token;    
+    // req["group_name"] = target_group;
+    // send_json(sock, req);
+    // sem_wait(&sem); // 等待信号量
 
     cout << "进入 [" << target_group << "] 群" << endl;
     cout << "提示："<< endl;
@@ -1026,10 +998,20 @@ system("clear");
     cout << "- 输入 /exit 退出" << endl;
     cout << "- 输入 /help 获取提示" << endl;
     while (true) {
-        string message = readline_string("> ");
+        // string message = readline_string("> ");
         // if (message.empty()) {
         //     continue;
         // }
+
+
+
+        std::string message;   // 用来接收每一行的字符串变量
+
+        std::getline(std::cin,message);
+
+
+
+
         if (message == "/exit") {
             // 退出当前群聊
             current_chat_group = "";
@@ -1076,15 +1058,6 @@ system("clear");
                 break;
             }
 
-            // json file;
-
-            // file["type"]="send_group_file";
-            // file["token"]=token;
-            // file["group_name"]=target_group;
-            // file["path"]=path;
-            // send_json(sock, file);
-            // sem_wait(&sem);
-
             // 提取文件名和大小
             std::ifstream file(path, std::ios::binary | std::ios::ate);
             if (!file) {
@@ -1093,28 +1066,16 @@ system("clear");
             }
             long long filesize_ll = file.tellg();
             std::string filesize = std::to_string(filesize_ll);
-            string filename = path.substr(path.find_last_of("/") + 1);
+            // string filename = path.substr(path.find_last_of("/") + 1);
 
+// 修改filename作为 account+是否群消息(p/g)+filename
 
-            // json file_req;
-            // file_req["type"] = "send_private_file";
-            // file_req["token"] = token;
-            // file_req["target_username"] = target_username;
-            // file_req["filename"] = filename;
-            // file_req["filesize"] = filesize;
-            // send_json(sock, file_req);
-            // sem_wait(&sem);
+            string filename1 = path.substr(path.find_last_of("/") + 1);
+            string filename = "g" + unique_account + filename1;
 
 
 
-
-
-// 文件传输
-// 记得通知
-
-
-
-            std::thread([sock, token, target_group , path, filename,filesize]() {
+            std::thread([sock, token, target_group , path, filename,filesize,filename1]() {
                 const std::string ftp_ip = "10.30.1.215";
                 const int ftp_port = 2100;
 
@@ -1134,9 +1095,12 @@ system("clear");
                             file_req["type"] = "send_group_file";
                             file_req["token"] = token;
                             file_req["group_name"] = target_group;
-                            file_req["filename"] = filename;
+                            file_req["filename"] = filename1;
                             file_req["filesize"] = filesize;
                             send_json(sock, file_req);
+
+                cout << "文件上传完成" << endl;
+                        
             }).detach();
             cout << "[系统] 文件上传已开始，后台进行中..." << endl;
             continue;
@@ -1153,78 +1117,6 @@ system("clear");
 
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // 处理粘包：从 control_fd 逐行读取服务器响应（以 \r\n 分隔）
 std::string read_ftp_response_line(int control_fd) {
@@ -1245,13 +1137,6 @@ std::string read_ftp_response_line(int control_fd) {
         buffer += temp;
     }
 }
-
-
-
-
-
-
-
 
 // 创建并连接服务器socket
 int connect_to_server(const string& ip, int port) {
@@ -1319,25 +1204,7 @@ void ftp_stor(int control_fd, const std::string& filename, const std::string& fi
     std::string stor_cmd = "STOR " + filename + "\r\n";
     send(control_fd, stor_cmd.c_str(), stor_cmd.size(), 0);
 
-
-
-//     // 等待服务器回复150
-//     char responsee[512];
-//     int m = recv(control_fd, responsee, sizeof(responsee) - 1, 0);
-
-    
-// cout << responsee << endl;
-
-    // if (m <= 0) {
-    //     std::cerr << "[错误] 未收到服务器150响应或连接关闭\n";
-    //     return;
-    // }
-    // responsee[m] = '\0';
-    // std::string resp_str(responsee);
-    // if (resp_str.find("150") == std::string::npos) {
-    //     std::cerr << "[错误] 服务器未进入传输状态: " << resp_str << std::endl;
-    //     return;
-    // }
+    // 等待服务器回复150
     std::string resp_150 = read_ftp_response_line(control_fd);
     if (resp_150.find("150") == std::string::npos) {
         std::cerr << "[错误] 未收到150: " << resp_150 << std::endl;
@@ -1443,20 +1310,6 @@ void ftp_retr(int control_fd, const std::string& filename, const std::string& sa
     ofs.close();
     close(data_fd);
 
-    // // 等待服务器发送“226 Transfer complete”
-    // char response[512];
-    // int n = recv(control_fd, response, sizeof(response) - 1, 0);
-    // if (n > 0) {
-    //     response[n] = '\0';
-    //     std::string resp_str(response);
-    //     if (resp_str.find("226") != std::string::npos) {
-    //         std::cout << "[系统] 上传成功完成：" << filename << std::endl;
-    //     } else {
-    //         std::cout << "[系统] 收到上传后的响应：" << resp_str << std::endl;
-    //     }
-    // } else {
-    //     std::cerr << "[错误] 上传完成后未收到服务器确认" << std::endl;
-    // }
         std::string resp_226 = read_ftp_response_line(control_fd);
     if (resp_226.find("226") != std::string::npos){
         //std::cout << "[系统] 下载完成: " << filename << std::endl;

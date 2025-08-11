@@ -708,7 +708,13 @@ void receive_group_messages_msg(const json &response){
 
     std::lock_guard<std::mutex> lock(io_mutex);
 
-    // 保存当前输入文本和光标位置
+
+
+    // 打印新消息
+    if (group_name == current_chat_group) {
+        std::cout << "[" << group_name << "] " << from <<":"<< message << std::endl;
+    } else {
+            // 保存当前输入文本和光标位置
     int saved_point = rl_point;
 
     // 保存当前 readline 输入行内容
@@ -717,16 +723,9 @@ void receive_group_messages_msg(const json &response){
     // 清除当前行并把光标移到行首
     rl_replace_line("", 0);
     std::cout << "\33[2K\r";
-
-    // 打印新消息
-    if (group_name == current_chat_group) {
-        std::cout << "[" << group_name << "] " << from <<":"<< message << std::endl;
-    } else {
         std::cout << "[新消息来自 " << from << "] in " << group_name << std::endl;
         // 这里你可以做未读提醒等
-    }
-
-    // 恢复之前的用户输入
+            // 恢复之前的用户输入
     rl_replace_line(saved_line, 0);
     rl_point = saved_point;
     free(saved_line);
@@ -734,7 +733,10 @@ void receive_group_messages_msg(const json &response){
     // 通知 readline 新行开始，重新绘制输入行
     rl_on_new_line();
     rl_redisplay();
-}
+    }
+    }
+
+
 
 void get_group_history_msg(const json &response){
         std::string group_name = response.value("group_name", "");
@@ -901,7 +903,7 @@ void get_file_list_msg(const json &response){
             if(type == "private"){
                 std::string sender = l.value("sender","");
                 std::string filename = l.value("filename","");
-                std::cout << "来自用户名为:" << sender << "的文件 " << filename << std::endl;
+                std::cout << "来自用户帐号为:" << sender << " 的文件 " << filename << std::endl;
                 // file["type"] = "private";
                 // file["id"] = res->getInt("id");
                 // file["sender"] = res->getString("sender");
@@ -915,7 +917,7 @@ void get_file_list_msg(const json &response){
                 std::string sender = l.value("sender","");
                 std::string filename = l.value("filename","");
                 std::string id = l.value("group_id","");
-                std::cout << "来自用户名为:" << sender << "的文件 " << filename << " 在群id为"<< id << std::endl;
+                std::cout << "来自用户帐号为:" << sender << " 的文件 " << filename << " 在群id为"<< id << std::endl;
                 // file["type"] = "group";
                 // file["id"] = res->getInt("id");
                 // file["group_id"] = res->getInt("group_id");

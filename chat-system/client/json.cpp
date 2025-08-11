@@ -1,6 +1,6 @@
 #include "json.hpp"
 
-// 发送格式：4字节长度（网络序）+ JSON 数据
+// 4字节长度+JSON数据
 int send_json(int sockfd, const json& j) {
     std::string payload = j.dump();
     uint32_t len = htonl(payload.size());

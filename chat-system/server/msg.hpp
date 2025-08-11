@@ -17,10 +17,70 @@
 #include <memory>
 #include <iostream>
 
+// 连接池
+#include <queue>
+#include <mutex>
+#include <condition_variable>
+#include <stdexcept>
+
 using json = nlohmann::json;
 using namespace sw::redis;
 
 extern sw::redis::Redis redis;
+
+
+
+class MySQLPool {
+public:
+    MySQLPool(const std::string& url, const std::string& user, const std::string& password,
+              const std::string& schema, int pool_size)
+        : url_(url), user_(user), password_(password), schema_(schema), pool_size_(pool_size)
+    {
+        driver_ = sql::mysql::get_mysql_driver_instance();
+        if (!driver_) throw std::runtime_error("Failed to get MySQL driver");
+
+        // 预先创建连接放入池
+        for (int i = 0; i < pool_size_; ++i) {
+            sql::Connection* conn = driver_->connect(url_, user_, password_);
+            conn->setSchema(schema_);
+            connections_.push(conn);
+        }
+    }
+
+    ~MySQLPool() {
+        std::lock_guard<std::mutex> lock(mtx_);
+        while (!connections_.empty()) {
+            sql::Connection* conn = connections_.front();
+            connections_.pop();
+            conn->close();
+            delete conn;
+        }
+    }
+
+    // 获取连接，返回shared_ptr，析构时自动归还连接池
+    std::shared_ptr<sql::Connection> getConnection() {
+        std::unique_lock<std::mutex> lock(mtx_);
+        cond_.wait(lock, [this]() { return !connections_.empty(); });
+        sql::Connection* conn = connections_.front();
+        connections_.pop();
+
+        // 自定义删除器，shared_ptr析构时会把连接归还给池
+        return std::shared_ptr<sql::Connection>(conn, [this](sql::Connection* c) {
+            std::lock_guard<std::mutex> lock(this->mtx_);
+            this->connections_.push(c);
+            this->cond_.notify_one();
+        });
+    }
+
+private:
+    std::string url_, user_, password_, schema_;
+    int pool_size_;
+    sql::mysql::MySQL_Driver* driver_;
+
+    std::queue<sql::Connection*> connections_;
+    std::mutex mtx_;
+    std::condition_variable cond_;
+};
 
 void error_msg(int fd, const json &request);
 std::shared_ptr<sql::Connection> get_mysql_connection();
@@ -64,14 +124,6 @@ void send_group_file_msg(int fd, const json& request);
 void send_private_file_msg(int fd, const json& request);
 void get_file_list_msg(int fd, const json& request);
 void send_offline_summary_on_login(const std::string& account, int fd);
-
-
-
-
-
-
-
-
 bool redis_key_exists(const std::string &token);
 void refresh_online_status(const std::string &token);
 
