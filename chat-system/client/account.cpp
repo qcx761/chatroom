@@ -511,6 +511,7 @@ for (const auto& list : friend_list) {
 }
 if(!found1){
     cout<< "不是好友无法发送文件" << endl;
+    current_chat_target = "";
     waiting();
     return;
 }
@@ -563,6 +564,7 @@ if(!found1){
                 int control_fd = connect_to_server(ftp_ip, ftp_port);
                 if (control_fd < 0) {
                     std::cerr << "[错误] 连接FTP控制端失败\n" << endl;
+                    current_chat_target = "";
                     waiting();
                     return;
                 }
@@ -1139,6 +1141,7 @@ for (const auto& list : group_list) {
     }
 }
 if(!found1){
+    current_chat_group = "";
     cout<< "不在群无法发送文件" << endl;
     waiting();
     return;
@@ -1189,6 +1192,7 @@ if(!found1){
                 int control_fd = connect_to_server(ftp_ip, ftp_port);
                 if (control_fd < 0) {
                     std::cerr << "[错误] 连接FTP控制端失败\n" << endl;
+                    current_chat_group = "";
                     return;
                 }
 
