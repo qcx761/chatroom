@@ -208,10 +208,16 @@ void SubReactor::run() {
                             });
                             continue;
                         }else if(type=="send_private_message"){
-                            thread_pool->enqueue([fd, request]() {
+                            // thread_pool->enqueue([fd, request]() {
+                            // send_private_message_msg(fd,request);
+                            // });
+                            // continue;
                             send_private_message_msg(fd,request);
-                            });
                             continue;
+
+//放入线程池消息会乱，可加消息队列处理
+
+
                         }else if(type=="get_private_history"){
                             thread_pool->enqueue([fd, request]() {
                             get_private_history_msg(fd,request);
@@ -283,10 +289,18 @@ void SubReactor::run() {
                             });
                             continue;
                         }else if(type=="send_group_message"){
-                            thread_pool->enqueue([fd, request]() {
+                            // thread_pool->enqueue([fd, request]() {
+                            // send_group_message_msg(fd,request);
+                            // });
+                            // continue;
+
+
+
                             send_group_message_msg(fd,request);
-                            });
                             continue;
+
+
+
                         }else if(type=="get_group_requests"){
                             thread_pool->enqueue([fd, request]() {
                             get_group_requests_msg(fd,request);
@@ -327,268 +341,3 @@ void SubReactor::run() {
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// void SubReactor::run() {
-//     epoll_event events[1024];
-//     while (running) {
-//         int n = epoll_wait(epfd, events, 1024, -1);
-//         for (int i = 0; i < n; ++i) {
-//             int fd = events[i].data.fd;
-//             json request;
-//             int ret=receive_json(fd,request);
-
-//             if(ret!=0){
-//                 closeAndRemove(fd);
-//                 continue;
-//             }
-
-//             std::string type=request.value("type","");
-
-//             if (type == "heartbeat") {
-//                 cout<<"收到心跳检测来自fd="<< fd << endl;
-//                 std::string token = request.value("token", "");
-//                 bool valid = redis_key_exists(token); // 你自己实现的验证函数
-//                 if (valid) {
-//                     // 更新心跳或在线状态
-//                     refresh_online_status(token);
-//                 } else {
-//                         ;
-//                 }
-
-//                 continue; 
-//             }
-
-//             if(type=="log_in"){
-//                 thread_pool->enqueue([fd, request]() {
-//                     log_in_msg(fd,request);
-//                 });
-//                 continue;
-//             }else if(type=="sign_up"){
-//                 thread_pool->enqueue([fd, request]() {
-//                     sign_up_msg(fd,request);
-//                 });
-//                 continue;
-//             }
-
-//             if(type=="destory_account"){
-//                 thread_pool->enqueue([fd, request]() {
-//                     destory_account_msg(fd,request);
-//                 });
-//                 continue;
-//             }else if(type=="quit_account"){
-//                 thread_pool->enqueue([fd, request]() {
-//                     quit_account_msg(fd,request);
-//                 });
-//                 continue;
-//             }else if(type=="username_view"){
-//                 thread_pool->enqueue([fd, request]() {
-//                     username_view_msg(fd,request);
-//                 });
-//                 continue;
-//             }else if(type=="username_change"){
-//                 thread_pool->enqueue([fd, request]() {
-//                     username_change_msg(fd,request);
-//                 });
-//                 continue;
-//             }else if(type=="password_change"){
-//                 thread_pool->enqueue([fd, request]() {
-//                     password_change_msg(fd,request);
-//                 });
-//                 continue;
-//             }else if(type=="show_friend_list"){
-//                 thread_pool->enqueue([fd, request]() {
-//                     show_friend_list_msg(fd,request);
-//                 });
-//                 continue;
-//             }else if(type=="add_friend"){
-//                 thread_pool->enqueue([fd, request]() {
-//                   add_friend_msg(fd,request);
-//                 });
-//                 continue;
-//             }else if(type=="mute_friend"){
-//                 thread_pool->enqueue([fd, request]() {
-//                     mute_friend_msg(fd,request);
-//                 });
-//                 continue;
-//             }else if(type=="remove_friend"){
-//                 thread_pool->enqueue([fd, request]() {
-//                    remove_friend_msg(fd,request);
-//                 });
-//                 continue;
-//             }else if(type=="unmute_friend"){
-//                 thread_pool->enqueue([fd, request]() {
-//                     unmute_friend_msg(fd,request);
-//                 });
-//                 continue;
-//             }else if(type=="get_friend_requests"){
-//                 thread_pool->enqueue([fd, request]() {
-//                   get_friend_requests_msg(fd,request);
-//                 });
-//                 continue;
-//             }else if(type=="handle_friend_request"){
-//                 thread_pool->enqueue([fd, request]() {
-//                   handle_friend_request_msg(fd,request);
-//                 });
-//                 continue;
-//             }else if(type=="get_friend_info"){
-//                 thread_pool->enqueue([fd, request]() {
-//                   get_friend_info_msg(fd,request);
-//                 });
-//                 continue;
-//             }else if(type=="send_private_message"){
-//                 thread_pool->enqueue([fd, request]() {
-//                   send_private_message_msg(fd,request);
-//                 });
-//                 continue;
-//             }else if(type=="get_private_history"){
-//                 thread_pool->enqueue([fd, request]() {
-//                   get_private_history_msg(fd,request);
-//                 });
-//                 continue; 
-//             }else if(type=="get_unread_private_messages"){
-//                 thread_pool->enqueue([fd, request]() {
-//                   get_unread_private_messages_msg(fd,request);
-//                 });
-//                 continue;
-//             }else if(type=="show_group_list"){
-//                 thread_pool->enqueue([fd, request]() {
-//                   show_group_list_msg(fd,request);
-//                 });
-//                 continue;
-//             }else if(type=="join_group"){
-//                 thread_pool->enqueue([fd, request]() {
-//                   join_group_msg(fd,request);
-//                 });
-//                 continue;
-//             }else if(type=="quit_group"){
-//                 thread_pool->enqueue([fd, request]() {
-//                   quit_group_msg(fd,request);
-//                 });
-//                 continue;
-//             }else if(type=="show_group_members"){
-//                 thread_pool->enqueue([fd, request]() {
-//                   show_group_members_msg(fd,request);
-//                 });
-//                 continue;
-//             }else if(type=="create_group"){
-//                 thread_pool->enqueue([fd, request]() {
-//                   create_group_msg(fd,request);
-//                 });
-//                 continue;
-//             }else if(type=="set_group_admin"){
-//                 thread_pool->enqueue([fd, request]() {
-//                   set_group_admin_msg(fd,request);
-//                 });
-//                 continue;
-//             }else if(type=="remove_group_admin"){
-//                 thread_pool->enqueue([fd, request]() {
-//                   remove_group_admin_msg(fd,request);
-//                 });
-//                 continue;
-//             }else if(type=="remove_group_member"){
-//                 thread_pool->enqueue([fd, request]() {
-//                   remove_group_member_msg(fd,request);
-//                 });
-//                 continue;
-//             }else if(type=="add_group_member"){
-//                 thread_pool->enqueue([fd, request]() {
-//                   add_group_member_msg(fd,request);
-//                 });
-//                 continue;
-//             }else if(type=="dismiss_group"){
-//                 thread_pool->enqueue([fd, request]() {
-//                   dismiss_group_msg(fd,request);
-//                 });
-//                 continue;
-//             }else if(type=="get_unread_group_messages"){
-//                 thread_pool->enqueue([fd, request]() {
-//                   get_unread_group_messages_msg(fd,request);
-//                 });
-//                 continue;
-//             }else if(type=="get_group_history"){
-//                 thread_pool->enqueue([fd, request]() {
-//                   get_group_history_msg(fd,request);
-//                 });
-//                 continue;
-//             }else if(type=="send_group_message"){
-//                 thread_pool->enqueue([fd, request]() {
-//                   send_group_message_msg(fd,request);
-//                 });
-//                 continue;
-//             }else if(type=="get_group_requests"){
-//                 thread_pool->enqueue([fd, request]() {
-//                   get_group_requests_msg(fd,request);
-//                 });
-//                 continue;
-//             }else if(type=="handle_group_request"){
-//                 thread_pool->enqueue([fd, request]() {
-//                   handle_group_request_msg(fd,request);
-//                 });
-//                 continue;
-//             }else if(type=="send_private_file"){
-//                 thread_pool->enqueue([fd, request]() {
-//                   send_private_file_msg(fd,request);
-//                 });
-//                 continue;
-//             }else if(type=="send_group_file"){
-//                 thread_pool->enqueue([fd, request]() {
-//                   send_group_file_msg(fd,request);
-//                 });
-//                 continue;
-//             }else if(type=="get_file_list"){
-//                 thread_pool->enqueue([fd, request]() {
-//                   get_file_list_msg(fd,request);
-//                 });
-//                 continue;
-//             }else{
-//                 // 处理错误逻辑
-//                 thread_pool->enqueue([fd, request]() {
-//                     error_msg(fd,request);
-//                 });
-//             }
-//         }
-//     }
-// }
-

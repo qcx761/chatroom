@@ -23,6 +23,12 @@
 #include <condition_variable>
 #include <stdexcept>
 
+
+#include <chrono>
+#include <ctime>
+#include <iomanip>
+#include <filesystem>
+
 using json = nlohmann::json;
 using namespace sw::redis;
 
@@ -127,3 +133,4 @@ void send_offline_summary_on_login(const std::string& account, int fd);
 bool redis_key_exists(const std::string &token);
 void refresh_online_status(const std::string &token);
 
+std::string getCurrentTimeString();

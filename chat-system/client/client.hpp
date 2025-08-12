@@ -64,7 +64,7 @@ private:
 
 std::string token;  // 存储token
 
-  std::atomic<MenuState> state;
+std::atomic<MenuState> state;
 
 
 

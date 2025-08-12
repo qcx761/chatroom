@@ -9,7 +9,6 @@ std::mutex io_mutex;
 // 初始化
 // 用来判断用户所在的界面 记录用户在和谁私聊
 std::string current_chat_target = "";
-
 // 用来知道非阻塞线程操作的哪个好友
 std::vector<json> global_friend_requests;
 std::mutex friend_requests_mutex;
@@ -21,6 +20,17 @@ std::mutex friend_requests_mutex;
 std::string current_chat_group = "";
 std::vector<json> global_group_requests;
 std::mutex group_requests_mutex;
+
+
+
+
+
+
+
+std::vector<std::string> friend_list;
+std::vector<std::string> group_list;
+
+
 
 
 
@@ -150,16 +160,27 @@ void password_change_msg(const json &response){
 void show_friend_list_msg(const json &response){
     std::string status = response.value("status", "error");
     if (status == "success") {
+
+        friend_list.clear();
         // nlohmann::json 支持隐式把 STL 容器转换为 JSON 数组
+
         auto friends = response["friends"];
         for (const auto& f : friends) {
             std::string account = f["account"];
             std::string username = f["username"];
+
+            friend_list.push_back(username);
+
             bool is_online = f["online"];
             bool is_muted = f["muted"];
+
+            //在发送文件时我拉取好友列表但是不能输出
+            if(current_chat_target == ""){
+
             std::cout << "用户名:"<< username << " 帐号:" << account << " is "
             << (is_online ? " online" : "offline")
             << (is_muted ? " [muted]" : "") << std::endl;
+            }
         }
     }else{
         std::string msg = response.value("msg", "未知错误");
@@ -424,38 +445,23 @@ void get_unread_private_messages_msg(const json &response){
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 void show_group_list_msg(const json &response){
     std::string status = response.value("status", "error");
     if (status == "success") {
+
+        group_list.clear();
+
         auto groups = response["groups"];
         for (const auto& f : groups) {
             int group_id = f["group_id"];
             std::string owner = f["owner"];
             std::string group_name = f["group_name"];
+
+            group_list.push_back(group_name);
+
             std::string role = f["role"];
+
+            if(current_chat_group == "")
             std::cout <<  "id:" << group_id <<"  name:"<< group_name << "  owner:" << owner << "  role:" << role << std::endl;
         }
     }else{
@@ -895,7 +901,9 @@ void get_file_list_msg(const json &response){
         }
 
         for(const auto&l : list){
+
             std::string type = l.value("type","");
+
             // std::string content = f.value("content","");
             // std::string timestamp = f.value("timestamp","");
             
@@ -903,7 +911,8 @@ void get_file_list_msg(const json &response){
             if(type == "private"){
                 std::string sender = l.value("sender","");
                 std::string filename = l.value("filename","");
-                std::cout << "来自用户帐号为:" << sender << " 的文件 " << filename << std::endl;
+                std::string time = l.value("timestamp","");
+                std::cout << "来自用户帐号为:" << sender << " 的文件 " << filename << " 时间：" << time << std::endl;
                 // file["type"] = "private";
                 // file["id"] = res->getInt("id");
                 // file["sender"] = res->getString("sender");
@@ -916,8 +925,9 @@ void get_file_list_msg(const json &response){
             if(type == "group"){
                 std::string sender = l.value("sender","");
                 std::string filename = l.value("filename","");
-                std::string id = l.value("group_id","");
-                std::cout << "来自用户帐号为:" << sender << " 的文件 " << filename << " 在群id为"<< id << std::endl;
+                int id = l.value("group_id",0);
+                std::string time = l.value("timestamp","");
+                std::cout << "来自用户帐号为:" << sender << " 的文件 " << filename << " 在群id为"<< id << " 时间：" << time << std::endl;
                 // file["type"] = "group";
                 // file["id"] = res->getInt("id");
                 // file["group_id"] = res->getInt("group_id");

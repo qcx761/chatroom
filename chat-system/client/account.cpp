@@ -418,6 +418,22 @@ void send_private_message(int sock,string token, sem_t& sem) {
         cout << "[错误] 用户名不能为空" << endl;
         return;
     }
+
+    bool found = false;
+    for (const auto& list : friend_list) {
+        if (list == target_username) {
+            found = true;
+            break;
+        }
+    }
+    if(!found){
+        cout<< "不是好友无法私聊" << endl;
+        waiting();
+        return;
+    }
+
+
+
     // 设置当前私聊用户
     current_chat_target = target_username;
 
@@ -481,6 +497,23 @@ void send_private_message(int sock,string token, sem_t& sem) {
         }
 
         if (message.rfind("/file", 0) == 0) {
+json mmm;
+mmm["type"]="show_friend_list";
+mmm["token"]=token;
+send_json(sock,mmm);
+sem_wait(&sem); // 等待信号量
+bool found1 = false;
+for (const auto& list : friend_list) {
+    if (list == target_username) {
+        found1 = true;
+        break;
+    }
+}
+if(!found1){
+    cout<< "不是好友无法发送文件" << endl;
+    waiting();
+    return;
+}
             string path;
             std::istringstream iss_file(message);
             string cmd;
@@ -493,28 +526,37 @@ void send_private_message(int sock,string token, sem_t& sem) {
                 continue;
             }
 
+            // 判断是不是目录
+            if (fs::is_directory(path)) {
+                cout << "[错误] 不能传输目录！" << endl;
+                cout << "[系统] 已退出文件传输模式。" << endl;
+                waiting();
+                continue;
+            }
+
             // 提取文件名和大小
             std::ifstream file(path, std::ios::binary | std::ios::ate);
             if (!file) {
                 cout << "[错误] 文件打开失败！" << endl;
+                cout << "[系统] 已退出文件传输模式。" << endl;
                 waiting();
                 continue;
             }
+
             long long filesize_ll = file.tellg();
             std::string filesize = std::to_string(filesize_ll);
             // string filename = path.substr(path.find_last_of("/") + 1);
 
 
 
-// 修改filename作为 account+是否群消息(p/g)+filename
-
+            // 修改filename作为 account+是否群消息(p/g)+filename+时间戳
             string filename1 = path.substr(path.find_last_of("/") + 1);
             string filename = "p" + unique_account + filename1;
 
 
 
 
-            std::thread([sock, token, target_username , path, filename,filesize,filename1]() {
+            std::thread([sock, token, target_username , path, filename , filesize , filename1]() {
                 const std::string ftp_ip = "10.30.1.215";
                 const int ftp_port = 2100;
 
@@ -536,9 +578,9 @@ void send_private_message(int sock,string token, sem_t& sem) {
                 file_req["filesize"] = filesize;
                 send_json(sock, file_req);
 
-                cout << "文件上传完成" << endl;
+                // cout << "文件上传完成" << endl;
             }).detach();
-            cout << "[系统] 文件上传已开始，后台进行中..." << endl;
+            cout << "[系统] 文件上传后台进行中..." << endl;
             continue;
         }
 
@@ -550,6 +592,7 @@ void send_private_message(int sock,string token, sem_t& sem) {
         msg["message"]=message;
         send_json(sock, msg);
     }
+    current_chat_target = "";
 }
 
 void receive_file(int sock,string token,sem_t& sem){
@@ -596,29 +639,25 @@ void receive_file(int sock,string token,sem_t& sem){
         account.pop_back();  // 直接删掉最后一个字符
     }
 
+    // 2025-08-11 14:35:22
+    string time = readline_string("请输入文件的时间戳（年-月-日 小时:分钟:秒） : ");
+    if(time.empty()){
+        std::cout << "输入错误" << std::endl;
+        waiting();
+        return;
+    }
+    if (!time.empty() && time.back() == '\n') {
+        time.pop_back();  // 直接删掉最后一个字符
+    }
 
-
-    std::string filename = typee + account + filename1;
-
-
-
-
-
-
-
-
-
-
-
+    std::string filename = typee + account + filename1 + time;
+    // std::string filename = typee + account + filename1;
 
     string path1 = readline_string("请输入想放在的路径（直接回车保存默认路径） : ");
     if (!path1.empty() && path1.back() == '\n') {
         // 删除换行符
         path1.pop_back();
     }
-
-
-
 
 if (path1.empty()) {
     path1 = "./";  // 默认保存
@@ -630,7 +669,6 @@ if (path1.back() != '/'){
 
     string path = path1 + filename1;
 
-
     std::thread([sock, token, path, filename]() {
         const std::string ftp_ip = "10.30.1.215";
         const int ftp_port = 2100;
@@ -640,17 +678,10 @@ if (path1.back() != '/'){
             std::cerr << "[错误] 连接FTP控制端失败\n" << endl;
             return;
         }
-
-
         ftp_retr(control_fd, filename, path);
-
         close(control_fd);
 
-
-
-    std::cout << "文件下载完成" << std::endl;
-
-
+    // std::cout << "文件下载完成" << std::endl;
 
     }).detach();
 
@@ -756,6 +787,19 @@ void set_group_admin(int sock,string token,sem_t& sem){
 
     string group_name = readline_string("输入群聊名称 : ");
 
+    bool found = false;
+    for (const auto& list : group_list) {
+        if (list == group_name) {
+            found = true;
+            break;
+        }
+    }
+    if(!found){
+        cout<< "未找到该群" << endl;
+        waiting();
+        return;
+    }
+
 
     cout << "---------- 群成员列表 ----------" << endl;
     json jjj;
@@ -791,6 +835,19 @@ void remove_group_admin(int sock,string token,sem_t& sem){
 
     string group_name = readline_string("输入群聊名称 : ");
 
+    bool found = false;
+    for (const auto& list : group_list) {
+        if (list == group_name) {
+            found = true;
+            break;
+        }
+    }
+    if(!found){
+        cout<< "未找到该群" << endl;
+        waiting();
+        return;
+    }
+
     cout << "---------- 群成员列表 ----------" << endl;
     json jjj;
     jjj["type"] = "show_group_members";
@@ -823,6 +880,19 @@ void remove_group_member(int sock,string token,sem_t& sem){
     cout << "-----------------------------" << endl;
 
     string group_name = readline_string("输入群聊名称 : ");
+
+    bool found = false;
+    for (const auto& list : group_list) {
+        if (list == group_name) {
+            found = true;
+            break;
+        }
+    }
+    if(!found){
+        cout<< "未找到该群" << endl;
+        waiting();
+        return;
+    }
 
     cout << "---------- 群成员列表 ----------" << endl;
     json jjj;
@@ -979,6 +1049,20 @@ system("clear");
         cout << "[错误] 群名不能为空" << endl;
         return;
     }
+
+    bool found = false;
+    for (const auto& list : group_list) {
+        if (list == target_group) {
+            found = true;
+            break;
+        }
+    }
+    if(!found){
+        cout<< "不在群内无法聊天" << endl;
+        waiting();
+        return;
+    }
+
     // 设置当前群聊
     current_chat_group = target_group;
 
@@ -1006,11 +1090,7 @@ system("clear");
 
 
         std::string message;   // 用来接收每一行的字符串变量
-
         std::getline(std::cin,message);
-
-
-
 
         if (message == "/exit") {
             // 退出当前群聊
@@ -1046,6 +1126,23 @@ system("clear");
         }
 
         if (message.rfind("/file", 0) == 0) {
+json jjj;
+jjj["type"] = "show_group_list";
+jjj["token"] = token;
+send_json(sock, jjj);
+sem_wait(&sem);
+bool found1 = false;
+for (const auto& list : friend_list) {
+    if (list == target_group) {
+        found1 = true;
+        break;
+    }
+}
+if(!found1){
+    cout<< "不在群无法发送文件" << endl;
+    waiting();
+    return;
+}
             string path;
             std::istringstream iss_file(message);
             string cmd;
@@ -1054,15 +1151,25 @@ system("clear");
             if(path.empty()){
                 cout << "未输入路径" << endl;
                 cout << "[系统] 已退出文件传输模式。" << endl;
-    waiting();
-                break;
+                waiting();
+                continue;
+            }
+
+            // 判断是不是目录
+            if (fs::is_directory(path)) {
+                cout << "[错误] 不能传输目录！" << endl;
+                cout << "[系统] 已退出文件传输模式。" << endl;
+                waiting();
+                continue;
             }
 
             // 提取文件名和大小
             std::ifstream file(path, std::ios::binary | std::ios::ate);
             if (!file) {
                 cout << "[错误] 文件打开失败！" << endl;
-                break;
+                cout << "[系统] 已退出文件传输模式。" << endl;
+                waiting();
+                continue;
             }
             long long filesize_ll = file.tellg();
             std::string filesize = std::to_string(filesize_ll);
@@ -1090,19 +1197,19 @@ system("clear");
                 close(control_fd);
 
 
-                            // 文件发送成功告诉服务端推送文件
-                            json file_req;
-                            file_req["type"] = "send_group_file";
-                            file_req["token"] = token;
-                            file_req["group_name"] = target_group;
-                            file_req["filename"] = filename1;
-                            file_req["filesize"] = filesize;
-                            send_json(sock, file_req);
+                // 文件发送成功告诉服务端推送文件
+                json file_req;
+                file_req["type"] = "send_group_file";
+                file_req["token"] = token;
+                file_req["group_name"] = target_group;
+                file_req["filename"] = filename1;
+                file_req["filesize"] = filesize;
+                send_json(sock, file_req);
 
-                cout << "文件上传完成" << endl;
+                // cout << "文件上传完成" << endl;
                         
             }).detach();
-            cout << "[系统] 文件上传已开始，后台进行中..." << endl;
+            cout << "[系统] 文件上传后台进行中..." << endl;
             continue;
         }
 
@@ -1116,6 +1223,8 @@ system("clear");
         // sem_wait(&sem);  
 
     }
+    // 意外退出，理论上不会到这
+    current_chat_group = "";
 }
 
 // 处理粘包：从 control_fd 逐行读取服务器响应（以 \r\n 分隔）
@@ -1257,6 +1366,7 @@ void ftp_stor(int control_fd, const std::string& filename, const std::string& fi
 
     std::string resp_226 = read_ftp_response_line(control_fd);
     if (resp_226.find("226") != std::string::npos){
+    std::cout << "文件上传完成" << std::endl;
         //std::cout << "[系统] 上传完成: " << filename << std::endl;
     } else {
         std::cout << "[系统] 上传响应: " << resp_226 << std::endl;
@@ -1312,6 +1422,7 @@ void ftp_retr(int control_fd, const std::string& filename, const std::string& sa
 
         std::string resp_226 = read_ftp_response_line(control_fd);
     if (resp_226.find("226") != std::string::npos){
+        std::cout << "文件下载完成" << std::endl;
         //std::cout << "[系统] 下载完成: " << filename << std::endl;
     } else {
         std::cout << "[系统] 下载响应: " << resp_226 << std::endl;

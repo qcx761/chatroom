@@ -1,7 +1,5 @@
 #pragma once
-
 #include<iostream>
-
     enum MenuState {
         main_menu,    // 主菜单
         next_menu,    // 登录后主界面
@@ -10,11 +8,6 @@
         next2_menu,   // 通讯录
         next21_menu,  // 好友
         next22_menu,  // 群聊
-
-
-
-
-
     };
 
 void show_main_menu();

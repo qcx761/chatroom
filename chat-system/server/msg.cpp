@@ -145,6 +145,15 @@ std::mutex fd_mutex;
 // );
 
 
+// 获取当前时间字符串，格式：YYYY-MM-DD HH:MM:SS
+std::string getCurrentTimeString() {
+    auto now = std::chrono::system_clock::now();
+    std::time_t t_now = std::chrono::system_clock::to_time_t(now);
+    std::tm* tm_now = std::localtime(&t_now);
+    std::ostringstream oss;
+    oss << std::put_time(tm_now, "%Y-%m-%d %H:%M:%S");
+    return oss.str();
+}
 
 bool redis_key_exists(const std::string &token) {
     std::string token_key = "token:" + token;
@@ -3821,19 +3830,57 @@ void send_private_file_msg(int fd, const json& request){
         std::string filepath = "/home/kong/plan/chartroom/chat-system/server/"  + filename;
 
 
+
+
+
         // 存储文件消息记录
+        // {
+        //     std::unique_ptr<sql::PreparedStatement> stmt(
+        //         conn->prepareStatement(
+        //             "INSERT INTO file_messages (sender, receiver, filename, filesize, filepath, is_read, timestamp) "
+        //             "VALUES (?, ?, ?, ?, ?, FALSE, NOW())"));
+        //     stmt->setString(1, user_account);
+        //     stmt->setString(2, target_account);
+        //     stmt->setString(3, filename);
+        //     stmt->setString(4, filesize);
+        //     stmt->setString(5, filepath);
+        //     stmt->execute();
+        // }
+
+        std::string now_time;
         {
             std::unique_ptr<sql::PreparedStatement> stmt(
                 conn->prepareStatement(
                     "INSERT INTO file_messages (sender, receiver, filename, filesize, filepath, is_read, timestamp) "
-                    "VALUES (?, ?, ?, ?, ?, FALSE, NOW())"));
+                    "VALUES (?, ?, ?, ?, ?, FALSE, ?)"));
             stmt->setString(1, user_account);
             stmt->setString(2, target_account);
             stmt->setString(3, filename);
             stmt->setString(4, filesize);
             stmt->setString(5, filepath);
+            now_time = getCurrentTimeString();
+            stmt->setString(6, now_time);
             stmt->execute();
         }
+
+
+
+
+std::string filename1 = "p" + user_account + filename;
+
+
+std::filesystem::path old_path = std::filesystem::path("/home/kong/plan/chartroom/chat-system/server/file") / filename1;
+std::string new_filename = filename1 + now_time;
+std::filesystem::path new_path = old_path.parent_path() / new_filename;
+std::filesystem::rename(old_path, new_path);
+
+
+
+
+
+
+
+
 
         bool is_online = redis.exists("online:" + target_account);
 
@@ -3947,18 +3994,58 @@ void send_group_file_msg(int fd, const json& request){
         std::string filepath = "/home/kong/plan/chartroom/chat-system/server/"  + filename;
 
         // 存储群文件消息记录
+        // {
+        //     std::unique_ptr<sql::PreparedStatement> stmt(
+        //         conn->prepareStatement(
+        //             "INSERT INTO group_file_messages (sender, group_id, filename, filesize, filepath, timestamp) "
+        //             "VALUES (?, ?, ?, ?, ?, NOW())"));
+        //     stmt->setString(1, user_account);
+        //     stmt->setInt(2, group_id);
+        //     stmt->setString(3, filename);
+        //     stmt->setString(4, filesize);
+        //     stmt->setString(5, filepath);
+        //     stmt->execute();
+        // }
+        std::string now_time;
         {
             std::unique_ptr<sql::PreparedStatement> stmt(
                 conn->prepareStatement(
                     "INSERT INTO group_file_messages (sender, group_id, filename, filesize, filepath, timestamp) "
-                    "VALUES (?, ?, ?, ?, ?, NOW())"));
+                    "VALUES (?, ?, ?, ?, ?, ?)"));
             stmt->setString(1, user_account);
             stmt->setInt(2, group_id);
             stmt->setString(3, filename);
             stmt->setString(4, filesize);
             stmt->setString(5, filepath);
+            now_time = getCurrentTimeString();
+            stmt->setString(6, now_time);
             stmt->execute();
         }
+
+
+
+
+
+
+
+
+std::string filename1 = "g" + user_account + filename;
+
+std::filesystem::path old_path = std::filesystem::path("/home/kong/plan/chartroom/chat-system/server/file") / filename1;
+std::string new_filename = filename1 + now_time;
+std::filesystem::path new_path = old_path.parent_path() / new_filename;
+std::filesystem::rename(old_path, new_path);
+
+
+
+
+
+
+
+
+
+
+
 
 // 推送给在线群成员（除自己外）
         {
