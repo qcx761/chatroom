@@ -1132,7 +1132,7 @@ jjj["token"] = token;
 send_json(sock, jjj);
 sem_wait(&sem);
 bool found1 = false;
-for (const auto& list : friend_list) {
+for (const auto& list : group_list) {
     if (list == target_group) {
         found1 = true;
         break;
