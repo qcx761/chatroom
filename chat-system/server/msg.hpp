@@ -75,9 +75,6 @@ bool redis_key_exists(const std::string &token);
 void refresh_online_status(const std::string &token);
 std::string getCurrentTimeString();
 
-
-
-
 class MySQLPool {
 public:
     MySQLPool(const std::string& url, const std::string& user, const std::string& password,

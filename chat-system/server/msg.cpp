@@ -3,37 +3,18 @@
 
 #include <set>
 
-
 Redis redis("tcp://127.0.0.1:6379");
-
 std::unordered_map<std::string, int> account_fd_map;
-
-
-
 MySQLPool mysql_pool("tcp://127.0.0.1:3306", "qcx", "qcx761", "chatroom", 10);
 std::unordered_map<std::string, std::string> token_name_map;
 std::unordered_map<std::string, std::string> token_account_map;
-
 std::unordered_map<std::string, std::string> name_account_map;
 std::unordered_map<std::string, std::string> account_name_map;
-
-
-
-
-
 std::mutex mtx;
 std::condition_variable cv;
-
 std::mutex fd_mutex;
-
-
-
 AsyncMessageInserter asyncMessageInserter(mysql_pool);
 AsyncGroupMessageInserter asyncGroupInserter(mysql_pool);
-
-
-
-
 
 // 获取当前时间字符串，格式：YYYY-MM-DD HH:MM:SS
 std::string getCurrentTimeString() {
@@ -74,8 +55,6 @@ void refresh_online_status(const std::string& token) {
         std::cerr << "Exception in refresh_online_status: " << e.what() << std::endl;
     }
 }
-
-
 
 // 通过 account 获取 fd
 int get_fd_by_account(const std::string& account) {
@@ -144,9 +123,7 @@ void sign_up_msg(int fd, const json &request) {
 
     try {
         auto conn = mysql_pool.getConnection();
-
         //auto conn = get_mysql_connection();
-
         // 检查 account 是否存在，使用 MySQL JSON 查询（假设字段名 info）
         // 通过 conn->prepareStatement 预编译了一条 SQL 查询语句，语句里用 ? 作为占位符
         std::unique_ptr<sql::PreparedStatement> check_account_stmt(
@@ -251,18 +228,11 @@ void log_in_msg(int fd, const json &request) {
             {"account", user_info["account"]},
             {"username", user_info["username"]}
         };
-
-
         name_account_map[user_info["username"]] = user_info["account"];
-
-
-
         {
             std::lock_guard<std::mutex> lock(fd_mutex);
             account_fd_map[account] = fd;
         }
-
-
         redis.set(token_key, token_info.dump());
         redis.expire(token_key, 7200); //token有两个个小时有效期
         // redis.setex("online:" + account, 7200, "1");
@@ -270,24 +240,8 @@ void log_in_msg(int fd, const json &request) {
         response["status"] = "success";
         response["msg"] = "Login successful";
         response["token"] = token;
-
-
-
-
-
         token_name_map[token] = user_info["username"];
-
-
         token_account_map[token] = account;
-
-
-
-
-
-
-
-
-
     } catch (const std::exception &e) {
         response["status"] = "error";
         response["msg"] = std::string("Exception: ") + e.what();
@@ -319,9 +273,7 @@ void destory_account_msg(int fd, const json &request) {
 
     try {
         auto conn = mysql_pool.getConnection();
-
         // auto conn = get_mysql_connection();
-
         std::unique_ptr<sql::PreparedStatement> stmt(
             conn->prepareStatement("SELECT id, info FROM users WHERE JSON_EXTRACT(info, '$.account') = ?"));
         stmt->setString(1, account);
@@ -337,9 +289,6 @@ void destory_account_msg(int fd, const json &request) {
                 response["msg"] = "Incorrect password";
             } else {
                 int id = res->getInt("id");
-
-                
-
                 // 1. 删除 users 表记录
                 {
                     auto del_stmt = std::unique_ptr<sql::PreparedStatement>(
@@ -485,7 +434,6 @@ void destory_account_msg(int fd, const json &request) {
 // 退出帐号处理函数
 void quit_account_msg(int fd, const json &request){
     std::cout << "[DEBUG] fd: " << fd << " -> quit_account_msg()" << std::endl;
-
     json response;
     response["type"] = "quit_account";
     std::string token = request.value("token", "");
@@ -497,7 +445,6 @@ void quit_account_msg(int fd, const json &request){
         send_json(fd, response);
         return;
     }
-
 
     try {
         response["status"] = "success";
@@ -521,7 +468,6 @@ void quit_account_msg(int fd, const json &request){
 // 显示用户名处理函数
 void username_view_msg(int fd, const json &request){
     std::cout << "[DEBUG] fd: " << fd << " -> username_view_msg()" << std::endl;
-
     json response;
     response["type"] = "username_view";
     std::string token = request.value("token", "");
@@ -536,7 +482,6 @@ void username_view_msg(int fd, const json &request){
 
     try {
         auto conn = mysql_pool.getConnection();
-
         //auto conn = get_mysql_connection();
         std::unique_ptr<sql::PreparedStatement> stmt(
             conn->prepareStatement("SELECT info FROM users WHERE JSON_EXTRACT(info, '$.account') = ?"));
@@ -545,8 +490,6 @@ void username_view_msg(int fd, const json &request){
 
         if (res->next()) {
             json info = json::parse(std::string(res->getString("info")));
-            
-
             response["status"] = "success";
             response["username"] = info["username"];
             response["msg"] = "View success";
@@ -565,7 +508,6 @@ void username_view_msg(int fd, const json &request){
 // 改变用户名处理函数
 void username_change_msg(int fd, const json &request){
     std::cout << "[DEBUG] fd: " << fd << " -> username_change_msg()" << std::endl;
-
     json response;
     response["type"] = "username_change";
     std::string token = request.value("token", "");
@@ -588,9 +530,7 @@ void username_change_msg(int fd, const json &request){
 
     try {
         auto conn = mysql_pool.getConnection();
-
         //auto conn = get_mysql_connection();
-
         // 检查新用户名是否已存在
         std::unique_ptr<sql::PreparedStatement> check_stmt(
             conn->prepareStatement("SELECT COUNT(*) FROM users WHERE JSON_EXTRACT(info, '$.username') = ?"));
@@ -641,7 +581,6 @@ void username_change_msg(int fd, const json &request){
         token_name_map.erase(token);
         token_name_map[token] = new_username;
 
-
         response["status"] = "success";
         response["msg"] = "Username updated successfully";
 
@@ -649,14 +588,12 @@ void username_change_msg(int fd, const json &request){
         response["status"] = "error";
         response["msg"] = std::string("Exception: ") + e.what();
     }
-
     send_json(fd, response);
 }
 
 // 修改密码处理函数
 void password_change_msg(int fd, const json &request) {
     std::cout << "[DEBUG] fd: " << fd << " -> password_change_msg()" << std::endl;
-
     json response;
     response["type"] = "password_change";
     std::string token = request.value("token", "");
@@ -708,7 +645,6 @@ void password_change_msg(int fd, const json &request) {
         response["msg"] = std::string("Exception: ") + e.what();
 
     }
-
     send_json(fd, response);
 }
 
@@ -785,30 +721,24 @@ void show_friend_list_msg(int fd, const json& request) {
                 friend_info["username"] = friend_username;
                 friend_info["online"] = is_online;
                 friend_info["muted"] = friend_is_muted;
-
                 friend_info["bemuted"] = muted_by_friend;
-
                 friend_list.push_back(friend_info);
             }
         }
-
         response["status"] = "success";
         response["friends"] = friend_list;
     } catch (const std::exception& e) {
         response["status"] = "error";
         response["msg"] = std::string("Exception: ") + e.what();
     }
-
     send_json(fd, response);
 }
 
 // 屏蔽好友
 void mute_friend_msg(int fd, const json& request) {
     std::cout << "[DEBUG] fd: " << fd << " -> mute_friend_msg()" << std::endl;
-
     json response;
     response["type"] = "mute_friend";
-
     std::string token = request.value("token", "");
     std::string target_username = request.value("target_username", "");
     std::string user;
@@ -822,9 +752,7 @@ void mute_friend_msg(int fd, const json& request) {
 
     try {
         auto conn = mysql_pool.getConnection();
-
         // auto conn = get_mysql_connection();
-
         // 查询目标账号（通过用户名）
         std::string target_account;
         {
@@ -892,14 +820,12 @@ void mute_friend_msg(int fd, const json& request) {
         response["status"] = "error";
         response["msg"] = std::string("Exception: ") + e.what();
     }
-
     send_json(fd, response);
 }
 
 // 取消屏蔽好友（通过好友用户名）
 void unmute_friend_msg(int fd, const json& request) {
     std::cout << "[DEBUG] fd: " << fd << " -> unmute_friend_msg()" << std::endl;
-
     json response;
     response["type"] = "unmute_friend";
     std::string token = request.value("token", "");
@@ -915,9 +841,7 @@ void unmute_friend_msg(int fd, const json& request) {
 
     try {
         auto conn = mysql_pool.getConnection();
-
         //auto conn = get_mysql_connection();
-
         // 通过用户名查找目标账号
         std::string target_account;
         {
@@ -1008,9 +932,7 @@ void remove_friend_msg(int fd, const json& request) {
 
     try {
         auto conn = mysql_pool.getConnection();
-
         //auto conn = get_mysql_connection();
-
         // 用 unique_ptr 包装 Statement 和 ResultSet，确保自动释放
         auto info_stmt = std::unique_ptr<sql::PreparedStatement>(conn->prepareStatement("SELECT info FROM users"));
         auto info_res = std::unique_ptr<sql::ResultSet>(info_stmt->executeQuery());
@@ -1074,14 +996,12 @@ void remove_friend_msg(int fd, const json& request) {
         response["status"] = "error";
         response["msg"] = std::string("Exception: ") + e.what();
     }
-
     send_json(fd, response);
 }
 
 // 添加好友
 void add_friend_msg(int fd, const json& request) {
     std::cout << "[DEBUG] fd: " << fd << " -> add_friend_msg()" << std::endl;
-
     json response;
     response["type"] = "add_friend";
     std::string token = request.value("token", "");
@@ -1097,10 +1017,7 @@ void add_friend_msg(int fd, const json& request) {
 
     try {
         auto conn = mysql_pool.getConnection();
-
         // auto conn = get_mysql_connection();
-
-                //帐号查询名字
         std::string user_name;
         {
             std::unique_ptr<sql::PreparedStatement> stmt(
@@ -1229,8 +1146,6 @@ void add_friend_msg(int fd, const json& request) {
                     response["status"] = "success";
                     response["msg"] = "Friend request re-sent";
                 }
-
-
         if (is_online) {
             int target_fd = get_fd_by_account(target_account);
             json resp;
@@ -1242,12 +1157,11 @@ void add_friend_msg(int fd, const json& request) {
                 send_json(target_fd, resp);
             }
         }else{
-                    ;
+            ;
 //离线暂无处理
-
         }
-                    send_json(fd, response);
-                    return;
+                send_json(fd, response);
+                return;
             }
         }
 
@@ -1260,21 +1174,6 @@ void add_friend_msg(int fd, const json& request) {
             stmt->setString(2, target_account);
             stmt->execute();
         }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
         if (is_online) {
             int target_fd = get_fd_by_account(target_account);
@@ -1290,15 +1189,7 @@ void add_friend_msg(int fd, const json& request) {
         }else{
                     ;
 //离线暂无处理
-
         }
-
-
-
-
-
-
-
 
         response["status"] = "success";
         response["msg"] = "Friend request sent";
@@ -1307,7 +1198,6 @@ void add_friend_msg(int fd, const json& request) {
         response["status"] = "error";
         response["msg"] = std::string("Exception: ") + e.what();
     }
-
     send_json(fd, response);
 }
 
@@ -1329,7 +1219,6 @@ void get_friend_requests_msg(int fd, const json& request) {
 
     try {
         auto conn = mysql_pool.getConnection();
-
         // auto conn = get_mysql_connection();
         std::unique_ptr<sql::PreparedStatement> stmt(
             conn->prepareStatement(
@@ -1360,7 +1249,6 @@ void get_friend_requests_msg(int fd, const json& request) {
                 {"username", sender_username}
             });
         }
-
         response["status"] = "success";
         response["requests"] = json(requests);
         response["msg"] = "Get friend requests successful";
@@ -1375,10 +1263,8 @@ void get_friend_requests_msg(int fd, const json& request) {
 // 处理好友申请
 void handle_friend_request_msg(int fd, const json& request) {
     std::cout << "[DEBUG] fd: " << fd << " -> handle_friend_request_msg()" << std::endl;
-    
     json response;
     response["type"] = "handle_friend_request";
-
     std::string token = request.value("token", "");
     std::string from_username = request.value("from_username", "");
     std::string action = request.value("action", ""); // "accept" or "reject"
@@ -1393,9 +1279,7 @@ void handle_friend_request_msg(int fd, const json& request) {
 
     try {
         auto conn = mysql_pool.getConnection();
-
         // auto conn = get_mysql_connection();
-
                 std::string receiver_name;
         {
             std::unique_ptr<sql::PreparedStatement> stmt(
@@ -1512,7 +1396,6 @@ void handle_friend_request_msg(int fd, const json& request) {
             response["status"] = "success";
             response["msg"] = "Friend request accepted";
 
-
         bool is_online = redis.exists("online:" + sender);
 
         if (is_online) {
@@ -1526,9 +1409,8 @@ void handle_friend_request_msg(int fd, const json& request) {
                 send_json(target_fd, resp);
             }
         }else{
-                    ;
+            ;
 //离线暂无处理
-
         }
 
         } else if (action == "reject") {
@@ -1548,14 +1430,12 @@ void handle_friend_request_msg(int fd, const json& request) {
         response["status"] = "error";
         response["msg"] = std::string("Exception: ") + e.what();
     }
-
     send_json(fd, response);
 }
 
 // 查询好友
 void get_friend_info_msg(int fd, const json& request) {
     std::cout << "[DEBUG] fd: " << fd << " -> get_friend_info_msg()" << std::endl;
-
     json response;
     response["type"] = "get_friend_info";
     std::string token = request.value("token", "");
@@ -1571,9 +1451,7 @@ void get_friend_info_msg(int fd, const json& request) {
 
     try {
         auto conn = mysql_pool.getConnection();
-
         // auto conn = get_mysql_connection();
-
         // 好友用户名查账号
         std::string friend_account;
         {
@@ -1779,14 +1657,6 @@ void get_private_history_msg(int fd, const json& request) {
     send_json(fd, response);
 }
 
-
-
-
-
-
-
-
-
 // 发送私聊信息
 void send_private_message_msg(int fd, const json& request) {
     std::cout << "[DEBUG] fd: " << fd << " -> send_private_message_msg()" << std::endl;
@@ -1798,8 +1668,6 @@ void send_private_message_msg(int fd, const json& request) {
     std::string token = request.value("token", "");
     std::string target_username = request.value("target_username", "");
     std::string message = request.value("message", "");
-
-
 
     std::string user_account = token_account_map.at(token);
     std::string user_name = token_name_map.at(token);
@@ -1959,7 +1827,6 @@ void send_private_message_msg(int fd, const json& request) {
 
 void get_unread_private_messages_msg(int fd, const json& request) {
     std::cout << "[DEBUG] fd: " << fd << " -> get_unread_private_messages_msg()" << std::endl;
-
     json response;
     response["type"] = "get_unread_private_messages";
 
@@ -2086,19 +1953,6 @@ void get_unread_private_messages_msg(int fd, const json& request) {
     send_json(fd, response);
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 // 显示加入的群
 void show_group_list_msg(int fd, const json& request) {
     std::cout << "[DEBUG] fd: " << fd << " -> show_group_list_msg()" << std::endl;
@@ -2118,9 +1972,7 @@ void show_group_list_msg(int fd, const json& request) {
 
     try {
         auto conn = mysql_pool.getConnection();
-
         // auto conn = get_mysql_connection();
-
         // 通过帐号查找群id并通过群id查找群名字
         auto stmt = std::unique_ptr<sql::PreparedStatement>(
             conn->prepareStatement(
@@ -2172,9 +2024,7 @@ void join_group_msg(int fd, const json& request) {
 
     try {
         auto conn = mysql_pool.getConnection();
-
         // auto conn = get_mysql_connection();
-
         // 查询 group_id
         int group_id = -1;
         {
@@ -2296,7 +2146,6 @@ void join_group_msg(int fd, const json& request) {
                 }else{
                     ;
 //离线暂无处理
-
                 }
             }   
 
@@ -2309,7 +2158,6 @@ void join_group_msg(int fd, const json& request) {
         response["status"] = "error";
         response["msg"] = std::string("Exception: ") + e.what();
     }
-
     send_json(fd, response);
 }
 
@@ -2395,9 +2243,7 @@ void show_group_members_msg(int fd, const json& request) {
 
     try {
         auto conn = mysql_pool.getConnection();
-
         // auto conn = get_mysql_connection();
-
         // 获取 group_id
         int group_id = -1;
         {
@@ -2468,10 +2314,8 @@ void show_group_members_msg(int fd, const json& request) {
 // 创建群
 void create_group_msg(int fd, const json& request) {
     std::cout << "[DEBUG] fd: " << fd << " -> create_group_msg()" << std::endl;
-
     json response;
     response["type"] = "create_group";
-
     std::string token = request.value("token", "");
     std::string group_name = request.value("group_name", "");
     std::string user_account;
@@ -2492,9 +2336,7 @@ void create_group_msg(int fd, const json& request) {
 
     try {
         auto conn = mysql_pool.getConnection();
-
         // auto conn = get_mysql_connection();
-
         // 检查群名是否已存在
         auto check_stmt = std::unique_ptr<sql::PreparedStatement>(
             conn->prepareStatement("SELECT 1 FROM chat_groups WHERE group_name = ? LIMIT 1"));
@@ -2571,9 +2413,7 @@ void set_group_admin_msg(int fd, const json& request) {
 
     try {
         auto conn = mysql_pool.getConnection();
-
         // auto conn = get_mysql_connection();
-
         int group_id = -1;
         std::string group_owner;
 
@@ -3371,10 +3211,6 @@ void handle_group_request_msg(int fd, const json& request) {
                 send_json(target_fd, resp);
             }
         }else{
-
-
-
-
                     ;
 //离线暂无处理
         }
@@ -3612,7 +3448,6 @@ void send_group_message_msg(int fd, const json& request) {
 
     try {
         auto conn = mysql_pool.getConnection();
-
         // auto conn = get_mysql_connection();
 
         // 获取群id
@@ -3698,15 +3533,11 @@ void send_group_message_msg(int fd, const json& request) {
                         send_json(member_fd, push_msg);
                     }
                 } else {
-//离线                
-
-
-
                 // 离线处理逻辑：更新计数表
                 try {
                 auto conn = mysql_pool.getConnection();
 
-        // auto conn = get_mysql_connection();
+                // auto conn = get_mysql_connection();
                     std::unique_ptr<sql::PreparedStatement> stmt(
                         conn->prepareStatement(
                             "INSERT INTO offline_message_counter(account, sender, message_type, count) "
@@ -3720,8 +3551,6 @@ void send_group_message_msg(int fd, const json& request) {
                 } catch (const std::exception& e) {
                     ;
                 }
-
-
                 }
             }
         }
@@ -3758,7 +3587,6 @@ void send_private_file_msg(int fd, const json& request){
         send_json(fd, response);
         return;
     }
-
         auto conn = mysql_pool.getConnection();
 
         // auto conn = get_mysql_connection();
@@ -3794,28 +3622,8 @@ void send_private_file_msg(int fd, const json& request){
                 user_name = res->getString("username");
             }
         }
-
-
         // std::string filepath = "/var/ftp/files/" + user_account + "/" + filename;
         std::string filepath = "/home/kong/plan/chartroom/chat-system/server/"  + filename;
-
-
-
-
-
-        // 存储文件消息记录
-        // {
-        //     std::unique_ptr<sql::PreparedStatement> stmt(
-        //         conn->prepareStatement(
-        //             "INSERT INTO file_messages (sender, receiver, filename, filesize, filepath, is_read, timestamp) "
-        //             "VALUES (?, ?, ?, ?, ?, FALSE, NOW())"));
-        //     stmt->setString(1, user_account);
-        //     stmt->setString(2, target_account);
-        //     stmt->setString(3, filename);
-        //     stmt->setString(4, filesize);
-        //     stmt->setString(5, filepath);
-        //     stmt->execute();
-        // }
 
         std::string now_time;
         {
@@ -3836,22 +3644,12 @@ void send_private_file_msg(int fd, const json& request){
 
 
 
-std::string filename1 = "p" + user_account + filename;
+        std::string filename1 = "p" + user_account + filename;
 
-
-std::filesystem::path old_path = std::filesystem::path("/home/kong/plan/chartroom/chat-system/server/file") / filename1;
-std::string new_filename = filename1 + now_time;
-std::filesystem::path new_path = old_path.parent_path() / new_filename;
-std::filesystem::rename(old_path, new_path);
-
-
-
-
-
-
-
-
-
+        std::filesystem::path old_path = std::filesystem::path("/home/kong/plan/chartroom/chat-system/server/file") / filename1;
+        std::string new_filename = filename1 + now_time;
+        std::filesystem::path new_path = old_path.parent_path() / new_filename;
+        std::filesystem::rename(old_path, new_path);
         bool is_online = redis.exists("online:" + target_account);
 
 //         // 在线则推送消息
@@ -3870,18 +3668,9 @@ std::filesystem::rename(old_path, new_path);
 
             response["from"] = user_name;
 //             response1["message"] = message;
-
-
             send_json(target_fd, response);
         }else{
                     ;
-//离线
-
-
-
-
-
-
     // 离线处理逻辑：更新计数表
     try {
         auto conn = mysql_pool.getConnection();
@@ -3901,8 +3690,6 @@ std::filesystem::rename(old_path, new_path);
         ;
     }
         }
-
-
 }
 
 void send_group_file_msg(int fd, const json& request){
@@ -3962,20 +3749,6 @@ void send_group_file_msg(int fd, const json& request){
 
         // std::string filepath = "/var/ftp/files/groups/" + std::to_string(group_id) + "/" + filename;
         std::string filepath = "/home/kong/plan/chartroom/chat-system/server/"  + filename;
-
-        // 存储群文件消息记录
-        // {
-        //     std::unique_ptr<sql::PreparedStatement> stmt(
-        //         conn->prepareStatement(
-        //             "INSERT INTO group_file_messages (sender, group_id, filename, filesize, filepath, timestamp) "
-        //             "VALUES (?, ?, ?, ?, ?, NOW())"));
-        //     stmt->setString(1, user_account);
-        //     stmt->setInt(2, group_id);
-        //     stmt->setString(3, filename);
-        //     stmt->setString(4, filesize);
-        //     stmt->setString(5, filepath);
-        //     stmt->execute();
-        // }
         std::string now_time;
         {
             std::unique_ptr<sql::PreparedStatement> stmt(
@@ -3992,30 +3765,12 @@ void send_group_file_msg(int fd, const json& request){
             stmt->execute();
         }
 
+        std::string filename1 = "g" + user_account + filename;
 
-
-
-
-
-
-
-std::string filename1 = "g" + user_account + filename;
-
-std::filesystem::path old_path = std::filesystem::path("/home/kong/plan/chartroom/chat-system/server/file") / filename1;
-std::string new_filename = filename1 + now_time;
-std::filesystem::path new_path = old_path.parent_path() / new_filename;
-std::filesystem::rename(old_path, new_path);
-
-
-
-
-
-
-
-
-
-
-
+        std::filesystem::path old_path = std::filesystem::path("/home/kong/plan/chartroom/chat-system/server/file") / filename1;
+        std::string new_filename = filename1 + now_time;
+        std::filesystem::path new_path = old_path.parent_path() / new_filename;
+        std::filesystem::rename(old_path, new_path);
 
 // 推送给在线群成员（除自己外）
         {
@@ -4035,22 +3790,17 @@ std::filesystem::rename(old_path, new_path);
                 response["type"] = "receive_message";
                 response["type1"] = "group_file_message";
 
-
                 response["from"] = user_name;
                 response["group"] = group_name;
 
-
                 send_json(member_fd, response);
-
                     }
                 } else {
-//离线
-
                     // 离线处理逻辑：更新计数表
                     try {
-        auto conn = mysql_pool.getConnection();
+                        auto conn = mysql_pool.getConnection();
 
-        // auto conn = get_mysql_connection();
+                        // auto conn = get_mysql_connection();
                         std::unique_ptr<sql::PreparedStatement> stmt(
                             conn->prepareStatement(
                                 "INSERT INTO offline_message_counter(account, sender, message_type, count) "
@@ -4068,9 +3818,6 @@ std::filesystem::rename(old_path, new_path);
                 }
             }
         }
-
-
-
 }
 
 void get_file_list_msg(int fd, const json& request){
@@ -4169,19 +3916,7 @@ try {
         response["msg"] = e.what();
         send_json(fd, response);
     }
-
-
-
-
-    
 }
-
-
-
-
-
-
-
 
 void send_offline_summary_on_login(const std::string& account, int fd) {
     try {
