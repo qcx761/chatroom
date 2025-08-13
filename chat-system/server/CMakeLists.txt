@@ -53,6 +53,10 @@
 
 
 
+
+
+
+
 cmake_minimum_required(VERSION 3.10)
 project(server)
 
@@ -87,6 +91,9 @@ target_link_libraries(server
     redis++
     hiredis
     mysqlcppconn
+
+    profiler
+    
 )
 
 # ftpserver 可执行文件
@@ -100,4 +107,10 @@ target_link_libraries(ftpserver
     redis++
     hiredis
     mysqlcppconn
+
+    profiler
 )
+
+
+
+

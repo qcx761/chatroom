@@ -14,7 +14,7 @@ using json = nlohmann::json;
 
 
 // 定义
-// 用来判断用户所在的界面 记录用户在和谁私聊
+// 获取好友申请列表
 extern std::vector<json> global_friend_requests;
 extern std::mutex friend_requests_mutex;
 
@@ -23,24 +23,17 @@ extern std::string current_chat_target;
 
 
 // 定义
-// 用来判断用户所在的界面 记录用户在和谁私聊
+// 获取群申请列表
 extern std::vector<json> global_group_requests;
 extern std::mutex group_requests_mutex;
 
 // 用来知道非阻塞线程操作的哪个群
 extern std::string current_chat_group;
 
-
-
-
-
-
-
-
-
 // 定义
 // 用户的好友列表
 extern std::vector<std::string> friend_list;
+extern std::unordered_map<std::string,bool> friend_bemuted_map;
 
 
 
@@ -49,7 +42,9 @@ extern std::vector<std::string> friend_list;
 extern std::vector<std::string> group_list;
 
 
-
+// 定义
+// 用户的文件列表
+extern std::vector<std::string> file_list;
 
 
 

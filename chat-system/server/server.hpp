@@ -21,7 +21,7 @@ class Server
 {
 
 public:
-    Server(int port, int sub_count = 10);
+    Server(int port, int sub_count = 20);
     ~Server();
 
 private:

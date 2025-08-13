@@ -88,6 +88,155 @@ private:
     std::condition_variable cond_;
 };
 
+
+
+
+
+
+
+
+
+struct ChatMessage {
+    std::string sender;
+    std::string receiver;
+    std::string content;
+    bool is_online;
+};
+
+class AsyncMessageInserter {
+public:
+    AsyncMessageInserter(MySQLPool& pool) : pool_(pool), stop_(false) {
+        worker_ = std::thread(&AsyncMessageInserter::workerLoop, this);
+    }
+
+    ~AsyncMessageInserter() {
+        {
+            std::lock_guard<std::mutex> lock(mtx_);
+            stop_ = true;
+        }
+        cv_.notify_all();
+        if (worker_.joinable()) worker_.join();
+    }
+
+    // 主线程调用：非阻塞入队
+    void enqueueMessage(const std::string& sender,
+                        const std::string& receiver,
+                        const std::string& content,
+                        bool is_online) 
+    {
+        {
+            std::lock_guard<std::mutex> lock(mtx_);
+            queue_.push({sender, receiver, content, is_online});
+        }
+        cv_.notify_one();
+    }
+
+private:
+    void workerLoop() {
+        while (true) {
+            ChatMessage msg;
+            {
+                std::unique_lock<std::mutex> lock(mtx_);
+                cv_.wait(lock, [this]() { return stop_ || !queue_.empty(); });
+                if (stop_ && queue_.empty()) break;
+                msg = queue_.front();
+                queue_.pop();
+            }
+
+            try {
+                auto conn = pool_.getConnection();
+                std::unique_ptr<sql::PreparedStatement> stmt(
+                    conn->prepareStatement(
+                        "INSERT INTO messages "
+                        "(sender, receiver, content, is_online, is_read) "
+                        "VALUES (?, ?, ?, ?, FALSE)"));
+                stmt->setString(1, msg.sender);
+                stmt->setString(2, msg.receiver);
+                stmt->setString(3, msg.content);
+                stmt->setBoolean(4, msg.is_online);
+                stmt->execute();
+            } catch (const sql::SQLException& e) {
+                std::cerr << "[AsyncMessageInserter] Insert failed: " << e.what() << std::endl;
+                // 可加入重试逻辑
+            }
+        }
+    }
+
+    MySQLPool& pool_;
+    std::queue<ChatMessage> queue_;
+    std::mutex mtx_;
+    std::condition_variable cv_;
+    std::thread worker_;
+    bool stop_;
+};
+
+
+
+
+struct GroupMessage {
+    int group_id;
+    std::string sender;
+    std::string content;
+};
+class AsyncGroupMessageInserter {
+public:
+    AsyncGroupMessageInserter(MySQLPool& pool) : pool_(pool), stop_(false) {
+        worker_ = std::thread(&AsyncGroupMessageInserter::workerLoop, this);
+    }
+
+    ~AsyncGroupMessageInserter() {
+        {
+            std::lock_guard<std::mutex> lock(mtx_);
+            stop_ = true;
+        }
+        cv_.notify_all();
+        if (worker_.joinable()) worker_.join();
+    }
+
+    // 主线程调用：非阻塞入队
+    void enqueueMessage(int group_id, const std::string& sender, const std::string& content) {
+        {
+            std::lock_guard<std::mutex> lock(mtx_);
+            queue_.push({group_id, sender, content});
+        }
+        cv_.notify_one();
+    }
+
+private:
+    void workerLoop() {
+        while (true) {
+            GroupMessage msg;
+            {
+                std::unique_lock<std::mutex> lock(mtx_);
+                cv_.wait(lock, [this]() { return stop_ || !queue_.empty(); });
+                if (stop_ && queue_.empty()) break;
+                msg = queue_.front();
+                queue_.pop();
+            }
+
+            try {
+                auto conn = pool_.getConnection();
+                std::unique_ptr<sql::PreparedStatement> stmt(
+                    conn->prepareStatement(
+                        "INSERT INTO group_messages (group_id, sender, content) VALUES (?, ?, ?)"));
+                stmt->setInt(1, msg.group_id);
+                stmt->setString(2, msg.sender);
+                stmt->setString(3, msg.content);
+                stmt->executeUpdate();
+            } catch (const sql::SQLException& e) {
+                std::cerr << "[AsyncGroupMessageInserter] Insert failed: " << e.what() << std::endl;
+            }
+        }
+    }
+
+    MySQLPool& pool_;
+    std::queue<GroupMessage> queue_;
+    std::mutex mtx_;
+    std::condition_variable cv_;
+    std::thread worker_;
+    bool stop_;
+};
+
 void error_msg(int fd, const json &request);
 std::shared_ptr<sql::Connection> get_mysql_connection();
 std::string generate_token();

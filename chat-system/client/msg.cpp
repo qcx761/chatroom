@@ -25,8 +25,8 @@ std::mutex group_requests_mutex;
 
 
 
-
-
+std::unordered_map<std::string,bool> friend_bemuted_map;
+std::vector<std::string> file_list;
 std::vector<std::string> friend_list;
 std::vector<std::string> group_list;
 
@@ -173,6 +173,16 @@ void show_friend_list_msg(const json &response){
 
             bool is_online = f["online"];
             bool is_muted = f["muted"];
+
+
+
+
+            bool is_bemuted = f["bemuted"];
+            friend_bemuted_map[username] = is_bemuted;
+
+
+
+
 
             //在发送文件时我拉取好友列表但是不能输出
             if(current_chat_target == ""){
@@ -891,6 +901,7 @@ void receive_message_msg(const json &response){
 
 void get_file_list_msg(const json &response){
     std::string status = response.value("status", "error");
+file_list.clear();
     if (status == "success") {
         auto list = response.value("files",json::array());
         std::cout << "------- 文件接收 -------" << std::endl;
@@ -913,6 +924,9 @@ void get_file_list_msg(const json &response){
                 std::string filename = l.value("filename","");
                 std::string time = l.value("timestamp","");
                 std::cout << "来自用户帐号为:" << sender << " 的文件 " << filename << " 时间：" << time << std::endl;
+                
+                std::string word ="p" + sender + filename +time;
+                file_list.push_back(word);
                 // file["type"] = "private";
                 // file["id"] = res->getInt("id");
                 // file["sender"] = res->getString("sender");
@@ -928,6 +942,9 @@ void get_file_list_msg(const json &response){
                 int id = l.value("group_id",0);
                 std::string time = l.value("timestamp","");
                 std::cout << "来自用户帐号为:" << sender << " 的文件 " << filename << " 在群id为"<< id << " 时间：" << time << std::endl;
+
+                std::string word ="g" + sender + filename + time;
+                file_list.push_back(word);
                 // file["type"] = "group";
                 // file["id"] = res->getInt("id");
                 // file["group_id"] = res->getInt("group_id");

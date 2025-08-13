@@ -64,7 +64,7 @@ void SubReactor::run() {
                             return;
                         } else {
                             if (errno == EAGAIN || errno == EWOULDBLOCK) {
-                                break; // 非阻塞读完数据了
+                                break; // 读完数据了
                             } else {
                                 // 读错误，关闭连接
                                 closeAndRemove(fd);
@@ -209,15 +209,14 @@ void SubReactor::run() {
                             continue;
                         }else if(type=="send_private_message"){
                             // thread_pool->enqueue([fd, request]() {
-                            // send_private_message_msg(fd,request);
-                            // });
-                            // continue;
                             send_private_message_msg(fd,request);
+                            // });
+                            // 放入线程池消息会乱，可加消息队列处理
+
+
+
+
                             continue;
-
-//放入线程池消息会乱，可加消息队列处理
-
-
                         }else if(type=="get_private_history"){
                             thread_pool->enqueue([fd, request]() {
                             get_private_history_msg(fd,request);
@@ -290,17 +289,18 @@ void SubReactor::run() {
                             continue;
                         }else if(type=="send_group_message"){
                             // thread_pool->enqueue([fd, request]() {
-                            // send_group_message_msg(fd,request);
-                            // });
-                            // continue;
-
-
-
                             send_group_message_msg(fd,request);
+                            // });
+                            // send_group_message_msg(fd,request);
+
+
+
+
+
+
+
+
                             continue;
-
-
-
                         }else if(type=="get_group_requests"){
                             thread_pool->enqueue([fd, request]() {
                             get_group_requests_msg(fd,request);

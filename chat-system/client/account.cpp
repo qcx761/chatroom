@@ -497,6 +497,7 @@ void send_private_message(int sock,string token, sem_t& sem) {
         }
 
         if (message.rfind("/file", 0) == 0) {
+
 json mmm;
 mmm["type"]="show_friend_list";
 mmm["token"]=token;
@@ -515,6 +516,21 @@ if(!found1){
     waiting();
     return;
 }
+
+
+
+
+
+
+// 认证是否是好友而且是否被屏蔽
+    bool is_bemuted = friend_bemuted_map.at(target_username);
+    if(is_bemuted){
+        cout<< "你被屏蔽了无法发送文件" << endl;
+        current_chat_target = "";
+        waiting();
+        return;
+    }
+
             string path;
             std::istringstream iss_file(message);
             string cmd;
@@ -619,7 +635,6 @@ void receive_file(int sock,string token,sem_t& sem){
         filename1.pop_back();  // 直接删掉最后一个字符
     }
 
-
     string typee = readline_string("请输入文件的类型(群文件:g / 个人文件:p) : ");
     if(typee.empty()){
         std::cout << "输入错误" << std::endl;
@@ -651,6 +666,24 @@ void receive_file(int sock,string token,sem_t& sem){
     if (!time.empty() && time.back() == '\n') {
         time.pop_back();  // 直接删掉最后一个字符
     }
+
+
+
+    std::string word = typee + account + filename1 + time;
+
+    bool found = false;
+    for (const auto& list : file_list) {
+        if (list == word) {
+            found = true;
+            break;
+        }
+    }
+    if(!found){
+        cout<< "未找到该文件" << endl;
+        waiting();
+        return;
+    }
+
 
     std::string filename = typee + account + filename1 + time;
     // std::string filename = typee + account + filename1;
