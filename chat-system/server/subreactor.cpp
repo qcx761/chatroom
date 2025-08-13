@@ -2,6 +2,8 @@
 #include"json.hpp"
 #include"msg.hpp"
 
+MessageSender sender;
+
 using namespace std;
 
 SubReactor::SubReactor(threadpool* pool) : thread_pool(pool){
@@ -209,12 +211,11 @@ void SubReactor::run() {
                             continue;
                         }else if(type=="send_private_message"){
                             // thread_pool->enqueue([fd, request]() {
-                            send_private_message_msg(fd,request);
+                            // send_private_message_msg(fd,request);
                             // });
                             // 放入线程池消息会乱，可加消息队列处理
 
-
-
+                            sender.enqueue(fd, request, MsgType::PRIVATE);
 
                             continue;
                         }else if(type=="get_private_history"){
@@ -289,13 +290,12 @@ void SubReactor::run() {
                             continue;
                         }else if(type=="send_group_message"){
                             // thread_pool->enqueue([fd, request]() {
-                            send_group_message_msg(fd,request);
-                            // });
                             // send_group_message_msg(fd,request);
+                            // });
 
 
 
-
+                            sender.enqueue(fd, request, MsgType::GROUP);
 
 
 

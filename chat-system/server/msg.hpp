@@ -29,10 +29,60 @@
 #include <iomanip>
 #include <filesystem>
 
+#include <thread>
+#include <string>
+
 using json = nlohmann::json;
 using namespace sw::redis;
 
 extern sw::redis::Redis redis;
+
+void error_msg(int fd, const json &request);
+std::shared_ptr<sql::Connection> get_mysql_connection();
+std::string generate_token();
+bool verify_token(const std::string& token, std::string& out_account);
+void sign_up_msg(int fd, const json &request);
+void log_in_msg(int fd, const json &request);
+void destory_account_msg(int fd, const json &request);
+void quit_account_msg(int fd, const json &request);
+void username_view_msg(int fd, const json &request);
+void username_change_msg(int fd, const json &request);
+void password_change_msg(int fd, const json &request);
+void show_friend_list_msg(int fd, const json &request);
+void add_friend_msg(int fd, const json &request);
+void mute_friend_msg(int fd, const json &request);
+void unmute_friend_msg(int fd, const json &request);
+void remove_friend_msg(int fd, const json &request);
+void add_friend_msg(int fd, const json &request);
+void handle_friend_request_msg(int fd, const json &request);
+void get_friend_requests_msg(int fd, const json& request);
+void get_friend_info_msg(int fd, const json& request);
+void send_private_message_msg(int fd, const json& request);
+void get_private_history_msg(int fd, const json& request);
+void get_unread_private_messages_msg(int fd, const json& request);
+void show_group_list_msg(int fd, const json& request);
+void join_group_msg(int fd, const json& request);
+void quit_group_msg(int fd, const json& request);
+void show_group_members_msg(int fd, const json& request);
+void create_group_msg(int fd, const json& request);
+void set_group_admin_msg(int fd, const json& request);
+void remove_group_admin_msg(int fd, const json& request);
+void remove_group_member_msg(int fd, const json& request);
+void add_group_member_msg(int fd, const json& request);
+void dismiss_group_msg(int fd, const json& request);
+void get_unread_group_messages_msg(int fd, const json& request);
+void get_group_history_msg(int fd, const json& request);
+void send_group_message_msg(int fd, const json& request);
+void get_group_requests_msg(int fd, const json& request);
+void handle_group_request_msg(int fd, const json& request);
+void send_group_file_msg(int fd, const json& request);
+void send_private_file_msg(int fd, const json& request);
+void get_file_list_msg(int fd, const json& request);
+void send_offline_summary_on_login(const std::string& account, int fd);
+bool redis_key_exists(const std::string &token);
+void refresh_online_status(const std::string &token);
+std::string getCurrentTimeString();
+
 
 
 
@@ -87,14 +137,6 @@ private:
     std::mutex mtx_;
     std::condition_variable cond_;
 };
-
-
-
-
-
-
-
-
 
 struct ChatMessage {
     std::string sender;
@@ -237,49 +279,87 @@ private:
     bool stop_;
 };
 
-void error_msg(int fd, const json &request);
-std::shared_ptr<sql::Connection> get_mysql_connection();
-std::string generate_token();
-bool verify_token(const std::string& token, std::string& out_account);
-void sign_up_msg(int fd, const json &request);
-void log_in_msg(int fd, const json &request);
-void destory_account_msg(int fd, const json &request);
-void quit_account_msg(int fd, const json &request);
-void username_view_msg(int fd, const json &request);
-void username_change_msg(int fd, const json &request);
-void password_change_msg(int fd, const json &request);
-void show_friend_list_msg(int fd, const json &request);
-void add_friend_msg(int fd, const json &request);
-void mute_friend_msg(int fd, const json &request);
-void unmute_friend_msg(int fd, const json &request);
-void remove_friend_msg(int fd, const json &request);
-void add_friend_msg(int fd, const json &request);
-void handle_friend_request_msg(int fd, const json &request);
-void get_friend_requests_msg(int fd, const json& request);
-void get_friend_info_msg(int fd, const json& request);
-void send_private_message_msg(int fd, const json& request);
-void get_private_history_msg(int fd, const json& request);
-void get_unread_private_messages_msg(int fd, const json& request);
-void show_group_list_msg(int fd, const json& request);
-void join_group_msg(int fd, const json& request);
-void quit_group_msg(int fd, const json& request);
-void show_group_members_msg(int fd, const json& request);
-void create_group_msg(int fd, const json& request);
-void set_group_admin_msg(int fd, const json& request);
-void remove_group_admin_msg(int fd, const json& request);
-void remove_group_member_msg(int fd, const json& request);
-void add_group_member_msg(int fd, const json& request);
-void dismiss_group_msg(int fd, const json& request);
-void get_unread_group_messages_msg(int fd, const json& request);
-void get_group_history_msg(int fd, const json& request);
-void send_group_message_msg(int fd, const json& request);
-void get_group_requests_msg(int fd, const json& request);
-void handle_group_request_msg(int fd, const json& request);
-void send_group_file_msg(int fd, const json& request);
-void send_private_file_msg(int fd, const json& request);
-void get_file_list_msg(int fd, const json& request);
-void send_offline_summary_on_login(const std::string& account, int fd);
-bool redis_key_exists(const std::string &token);
-void refresh_online_status(const std::string &token);
 
-std::string getCurrentTimeString();
+
+
+
+
+
+
+
+
+
+
+enum class MsgType { PRIVATE, GROUP };
+
+struct Message {
+    int fd;             // 客户端 fd
+    json content;
+    MsgType type;
+};
+
+class MessageSender {
+public:
+    MessageSender() : stop_(false) {
+        worker_ = std::thread([this]() { this->process(); });
+    }
+
+    ~MessageSender() {
+        {
+            std::lock_guard<std::mutex> lock(mtx_);
+            stop_ = true;
+        }
+        cond_.notify_one();
+        worker_.join();
+    }
+
+    // 所有消息都通过 enqueue 发送
+    void enqueue(int fd, const json& msg, MsgType type) {
+        {
+            std::lock_guard<std::mutex> lock(mtx_);
+            messages_.push({fd, msg, type});
+        }
+        cond_.notify_one();
+    }
+
+private:
+    void process() {
+        while (true) {
+            std::unique_lock<std::mutex> lock(mtx_);
+            cond_.wait(lock, [this]() { return !messages_.empty() || stop_; });
+
+            if (stop_ && messages_.empty()) break;
+
+            Message msg = messages_.front();
+            messages_.pop();
+            lock.unlock();
+
+            // 顺序发送消息
+            if (msg.type == MsgType::PRIVATE) {
+                send_private_message_msg(msg.fd, msg.content);
+            } else if (msg.type == MsgType::GROUP) {
+                send_group_message_msg(msg.fd, msg.content);
+            }
+        }
+    }
+
+    std::queue<Message> messages_;
+    std::mutex mtx_;
+    std::condition_variable cond_;
+    std::thread worker_;
+    bool stop_;
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
