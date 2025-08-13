@@ -293,7 +293,7 @@ private:
 enum class MsgType { PRIVATE, GROUP };
 
 struct Message {
-    int fd;             // 客户端 fd
+    int fd;             
     json content;
     MsgType type;
 };
@@ -313,11 +313,11 @@ public:
         worker_.join();
     }
 
-    // 所有消息都通过 enqueue 发送
+    // 保持原接口不变
     void enqueue(int fd, const json& msg, MsgType type) {
         {
             std::lock_guard<std::mutex> lock(mtx_);
-            messages_.push({fd, msg, type});
+            user_queues_[fd].push({fd, msg, type});
         }
         cond_.notify_one();
     }
@@ -326,24 +326,34 @@ private:
     void process() {
         while (true) {
             std::unique_lock<std::mutex> lock(mtx_);
-            cond_.wait(lock, [this]() { return !messages_.empty() || stop_; });
+            cond_.wait(lock, [this]() { return stop_ || !all_queues_empty(); });
 
-            if (stop_ && messages_.empty()) break;
+            if (stop_ && all_queues_empty()) break;
 
-            Message msg = messages_.front();
-            messages_.pop();
-            lock.unlock();
-
-            // 顺序发送消息
-            if (msg.type == MsgType::PRIVATE) {
-                send_private_message_msg(msg.fd, msg.content);
-            } else if (msg.type == MsgType::GROUP) {
-                send_group_message_msg(msg.fd, msg.content);
+            // 遍历每个 fd 队列，发送一条消息
+            for (auto& [fd, q] : user_queues_) {
+                if (!q.empty()) {
+                    Message msg = q.front();
+                    q.pop();
+                    lock.unlock(); // 发送可能阻塞，先解锁
+                    if (msg.type == MsgType::PRIVATE)
+                        send_private_message_msg(msg.fd, msg.content);
+                    else
+                        send_group_message_msg(msg.fd, msg.content);
+                    lock.lock();
+                }
             }
         }
     }
 
-    std::queue<Message> messages_;
+    bool all_queues_empty() {
+        for (auto& [fd, q] : user_queues_) {
+            if (!q.empty()) return false;
+        }
+        return true;
+    }
+
+    std::unordered_map<int, std::queue<Message>> user_queues_;
     std::mutex mtx_;
     std::condition_variable cond_;
     std::thread worker_;
