@@ -27,6 +27,7 @@ public:
 
 private:
     void run();
+    void heartbeatCheck();
     // void heartbeatCheck();
 
     threadpool *thread_pool;
@@ -39,5 +40,9 @@ private:
     std::atomic<bool> running; // 原子
     std::mutex conn_mtx;
     // std::unordered_map<int, std::chrono::steady_clock::time_point> heartbeats;
+    std::thread heartbeat_thread;
+    std::unordered_map<int, std::chrono::steady_clock::time_point> fd_heartbeat_map;
+    std::mutex hb_mutex;
+
     void closeAndRemove(int fd);
 };

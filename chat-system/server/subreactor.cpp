@@ -10,12 +10,14 @@ SubReactor::SubReactor(threadpool* pool) : thread_pool(pool){
     epfd = epoll_create1(0);
     running = true;
     event_thread = std::thread(&SubReactor::run, this);
+    heartbeat_thread = std::thread(&SubReactor::heartbeatCheck, this);
     // heartbeat_thread = std::thread(&SubReactor::heartbeatCheck, this);
 }
 
 SubReactor::~SubReactor() {
     // running = false;
     if (event_thread.joinable()) {event_thread.join();}
+    if (heartbeat_thread.joinable()) heartbeat_thread.join();
     // if (heartbeat_thread.joinable()){ heartbeat_thread.join();}
     close(epfd);
     // for (auto& [fd, _] : heartbeats) {
@@ -23,6 +25,27 @@ SubReactor::~SubReactor() {
     // }
     // heartbeats.clear();
 }
+
+void SubReactor::heartbeatCheck() {
+    while (running) {
+        std::this_thread::sleep_for(std::chrono::seconds(5)); // 每 5 秒检查一次
+        auto now = std::chrono::steady_clock::now();
+
+        std::lock_guard<std::mutex> lock(hb_mutex);
+        for (auto it = fd_heartbeat_map.begin(); it != fd_heartbeat_map.end();) {
+            auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - it->second).count();
+            if (elapsed > 15) { // 超过 15 秒未收到心跳就断开
+                int fd = it->first;
+                std::cout << "fd=" << fd << " 心跳超时，断开连接\n";
+                closeAndRemove(fd);
+                it = fd_heartbeat_map.erase(it); // 删除该 fd
+            } else {
+                ++it;
+            }
+        }
+    }
+}
+
 
 void SubReactor::addClient(int client_fd) {
     int flags = fcntl(client_fd, F_GETFL, 0);
@@ -121,14 +144,20 @@ void SubReactor::run() {
                         if (type == "heartbeat") {
                             cout<<"收到心跳检测来自fd="<< fd << endl;
                             std::string token = request.value("token", "");
-                            bool valid = redis_key_exists(token); // 你自己实现的验证函数
+                            bool valid = redis_key_exists(token); // 验证函数
                             if (valid) {
                                 // 更新心跳或在线状态
                                 refresh_online_status(token);
                             } else {
-                                    ;
+                                // 未登录状态
+                                ;
                             }
 
+
+
+
+                            std::lock_guard<std::mutex> lock(hb_mutex);
+                            fd_heartbeat_map[fd] = std::chrono::steady_clock::now();
                             continue; 
                         }
 

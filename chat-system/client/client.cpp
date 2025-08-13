@@ -82,14 +82,19 @@ void Client::stop() {
 
 
 void Client::heartbeat_thread_func() {
-    cout <<"进入心跳检测"<<endl;
+    
 
     while (running) {
-        // 只有登录成功且token非空才发送心跳
         if (login_success.load() && !token.empty()) {
             json heartbeat_msg;
             heartbeat_msg["type"] = "heartbeat";
             heartbeat_msg["token"] = token;
+
+            send_json(sock,heartbeat_msg);
+        } else {
+            json heartbeat_msg;
+            heartbeat_msg["type"] = "heartbeat";
+            heartbeat_msg["token"] = "nulltpr";
 
             send_json(sock,heartbeat_msg);
         }
