@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -13,8 +12,6 @@
 #include <netinet/in.h>
 #include <sstream>
 #include "subreactor.hpp"
-
-
 #include "../threadpool/threadpool.hpp"
 
 class Server

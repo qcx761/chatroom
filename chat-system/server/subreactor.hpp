@@ -10,39 +10,26 @@
 #include <iostream>
 #include <nlohmann/json.hpp>
 #include <unordered_map>
-
-
-
 #include "../threadpool/threadpool.hpp"
 
 using json = nlohmann::json;
 
-
 class SubReactor {
 public:
     SubReactor(threadpool* pool);
-    ~SubReactor();
-
     void addClient(int client_fd);
-
+    ~SubReactor();
 private:
     void run();
     void heartbeatCheck();
-    // void heartbeatCheck();
-
     threadpool *thread_pool;
     std::unordered_map<int, std::string> fd_buffers;
-    
-
     int epfd;
     std::thread event_thread;
-    // std::thread heartbeat_thread;
     std::atomic<bool> running; // 原子
     std::mutex conn_mtx;
-    // std::unordered_map<int, std::chrono::steady_clock::time_point> heartbeats;
     std::thread heartbeat_thread;
     std::unordered_map<int, std::chrono::steady_clock::time_point> fd_heartbeat_map;
     std::mutex hb_mutex;
-
     void closeAndRemove(int fd);
 };

@@ -11,19 +11,24 @@ SubReactor::SubReactor(threadpool* pool) : thread_pool(pool){
     running = true;
     event_thread = std::thread(&SubReactor::run, this);
     heartbeat_thread = std::thread(&SubReactor::heartbeatCheck, this);
-    // heartbeat_thread = std::thread(&SubReactor::heartbeatCheck, this);
 }
 
 SubReactor::~SubReactor() {
-    // running = false;
+    running = false;
     if (event_thread.joinable()) {event_thread.join();}
     if (heartbeat_thread.joinable()) heartbeat_thread.join();
-    // if (heartbeat_thread.joinable()){ heartbeat_thread.join();}
     close(epfd);
-    // for (auto& [fd, _] : heartbeats) {
-    //     close(fd);
-    // }
-    // heartbeats.clear();
+    {
+        std::lock_guard<std::mutex> lock(conn_mtx);
+        for (auto& [fd, _] : fd_buffers) {
+            close(fd);
+        }
+        fd_buffers.clear();
+    }
+    {
+        std::lock_guard<std::mutex> lock(hb_mutex);
+        fd_heartbeat_map.clear();
+    }
 }
 
 void SubReactor::heartbeatCheck() {
@@ -34,7 +39,7 @@ void SubReactor::heartbeatCheck() {
         std::lock_guard<std::mutex> lock(hb_mutex);
         for (auto it = fd_heartbeat_map.begin(); it != fd_heartbeat_map.end();) {
             auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - it->second).count();
-            if (elapsed > 15) { // 超过 15 秒未收到心跳就断开
+            if (elapsed > 30) { // 超过 30 秒未收到心跳就断开
                 int fd = it->first;
                 std::cout << "fd=" << fd << " 心跳超时，断开连接\n";
                 closeAndRemove(fd);
@@ -46,7 +51,6 @@ void SubReactor::heartbeatCheck() {
     }
 }
 
-
 void SubReactor::addClient(int client_fd) {
     int flags = fcntl(client_fd, F_GETFL, 0);
     fcntl(client_fd, F_SETFL, flags | O_NONBLOCK);
@@ -57,19 +61,17 @@ void SubReactor::addClient(int client_fd) {
 
     std::lock_guard<std::mutex> lock(conn_mtx);
     epoll_ctl(epfd, EPOLL_CTL_ADD, client_fd, &ev);
-    // heartbeats[client_fd] = std::chrono::steady_clock::now();
-
+    fd_heartbeat_map[client_fd] = std::chrono::steady_clock::now();
 }
-
 
 void SubReactor::closeAndRemove(int fd) {
     epoll_ctl(epfd, EPOLL_CTL_DEL, fd, nullptr);
     close(fd);
-    // heartbeats.erase(fd);
+    {
+        std::lock_guard<std::mutex> lock(hb_mutex);
+        fd_heartbeat_map.erase(fd);
+    }
 }
-
-
-
 
 void SubReactor::run() {
     epoll_event events[1024];
@@ -123,7 +125,7 @@ void SubReactor::run() {
                         try {
                             request = json::parse(json_str);
                         } catch (...) {
-                            // 解析失败，关闭连接或跳过
+                            // 解析失败关闭连接
                             closeAndRemove(fd);
                             return;
                         }
@@ -131,14 +133,14 @@ void SubReactor::run() {
                         // 删除已解析数据
                         buffer.erase(0, 4 + len);
 
-                        // 解析成功，处理消息（放入线程池或其他逻辑）
+                        // 解析成功处理消息
                         std::string type = request.value("type", "");
                         if (type.empty()) {
                             // 处理错误消息
                             thread_pool->enqueue([fd, request]() {
                                 error_msg(fd, request);
                             });
-                            continue;  // 继续解析后续包
+                            continue;
                         }
 
                         if (type == "heartbeat") {
@@ -149,13 +151,9 @@ void SubReactor::run() {
                                 // 更新心跳或在线状态
                                 refresh_online_status(token);
                             } else {
-                                // 未登录状态
-                                ;
+                                cout << fd << "处于未登录状态" << endl;
                             }
-
-
-
-
+                            // 刷新fd时间
                             std::lock_guard<std::mutex> lock(hb_mutex);
                             fd_heartbeat_map[fd] = std::chrono::steady_clock::now();
                             continue; 
@@ -239,13 +237,8 @@ void SubReactor::run() {
                             });
                             continue;
                         }else if(type=="send_private_message"){
-                            // thread_pool->enqueue([fd, request]() {
-                            // send_private_message_msg(fd,request);
-                            // });
                             // 放入线程池消息会乱，可加消息队列处理
-
                             sender.enqueue(fd, request, MsgType::PRIVATE);
-
                             continue;
                         }else if(type=="get_private_history"){
                             thread_pool->enqueue([fd, request]() {
@@ -318,17 +311,8 @@ void SubReactor::run() {
                             });
                             continue;
                         }else if(type=="send_group_message"){
-                            // thread_pool->enqueue([fd, request]() {
-                            // send_group_message_msg(fd,request);
-                            // });
-
-
-
+                            // 放入消息队列
                             sender.enqueue(fd, request, MsgType::GROUP);
-
-
-
-
                             continue;
                         }else if(type=="get_group_requests"){
                             thread_pool->enqueue([fd, request]() {
