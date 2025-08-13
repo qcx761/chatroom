@@ -6,45 +6,26 @@ using json = nlohmann::json;
 std::mutex io_mutex;
 
 
-// 初始化
+
 // 用来判断用户所在的界面 记录用户在和谁私聊
 std::string current_chat_target = "";
 // 用来知道非阻塞线程操作的哪个好友
 std::vector<json> global_friend_requests;
 std::mutex friend_requests_mutex;
 
-
-
-
 // 用来判断用户所在的界面 记录用户在哪个群
 std::string current_chat_group = "";
 std::vector<json> global_group_requests;
 std::mutex group_requests_mutex;
-
-
-
-
 
 std::unordered_map<std::string,bool> friend_bemuted_map;
 std::vector<std::string> file_list;
 std::vector<std::string> friend_list;
 std::vector<std::string> group_list;
 
-
-
-
-
-
-
-
 // 处理服务端返回的错误消息
 void error_msg(int fd, const json &response) {
-    
-    
     std::cerr << "[ERROR] 服务器返回错误: " << response.value("msg", "未知错误") << std::endl;
-    
-    
-    // 可以做其他错误处理，比如弹窗、日志记录等
 }
 
 // 处理服务端返回的登录响应
@@ -306,30 +287,6 @@ void get_friend_info_msg(const json &response){
     }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 void receive_private_message_msg(const json &response) {
     std::string from = response["from"];
     std::string message = response["message"];
@@ -368,8 +325,6 @@ void receive_private_message_msg(const json &response) {
     rl_on_new_line();
     rl_redisplay();
     }
-
-
 }
 
 void get_private_history_msg(const json &response){
@@ -415,7 +370,6 @@ void send_private_message_msg(const json &response){
     }
 }
 
-
 void get_unread_private_messages_msg(const json &response){
         std::string status = response.value("status", "error");
     if (status == "success") {
@@ -453,7 +407,6 @@ void get_unread_private_messages_msg(const json &response){
         std::cerr << "[离线消息查询错误] " << msg << std::endl;
     }
 }
-
 
 void show_group_list_msg(const json &response){
     std::string status = response.value("status", "error");
@@ -610,21 +563,6 @@ void dismiss_group_msg(const json &response){
     }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 void get_group_requests_msg(const json &response){
     std::lock_guard<std::mutex> lock(group_requests_mutex);
     global_group_requests.clear();
@@ -668,28 +606,6 @@ void handle_group_request_msg(const json &response){
     }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 void get_unread_group_messages_msg(const json &response){
     std::string status = response.value("status", "error");
     if (status == "success") {
@@ -723,14 +639,12 @@ void receive_group_messages_msg(const json &response){
     std::string group_name = response["group_name"];
 
     std::lock_guard<std::mutex> lock(io_mutex);
-
-
-
     // 打印新消息
     if (group_name == current_chat_group) {
         std::cout << "[" << group_name << "] " << from <<":"<< message << std::endl;
     } else {
-            // 保存当前输入文本和光标位置
+
+    // 保存当前输入文本和光标位置
     int saved_point = rl_point;
 
     // 保存当前 readline 输入行内容
@@ -739,9 +653,9 @@ void receive_group_messages_msg(const json &response){
     // 清除当前行并把光标移到行首
     rl_replace_line("", 0);
     std::cout << "\33[2K\r";
-        std::cout << "[新消息来自 " << from << "] in " << group_name << std::endl;
-        // 这里你可以做未读提醒等
-            // 恢复之前的用户输入
+    std::cout << "[新消息来自 " << from << "] in " << group_name << std::endl;
+
+    // 恢复之前的用户输入
     rl_replace_line(saved_line, 0);
     rl_point = saved_point;
     free(saved_line);
@@ -751,8 +665,6 @@ void receive_group_messages_msg(const json &response){
     rl_redisplay();
     }
     }
-
-
 
 void get_group_history_msg(const json &response){
         std::string group_name = response.value("group_name", "");
@@ -797,32 +709,6 @@ void send_group_message_msg(const json &response){
     }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 void receive_message_msg(const json &response){
     std::string status = response.value("status", "error");
     if(status =="fail"){
@@ -841,10 +727,7 @@ void receive_message_msg(const json &response){
     rl_replace_line("", 0);
     std::cout << "\33[2K\r";
 
-
-
     std::string msg = response.value("type1", "");
-
     if(msg=="private_file_message"){
     std::string name = response.value("from", "");
 
@@ -893,15 +776,12 @@ void receive_message_msg(const json &response){
     // 通知 readline 新行开始，重新绘制输入行
     rl_on_new_line();
     rl_redisplay();
-
-
-
 }
 
 
 void get_file_list_msg(const json &response){
     std::string status = response.value("status", "error");
-file_list.clear();
+    file_list.clear();
     if (status == "success") {
         auto list = response.value("files",json::array());
         std::cout << "------- 文件接收 -------" << std::endl;
@@ -912,19 +792,12 @@ file_list.clear();
         }
 
         for(const auto&l : list){
-
             std::string type = l.value("type","");
-
-            // std::string content = f.value("content","");
-            // std::string timestamp = f.value("timestamp","");
-            
-            // std::cout << "[" << group_name << "] " << from <<":"<< content << std::endl;
             if(type == "private"){
                 std::string sender = l.value("sender","");
                 std::string filename = l.value("filename","");
                 std::string time = l.value("timestamp","");
                 std::cout << "来自用户帐号为:" << sender << " 的文件 " << filename << " 时间：" << time << std::endl;
-                
                 std::string word ="p" + sender + filename +time;
                 file_list.push_back(word);
                 // file["type"] = "private";
@@ -942,7 +815,6 @@ file_list.clear();
                 int id = l.value("group_id",0);
                 std::string time = l.value("timestamp","");
                 std::cout << "来自用户帐号为:" << sender << " 的文件 " << filename << " 在群id为"<< id << " 时间：" << time << std::endl;
-
                 std::string word ="g" + sender + filename + time;
                 file_list.push_back(word);
                 // file["type"] = "group";
@@ -963,9 +835,6 @@ file_list.clear();
         std::cerr << "[文件查询错误] " << std::endl;
     }
 }
-
-
-
 
 // 登录发送摘要
 void offline_summary_msg(const json &response) {

@@ -10,7 +10,6 @@ struct ControlConnect {
     int control_fd;
     int command_type; // 0无命令，1 RETR，2 STOR
     std::string filename;
-
     ControlConnect(int fd, int cmd = 0, const std::string& fname = "");
 };
 
@@ -63,10 +62,8 @@ private:
     int server_fd;
     bool is_running;
     ConnectionGroup group;
-
     std::map<int, SendState> send_states;
     std::map<int, StorState> stor_states;
-
     void set_nonblocking(int fd);
     int get_socket_local_port(int fd);
     void close_connection(int fd);

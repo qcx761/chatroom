@@ -1,8 +1,6 @@
 #pragma once
 
 #include <nlohmann/json.hpp>
-#include <sw/redis++/redis++.h>  // Redis 库头文件
-
 #include <sw/redis++/redis++.h>
 #include <mysql_driver.h>
 #include <mysql_connection.h>
@@ -10,27 +8,21 @@
 #include <cppconn/exception.h>
 #include <cppconn/prepared_statement.h>
 #include <cppconn/resultset.h>
-
 #include <random>
 #include <string.h>
 #include <sstream>
 #include <memory>
 #include <iostream>
-
-// 连接池
 #include <queue>
 #include <mutex>
 #include <condition_variable>
 #include <stdexcept>
-
-
 #include <chrono>
 #include <ctime>
 #include <iomanip>
 #include <filesystem>
-
 #include <thread>
-#include <string>
+
 
 using json = nlohmann::json;
 using namespace sw::redis;

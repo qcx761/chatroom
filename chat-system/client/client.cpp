@@ -25,7 +25,6 @@ Client::Client(std::string ip, int port)
         exit(1);
     }
 
-
     int flags=fcntl(sock, F_GETFL) ;
     if (flags == -1) {
         perror("fcntl F_GETFL failed");
@@ -44,8 +43,6 @@ Client::Client(std::string ip, int port)
     ev.data.fd = sock;
     ev.events = EPOLLIN ;
     epoll_ctl(epfd, EPOLL_CTL_ADD, sock, &ev);
-
-
 }
 
 Client::~Client()
@@ -54,54 +51,40 @@ Client::~Client()
     if (sock != -1) close(sock);
     if (epfd != -1) close(epfd);
 
-    sem_destroy(&sem);  // 如果你用了信号量
+    sem_destroy(&sem);  // 信号量
 }
 
 void Client::start() {
     running = true;
-
     sem_init(&sem, 0, 0);  // 初始化信号量  
-    
     // 启动 epoll 网络线程
     net_thread = std::thread(&Client::epoll_thread_func, this);
     // 启动用户输入线程
     input_thread = std::thread(&Client::user_thread_func, this);
     //心跳检测
     heartbeat_thread = std::thread(&Client::heartbeat_thread_func, this);
-
 }
 
 void Client::stop() {
-    // running = false;
-
+    running = false;
     if (net_thread.joinable()) net_thread.join();
     if (input_thread.joinable()) input_thread.join();
     if (heartbeat_thread.joinable()) heartbeat_thread.join();
 }
 
-
-
 void Client::heartbeat_thread_func() {
-    
-
     while (running) {
+            json heartbeat_msg;
+            heartbeat_msg["type"] = "heartbeat";
         if (login_success.load() && !token.empty()) {
-            json heartbeat_msg;
-            heartbeat_msg["type"] = "heartbeat";
             heartbeat_msg["token"] = token;
-
-            send_json(sock,heartbeat_msg);
         } else {
-            json heartbeat_msg;
-            heartbeat_msg["type"] = "heartbeat";
             heartbeat_msg["token"] = "nulltpr";
-
-            send_json(sock,heartbeat_msg);
         }
+        send_json(sock,heartbeat_msg);
         std::this_thread::sleep_for(std::chrono::seconds(5));
     }
 }
-
 
 void Client::epoll_thread_func() {
     epoll_event events[1024];
@@ -172,11 +155,7 @@ void Client::epoll_thread_func() {
                     }
 
                     buffer.erase(0, 4 + len);
-
-                    // --- 消息处理逻辑 ---
-
                     std::string type = j.value("type", "");
-
                     if (type.empty()){
                         continue;
                     }
@@ -194,7 +173,7 @@ void Client::epoll_thread_func() {
                     
                     if(type=="sign_up"){
                         sign_up_msg(j);
-                        sem_post(&this->sem);  // 通过 this 访问成员变量
+                        sem_post(&this->sem);
                         continue;
                     }
 
@@ -421,19 +400,7 @@ void Client::epoll_thread_func() {
                         sem_post(&this->sem);
                         continue;
                     }                 
-                    
-                    //if(type==""){
-                        //_msg(j);
-                        //state=main_menu;
-                        //login_success.store(false);
-                        //token.clear();
-                        //sem_post(&this->sem);
-                        //continue;
-                    //}
 
-                    if(type=="error"){
-                    // 处理错误信息
-                    }
                     else {
                         std::cout << "收到未知消息类型: " << type << std::endl;
                     }
@@ -448,10 +415,8 @@ void Client::epoll_thread_func() {
 }
 
 void Client::user_thread_func() {
-
     state = main_menu; // 初始化界面
     while(running){
-
         // 登录过期检测
         if (!login_success.load() && state != main_menu) {
             std::cout << "请重新登录。" << std::endl;

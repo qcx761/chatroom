@@ -5,31 +5,19 @@
 #include <unistd.h>
 #include <nlohmann/json.hpp>
 #include <thread>
-
 #include <filesystem>
-
-
 #include <fcntl.h>      // open, O_RDONLY
 #include <sys/stat.h>   // struct stat, stat, fstat
 #include <sys/sendfile.h>  // sendfile
 #include <unistd.h>     // close, read, write 等系统调用
 #include <fstream>
-
-
-
-
 #include <readline/readline.h>   // 主要函数 readline()
 #include <readline/history.h>    // 可选：支持历史记录
-
-
-
-
 
 #include"menu.hpp"
 using namespace std;
 
 namespace fs = std::filesystem;
-
 using json = nlohmann::json;
 
 string readline_string(const string& prompt);

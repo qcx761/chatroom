@@ -151,14 +151,8 @@ void FTPServer::run() {
         for (int i = 0; i < n; ++i) {
             int fd = events[i].data.fd;
             uint32_t evs = events[i].events;
-            // if ((evs & EPOLLERR) || (evs & EPOLLHUP) || (evs & EPOLLRDHUP)) {
-            //     close_connection(fd);
-            //     cout << evs <<endl;
-            //     continue;
-            // }
             if ((evs & EPOLLERR) || (evs & EPOLLHUP)) {
                 close_connection(fd);
-                cout << evs <<endl;
                 continue;
             }
             if (fd == server_fd) {
@@ -297,9 +291,6 @@ void FTPServer::handle_control_fd(int fd) {
     else {
         // 其他命令暂不处理 
     }
-
-
-
 }
 
 void FTPServer::setup_passive_listen(int control_fd) {
@@ -388,10 +379,6 @@ cout <<"数据连接 fd="<< data_fd <<endl;
     } else if (cmd == 2) { // STOR
         start_stor(data_fd, control_fd, filename);
     }
-
-
-
-
 }
 
 void FTPServer::start_sendfile(int data_fd, int control_fd, const string& filename) {
@@ -422,11 +409,6 @@ void FTPServer::start_sendfile(int data_fd, int control_fd, const string& filena
     state.filename = filename;
     state.active = true;
     send_states[data_fd] = state;
-
-
-
-
-
 }
 
 void FTPServer::sendfile_continue(SendState& state) {
@@ -443,28 +425,27 @@ void FTPServer::sendfile_continue(SendState& state) {
                 return;
             }
         }
-// 这里添加进度显示代码
-int percent = (int)((double)state.offset / state.filesize * 100);
-cout << "下载进度: " << percent << "%   " << "\n" << flush;
+    // 加进度显示代码
+    int percent = (int)((double)state.offset / state.filesize * 100);
+    cout << "下载进度: " << percent << "%   " << "\n" << flush;
+        }
+        // 文件发送完毕
+        close(state.file_fd);
+        send_states.erase(state.data_fd);
+
+        // 关闭数据连接
+        close_connection(state.data_fd);
+
+        // 给控制连接发传输完成消息
+        const char* msg = "226 Transfer complete.\r\n";
+        send(state.control_fd, msg, strlen(msg), 0);
     }
-    // 文件发送完毕
-    close(state.file_fd);
-    send_states.erase(state.data_fd);
-
-    // 关闭数据连接
-    close_connection(state.data_fd);
-
-    // 给控制连接发传输完成消息
-    const char* msg = "226 Transfer complete.\r\n";
-    send(state.control_fd, msg, strlen(msg), 0);
-}
 
 void FTPServer::start_stor(int data_fd, int control_fd, const string& filename) {
     const std::string root_dir = "/home/kong/plan/chartroom/chat-system/server/file/";
     std::string save_path = root_dir + filename;
 
     int file_fd = open(save_path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
-    // int file_fd = open(filename.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
     if (file_fd < 0) {
         perror("open file for STOR");
         close_connection(data_fd);
@@ -485,7 +466,7 @@ void FTPServer::handle_stor_data(int data_fd, int control_fd) {
         return;
     }
 
-static size_t total_received = 0;  // 统计本次上传已接收的字节数
+    static size_t total_received = 0;  // 统计本次上传已接收的字节数
 
 
     char buf[4096];
@@ -493,21 +474,8 @@ static size_t total_received = 0;  // 统计本次上传已接收的字节数
         ssize_t n = recv(data_fd, buf, sizeof(buf), 0);
 
         if (n > 0) {
-total_received += n;
-// cout << "上传进度: " << total_received / 1024 << " KB   " << "\n" << flush;
-cout << "上传进度: " << total_received / (1024*1024) << " MB   " << "\n" << flush;
-            // 正常接收到数据，写入文件
-            // std::cout << "[服务端] recv() 接收到: " << n << " 字节" << std::endl;
-
-            // ssize_t written = write(it->second.file_fd, buf, n);
-            // if (written != n) {
-            //     perror("write error");
-            //     close(it->second.file_fd);
-            //     stor_states.erase(it);
-            //     close_connection(data_fd);
-            //     return;
-            // }
-
+            total_received += n;
+            cout << "上传进度: " << total_received / (1024*1024) << " MB   " << "\n" << flush;
             ssize_t total_written = 0;
             while (total_written < n) {
                 ssize_t written = write(it->second.file_fd, buf + total_written, n - total_written);
@@ -532,9 +500,7 @@ cout << "上传进度: " << total_received / (1024*1024) << " MB   " << "\n" << 
 
             const char* msg = "226 Transfer complete.\r\n";
             send(control_fd, msg, strlen(msg), 0);
-total_received = 0;  // 重置统计数
-
-
+            total_received = 0;  // 重置统计数
             return;
         } else {
             if (errno == EAGAIN || errno == EWOULDBLOCK) {
@@ -546,7 +512,7 @@ total_received = 0;  // 重置统计数
                 close(it->second.file_fd);
                 stor_states.erase(it);
                 close_connection(data_fd);
-total_received = 0;
+                total_received = 0;
                 return;
             }
         }

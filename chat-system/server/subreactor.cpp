@@ -41,9 +41,8 @@ void SubReactor::heartbeatCheck() {
             auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - it->second).count();
             if (elapsed > 30) { // 超过 30 秒未收到心跳就断开
                 int fd = it->first;
-                std::cout << "fd=" << fd << " 心跳超时，断开连接\n";
+                std::cout << "fd=" << fd << " 心跳超时，断开连接\n" << endl;
                 closeAndRemove(fd);
-                it = fd_heartbeat_map.erase(it); // 删除该 fd
             } else {
                 ++it;
             }
@@ -144,7 +143,7 @@ void SubReactor::run() {
                         }
 
                         if (type == "heartbeat") {
-                            cout<<"收到心跳检测来自fd="<< fd << endl;
+                            cout << "收到心跳检测来自fd=" << fd << endl;
                             std::string token = request.value("token", "");
                             bool valid = redis_key_exists(token); // 验证函数
                             if (valid) {
@@ -345,7 +344,6 @@ void SubReactor::run() {
                                 error_msg(fd,request);
                             });
                         }
-                        // 继续循环尝试解析下一个包
                     }
             } else {
                 // 处理异常事件

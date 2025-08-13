@@ -10,10 +10,7 @@
 
 
 using json = nlohmann::json;
-// using namespace sw::redis;
 
-
-// 定义
 // 获取好友申请列表
 extern std::vector<json> global_friend_requests;
 extern std::mutex friend_requests_mutex;
@@ -21,8 +18,6 @@ extern std::mutex friend_requests_mutex;
 // 用来知道非阻塞线程操作的哪个好友
 extern std::string current_chat_target;
 
-
-// 定义
 // 获取群申请列表
 extern std::vector<json> global_group_requests;
 extern std::mutex group_requests_mutex;
@@ -30,32 +25,18 @@ extern std::mutex group_requests_mutex;
 // 用来知道非阻塞线程操作的哪个群
 extern std::string current_chat_group;
 
-// 定义
 // 用户的好友列表
 extern std::vector<std::string> friend_list;
 extern std::unordered_map<std::string,bool> friend_bemuted_map;
 
-
-
-// 定义
 // 用户的群聊列表
 extern std::vector<std::string> group_list;
 
-
-// 定义
 // 用户的文件列表
 extern std::vector<std::string> file_list;
 
-
-
 // 错误处理函数
 void error_msg(int fd,const json &request);
-
-
-
-
-
-
 void sign_up_msg(const json &request);
 bool log_in_msg(const json &request,std::string& token);
 void destory_account_msg(const json &response);
