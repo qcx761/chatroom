@@ -4,8 +4,8 @@
 #include <set>
 
 Redis redis("tcp://127.0.0.1:6379");
-std::unordered_map<std::string, int> account_fd_map;
 MySQLPool mysql_pool("tcp://127.0.0.1:3306", "qcx", "qcx761", "chatroom", 10);
+std::unordered_map<std::string, int> account_fd_map;
 std::unordered_map<std::string, std::string> token_name_map;
 std::unordered_map<std::string, std::string> token_account_map;
 std::unordered_map<std::string, std::string> name_account_map;

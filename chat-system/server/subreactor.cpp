@@ -41,7 +41,7 @@ void SubReactor::heartbeatCheck() {
             auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - it->second).count();
             if (elapsed > 30) { // 超过 30 秒未收到心跳就断开
                 int fd = it->first;
-                std::cout << "fd=" << fd << " 心跳超时，断开连接\n" << endl;
+                std::cout << "fd=" << fd << " 心跳超时，断开连接" << endl;
                 closeAndRemove(fd);
             } else {
                 ++it;
