@@ -1,12 +1,10 @@
 #include "server.hpp"
-// #include "../threadpool/threadpool.hpp"
 
 using namespace std;
 
 #define MAX_EVENTS 10
 #define thread_count 20
 
-// 记录等级为 DEBUG 及以上的所有日志”写入 client.log 文件中
 Server::Server(int port, int sub_count) : thread_pool(thread_count)
 {
     listen_fd = socket(AF_INET, SOCK_STREAM, 0);

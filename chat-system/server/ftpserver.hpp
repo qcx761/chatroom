@@ -1,5 +1,5 @@
-#ifndef FTPSERVER_HPP
-#define FTPSERVER_HPP
+#pragma once
+
 
 #include <string>
 #include <vector>
@@ -77,4 +77,3 @@ private:
     void handle_stor_data(int data_fd, int control_fd);
 };
 
-#endif

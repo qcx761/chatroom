@@ -1,4 +1,5 @@
 #include "subreactor.hpp"
+#include "MessageQueue.hpp"
 #include"json.hpp"
 #include"msg.hpp"
 

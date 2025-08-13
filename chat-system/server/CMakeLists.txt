@@ -8,7 +8,7 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
     ../threadpool
     /usr/local/include         # redis++ & hiredis
-    /usr/include/mysql-cppconn-8  # MySQL C++ Connector headers（路径可能不同）
+    /usr/include/mysql-cppconn-8  # MySQL C++ Connector headers
 )
 
 # 添加库文件路径
@@ -24,7 +24,8 @@ add_executable(server
     subreactor.cpp
     json.cpp
     msg.cpp
-    ftpserver.cpp
+    MessageQueue.cpp
+    MySQLPool.cpp
     ../threadpool/threadpool.cpp
 )
 
@@ -32,9 +33,6 @@ target_link_libraries(server
     redis++
     hiredis
     mysqlcppconn
-
-    profiler
-    
 )
 
 # ftpserver 可执行文件
@@ -42,14 +40,6 @@ add_executable(ftpserver
     ftpmain.cpp
     ftpserver.cpp
     ../threadpool/threadpool.cpp
-)
-
-target_link_libraries(ftpserver
-    redis++
-    hiredis
-    mysqlcppconn
-
-    profiler
 )
 
 

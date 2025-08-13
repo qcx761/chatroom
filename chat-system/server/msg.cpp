@@ -1,5 +1,6 @@
 #include "json.hpp"
 #include "msg.hpp"
+#include "MySQLPool.hpp"
 
 #include <set>
 
