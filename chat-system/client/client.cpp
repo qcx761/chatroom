@@ -45,6 +45,7 @@ Client::Client(std::string ip, int port)
     ev.events = EPOLLIN ;
     epoll_ctl(epfd, EPOLL_CTL_ADD, sock, &ev);
 
+    start();
 
 }
 
@@ -54,7 +55,7 @@ Client::~Client()
     if (sock != -1) close(sock);
     if (epfd != -1) close(epfd);
 
-    sem_destroy(&sem);  // 如果你用了信号量
+    sem_destroy(&sem);  // 信号量
 }
 
 void Client::start() {
@@ -159,7 +160,7 @@ void Client::epoll_thread_func() {
                         return;
                     }
 
-                    if (buffer.size() < 4 + len) break; // 数据不完整，等待下一次
+                    if (buffer.size() < 4 + len) break; // 数据不完整等待下一次
 
                     std::string json_str = buffer.substr(4, len);
                     json j;
@@ -172,8 +173,6 @@ void Client::epoll_thread_func() {
                     }
 
                     buffer.erase(0, 4 + len);
-
-                    // --- 消息处理逻辑 ---
 
                     std::string type = j.value("type", "");
 
@@ -422,16 +421,10 @@ void Client::epoll_thread_func() {
                         continue;
                     }                 
                     
-                    //if(type==""){
-                        //_msg(j);
-                        //state=main_menu;
-                        //login_success.store(false);
-                        //token.clear();
-                        //sem_post(&this->sem);
-                        //continue;
-                    //}
+
 
                     if(type=="error"){
+                        ;
                     // 处理错误信息
                     }
                     else {
