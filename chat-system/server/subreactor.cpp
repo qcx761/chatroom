@@ -84,6 +84,8 @@ void SubReactor::run() {
                     while (true) {
                         ssize_t n = recv(fd, buf, sizeof(buf), 0);
                         if (n > 0) {
+                std::lock_guard<std::mutex> lock(hb_mutex);
+                fd_heartbeat_map[fd] = std::chrono::steady_clock::now();
                             fd_buffers[fd] += std::string(buf, n);  // 拼接数据
                         } else if (n == 0) {
                             // 对端关闭连接
