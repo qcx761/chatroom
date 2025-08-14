@@ -78,14 +78,14 @@ mkdir build
 cd build
 cmake ..
 make
-./Server 端口号
+./server 端口号
 ./ftpserver
 
 客户端编译与启动
-cd chat-system/Client
+cd chat-system/client
 mkdir build
 cd build
 cmake ..
 make
-./Client ip地址 端口号
+./client ip地址 端口号
 ```
