@@ -115,7 +115,7 @@ void SubReactor::run() {
                         if (len == 0 || len > 10 * 1024 * 1024) {
                             // 非法长度，关闭连接
                             closeAndRemove(fd);
-                            return;
+                            continue;
                         }
 
                         if (buffer.size() < 4 + len) break; // 包未完全到齐
@@ -129,7 +129,7 @@ void SubReactor::run() {
                         } catch (...) {
                             // 解析失败关闭连接
                             closeAndRemove(fd);
-                            return;
+                            continue;
                         }
 
                         // 删除已解析数据
