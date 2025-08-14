@@ -1126,7 +1126,7 @@ system("clear");
     current_chat_group = "";
 }
 
-// 处理粘包：从 control_fd 逐行读取服务器响应（以 \r\n 分隔）
+// 处理粘包：从control_fd逐行读取服务器响应（以 \r\n 分隔）
 std::string read_ftp_response_line(int control_fd) {
     static std::string buffer;
     char temp[512];
@@ -1276,7 +1276,6 @@ void ftp_retr(int control_fd, const std::string& filename, const std::string& sa
         std::cerr << "[错误] 连接数据端口失败\n";
         return;
     }
-
 
     // 打开本地文件准备写入
     std::ofstream ofs(save_path, std::ios::binary);

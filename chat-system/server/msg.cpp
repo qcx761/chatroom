@@ -1706,49 +1706,50 @@ void send_private_message_msg(int fd, const json& request) {
         bool is_friend = false;
         bool target_muted_user = false;
 
-        {
-            std::unique_ptr<sql::PreparedStatement> stmt(
-                conn->prepareStatement(
-                    "SELECT "
-                    "JSON_CONTAINS(friends, JSON_OBJECT('account', ?), '$') AS is_friend, "
-                    "JSON_EXTRACT(friends, REPLACE(JSON_UNQUOTE(JSON_SEARCH(friends, 'one', ?, NULL, '$[*].account')), '.account', '.muted')) AS muted "
-                    "FROM friends "
-                    "WHERE account = ?"
-                )
-            );
-
-            // 参数顺序
-            stmt->setString(1, target_account);   // 检查 sender 是否在 target_account 的好友列表里
-            stmt->setString(2, target_account);   // JSON_SEARCH 查路径
-            stmt->setString(3, user_account);   // WHERE account = sender_account
-
-            std::unique_ptr<sql::ResultSet> res(stmt->executeQuery());
-
-            if (res->next()) {
-                is_friend = res->getBoolean("is_friend");
-                if (!res->isNull("muted")) {
-                    target_muted_user = res->getBoolean("muted");
-                }
-            }
-        }
-
-        // // 判断自己是否为对方好友
         // {
         //     std::unique_ptr<sql::PreparedStatement> stmt(
-        //         conn->prepareStatement("SELECT friends FROM friends WHERE account = ?"));
-        //     stmt->setString(1, target_account);
+        //         conn->prepareStatement(
+        //             "SELECT "
+        //             "JSON_CONTAINS(friends, JSON_OBJECT('account', ?), '$') AS is_friend, "
+        //             "JSON_EXTRACT(friends, REPLACE(JSON_UNQUOTE(JSON_SEARCH(friends, 'one', ?, NULL, '$[*].account')), '.account', '.muted')) AS muted "
+        //             "FROM friends "
+        //             "WHERE account = ?"
+        //         )
+        //     );
+
+        //     // 参数顺序
+        //     stmt->setString(1, user_account);    // 检查自己是否在对方好友列表里
+        //     stmt->setString(2, user_account);    // JSON_SEARCH 查自己的路径
+        //     stmt->setString(3, target_account);  // 查询目标好友记录
+
+
         //     std::unique_ptr<sql::ResultSet> res(stmt->executeQuery());
+
         //     if (res->next()) {
-        //         json friends = json::parse(std::string(res->getString("friends")));
-        //         for (const auto& f : friends) {
-        //             if (f.value("account", "") == user_account) {
-        //                 is_friend = true;
-        //                 target_muted_user = f.value("muted", false);
-        //                 break;
-        //             }
+        //         is_friend = res->getBoolean("is_friend");
+        //         if (!res->isNull("muted")) {
+        //             target_muted_user = res->getBoolean("muted");
         //         }
         //     }
         // }
+
+        // 判断自己是否为对方好友
+        {
+            std::unique_ptr<sql::PreparedStatement> stmt(
+                conn->prepareStatement("SELECT friends FROM friends WHERE account = ?"));
+            stmt->setString(1, target_account);
+            std::unique_ptr<sql::ResultSet> res(stmt->executeQuery());
+            if (res->next()) {
+                json friends = json::parse(std::string(res->getString("friends")));
+                for (const auto& f : friends) {
+                    if (f.value("account", "") == user_account) {
+                        is_friend = true;
+                        target_muted_user = f.value("muted", false);
+                        break;
+                    }
+                }
+            }
+        }
 
         if (!is_friend) {
             response["type"] = "send_private_message";

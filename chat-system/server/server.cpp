@@ -58,7 +58,7 @@ Server::Server(int port, int sub_count) : thread_pool(thread_count)
         exit(1);
     }
 
-    // 创建 sub_count 个 SubReactor 对象（也就是从 Reactor 线程或者事件循环实例），并将它们的指针依次存入 workers 容器（std::vector<SubReactor*>）
+    // 创建sub_count个SubReactor对象，并将它们的指针依次存入workers容器
     for (int i = 0; i < sub_count; ++i)
         workers.push_back(new SubReactor(&thread_pool));
 

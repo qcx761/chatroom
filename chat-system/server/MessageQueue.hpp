@@ -11,7 +11,7 @@ using json = nlohmann::json;
 enum class MsgType { PRIVATE, GROUP };
 
 struct Message {
-    int fd;             
+    int fd;
     json content;
     MsgType type;
 };

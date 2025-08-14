@@ -32,6 +32,9 @@ void MessageSender::process() {
 
         for (auto& [fd, q] : user_queues_) {
             if (!q.empty()) {
+                // Message msg = std::move(q.front());
+                // q.pop();
+
                 Message msg = q.front();
                 q.pop();
                 lock.unlock(); // 发送可能阻塞，先解锁
