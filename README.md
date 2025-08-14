@@ -31,8 +31,12 @@ Chatroom/
 │   │   ├── ftpserver.cpp          		# ftp实现
 │   │   ├── ftpserver.hpp   			# ftp接口
 │   │   ├── main.cpp            		# 主程序入口
+│   │   ├── MessageQueue.cpp          	# 消息队列实现
+│   │   ├── MessageQueue.hpp   			# 消息队列接口
 │   │   ├── msg.cpp          		    # 服务端与客户端交互实现
 │   │   ├── msg.hpp   					# 服务端与客户端交互接口
+│   │   ├── MySQLPool.cpp          		# 连接池实现
+│   │   ├── MySQLPool.hpp   			# 连接池接口
 │   │	├── server.cpp          	    # 主reactor实现
 │   │   ├── server.hpp            		# 主reactor接口
 │   │   ├── subreactor.cpp              # 从reactor实现
@@ -52,7 +56,7 @@ Chatroom/
 ##  技术栈
 
 - **语言**：C++
-- **网络模型**：`IO 多路复用(epoll)` + `多 Reactor ` 
+- **网络模型**：`IO 多路复用(epoll)` + `主从 Reactor ` 
 - **并发模型**：`线程池`
 - **数据库**：
   - `MySQL`：存储好友,聊天,信息等数据
