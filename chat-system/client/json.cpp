@@ -17,10 +17,10 @@ int send_json(int sockfd, const json& j) {
         }  // 发送失败或连接关闭
         total_sent += n;
     }
-
     return 0;
 }
-// 非阻塞安全的 send_json
+
+// 非阻塞安全的send_json
 // int send_json(int sockfd, const json& j) {
 //     std::string payload = j.dump();
 //     uint32_t len = htonl(payload.size());

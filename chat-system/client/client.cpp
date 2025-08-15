@@ -35,15 +35,8 @@ Client::Client(std::string ip, int port)
         perror("fcntl F_SETFL failed");
         exit(1);
     }
-    epfd = epoll_create1(0);
-        if (epfd == -1) {
-        perror("epoll_create1 failed");
-        exit(1);
-    }
-    epoll_event ev{};
-    ev.data.fd = sock;
-    ev.events = EPOLLIN ;
-    epoll_ctl(epfd, EPOLL_CTL_ADD, sock, &ev);
+
+
 
     start();
 
@@ -53,7 +46,6 @@ Client::~Client()
 {
     stop();
     if (sock != -1) close(sock);
-    if (epfd != -1) close(epfd);
 
     sem_destroy(&sem);  // 信号量
 }
@@ -64,7 +56,7 @@ void Client::start() {
     sem_init(&sem, 0, 0);  // 初始化信号量  
     
     // 启动 epoll 网络线程
-    net_thread = std::thread(&Client::epoll_thread_func, this);
+    net_thread = std::thread(&Client::net_thread_func, this);
     // 启动用户输入线程
     input_thread = std::thread(&Client::user_thread_func, this);
     //心跳检测
@@ -73,7 +65,7 @@ void Client::start() {
 }
 
 void Client::stop() {
-    // running = false;
+    running = false;
 
     if (net_thread.joinable()) net_thread.join();
     if (input_thread.joinable()) input_thread.join();
@@ -103,342 +95,305 @@ void Client::heartbeat_thread_func() {
     }
 }
 
-
-void Client::epoll_thread_func() {
-    epoll_event events[1024];
+void Client::net_thread_func() {
+    char buf[4096];
     while (running) {
-        int n = epoll_wait(epfd, events, 1024, -1);
-        if (n == -1) {
-            if (errno == EINTR) continue;
-            perror("epoll_wait failed");
-            break;
+        ssize_t nrecv = recv(sock, buf, sizeof(buf), 0);
+        if (nrecv > 0) {
+            fd_buffers[sock].append(buf, nrecv);
+        } else if (nrecv == 0) {
+            std::cout << "服务器关闭连接\n";
+            running = false;
+            return;
+        } else {
+            if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                // 非阻塞模式下没有数据
+                std::this_thread::sleep_for(std::chrono::milliseconds(50));
+                continue;
+            } else if (errno == EINTR) {
+                continue; // 信号中断，重试
+            } else {
+                perror("recv failed");
+                running = false;
+                return;
+            }
         }
 
-        for (int i = 0; i < n; ++i) {
-            int fd = events[i].data.fd;
-            uint32_t evs = events[i].events;
+        // 解析完整包
+        auto &buffer = fd_buffers[sock];
+        while (true) {
+            if (buffer.size() < 4) break; // 长度头不够
 
-            if ((evs & EPOLLERR) || (evs & EPOLLHUP) || (evs & EPOLLRDHUP)) {
-                std::cout << "服务器断开连接\n";
+            uint32_t len_net = 0;
+            memcpy(&len_net, buffer.data(), 4);
+            uint32_t len = ntohl(len_net);
+
+            if (len == 0 || len > 10 * 1024 * 1024) {
+                std::cout << "无效数据长度\n";
                 running = false;
                 return;
             }
 
-            if (fd == sock) {
-                char buf[4096];
-                while (true) {
-                    ssize_t nrecv = recv(fd, buf, sizeof(buf), 0);
-                    if (nrecv > 0) {
-                        fd_buffers[fd].append(buf, nrecv);
-                    } else if (nrecv == 0) {
-                        std::cout << "服务器关闭连接\n";
-                        running = false;
-                        return;
-                    } else {
-                        if (errno == EAGAIN || errno == EWOULDBLOCK) {
-                            break;  // 数据读完
-                        } else {
-                            perror("recv failed");
-                            running = false;
-                            return;
-                        }
-                    }
-                }
+            if (buffer.size() < 4 + len) break; // 数据不完整
 
-                // 解析完整包循环
-                auto& buffer = fd_buffers[fd];
-                while (true) {
-                    if (buffer.size() < 4) break; // 不够长度头
+            std::string json_str = buffer.substr(4, len);
+            buffer.erase(0, 4 + len);
 
-                    uint32_t len_net = 0;
-                    memcpy(&len_net, buffer.data(), 4);
-                    uint32_t len = ntohl(len_net);
-
-                    if (len == 0 || len > 10 * 1024 * 1024) {
-                        std::cout << "无效数据长度\n";
-                        running = false;
-                        return;
-                    }
-
-                    if (buffer.size() < 4 + len) break; // 数据不完整等待下一次
-
-                    std::string json_str = buffer.substr(4, len);
-                    json j;
-                    try {
-                        j = json::parse(json_str);
-                    } catch (...) {
-                        std::cout << "JSON解析失败\n";
-                        running = false;
-                        return;
-                    }
-
-                    buffer.erase(0, 4 + len);
-
-                    std::string type = j.value("type", "");
-
-                    if (type.empty()){
-                        continue;
-                    }
-                    
-                    // 超时登录处理
-                    if(j["msg"]=="Invalid or expired token"){
-                        cout <<"登录超时请重新登录。"<<endl;
-                        login_success.store(false);  // 判断登录
-                        token.clear();
-                        state=main_menu;
-                        //waiting();
-                        sem_post(&sem);  
-                        continue;
-                    }
-                    
-                    if(type=="sign_up"){
-                        sign_up_msg(j);
-                        sem_post(&this->sem);  // 通过 this 访问成员变量
-                        continue;
-                    }
-
-                    if(type=="log_in"){
-                        bool success_if = log_in_msg(j,this->token);
-                        this->login_success.store(success_if);
-                        sem_post(&this->sem);
-                        continue;
-                    }
-
-                    if(type=="destory_account"){
-                        destory_account_msg(j);
-                        state=main_menu;
-                        login_success.store(false);
-                        token.clear();
-                        sem_post(&this->sem);
-                        continue;
-                    }
-
-                    if(type=="quit_account"){
-                        quit_account_msg(j);
-                        state=main_menu;
-                        login_success.store(false);
-                        token.clear();
-                        sem_post(&this->sem);
-                        continue;
-                    }
-
-                    if(type=="username_view"){
-                        username_view_msg(j);
-                        sem_post(&this->sem);        
-                        continue;
-                    }
-
-                    if(type=="username_change"){
-                        username_change_msg(j);
-                        sem_post(&this->sem);
-                        continue;
-                    }
-
-                    if(type=="password_change"){
-                        password_change_msg(j);
-                        sem_post(&this->sem);
-                        continue;
-                    }
-
-                    if(type=="show_friend_list"){
-                        show_friend_list_msg(j);
-                        sem_post(&this->sem);
-                        continue;
-                    }    
-                    
-                    if(type=="add_friend"){
-                        add_friend_msg(j);
-                        sem_post(&this->sem);
-                        continue;
-                    } 
-
-                    if(type=="remove_friend"){
-                        remove_friend_msg(j);
-                        sem_post(&this->sem);
-                        continue;
-                    } 
-
-                    if(type=="mute_friend"){
-                        mute_friend_msg(j);
-                        sem_post(&this->sem);
-                        continue;
-                    } 
-
-                    if(type=="unmute_friend"){
-                        unmute_friend_msg(j);
-                        sem_post(&this->sem);
-                        continue;
-                    }
-
-                    if(type=="get_friend_requests"){
-                        get_friend_requests_msg(j);
-                        sem_post(&this->sem);
-                        continue;
-                    }
-
-                    if(type=="handle_friend_request"){
-                        handle_friend_request_msg(j);
-                        sem_post(&this->sem);
-                        continue;
-                    }
-
-                    if(type=="get_friend_info"){
-                        get_friend_info_msg(j);
-                        sem_post(&this->sem);
-                        continue;
-                    }
-
-                    if(type=="get_private_history"){                        
-                        get_private_history_msg(j);
-                        sem_post(&this->sem);
-                        continue;
-                    }
-
-                    if(type=="send_private_message"){
-                        send_private_message_msg(j);
-                        continue;
-                    }   
-
-                    if(type=="receive_private_message"){
-                        receive_private_message_msg(j);
-                        continue;
-                    }
-
-                    if(type=="get_unread_private_messages"){        
-                        get_unread_private_messages_msg(j);
-                        sem_post(&this->sem);
-                        continue;
-                    }
-
-                    if(type=="show_group_list"){
-                        show_group_list_msg(j);
-                        sem_post(&this->sem);
-                        continue;
-                    }
-
-                    if(type=="join_group"){
-                        join_group_msg(j);
-                        sem_post(&this->sem);
-                        continue;
-                    }
-
-                    if(type=="quit_group"){
-                        quit_group_msg(j);
-                        sem_post(&this->sem);
-                        continue;
-                    }
-
-                    if(type=="show_group_members"){
-                        show_group_members_msg(j);
-                        sem_post(&this->sem);
-                        continue;
-                    }
-
-                    if(type=="create_group"){
-                        create_group_msg(j);
-                        sem_post(&this->sem);
-                        continue;
-                    }
-
-                    if(type=="set_group_admin"){
-                        set_group_admin_msg(j);
-                        sem_post(&this->sem);
-                        continue;
-                    }
-
-                    if(type=="remove_group_admin"){
-                        remove_group_admin_msg(j);
-                        sem_post(&this->sem);
-                        continue;
-                    }
-
-                    if(type=="remove_group_member"){
-                        remove_group_member_msg(j);
-                        sem_post(&this->sem);
-                        continue;
-                    }
-
-                    if(type=="add_group_member"){
-                        add_group_member_msg(j);
-                        sem_post(&this->sem);
-                        continue;
-                    }
-
-                    if(type=="dismiss_group"){
-                        dismiss_group_msg(j);
-                        sem_post(&this->sem);
-                        continue;
-                    }
-
-                    if(type=="get_group_requests"){
-                        get_group_requests_msg(j);
-                        sem_post(&this->sem);
-                        continue;
-                    }
-
-                    if(type=="handle_group_request"){
-                        handle_group_request_msg(j);
-                        sem_post(&this->sem);
-                        continue;
-                    }
-
-                    if(type=="get_unread_group_messages"){
-                        get_unread_group_messages_msg(j);
-                        sem_post(&this->sem);
-                        continue;
-                    }
-                    if(type=="receive_group_messages"){
-                        receive_group_messages_msg(j);
-                        continue;
-                    }
-                    if(type=="get_group_history"){
-                        get_group_history_msg(j);
-                        sem_post(&this->sem);
-                        continue;
-                    }
-
-                    if(type=="send_group_message"){
-                        send_group_message_msg(j);
-                        //sem_post(&this->sem);
-                        continue;
-                    }   
-
-                    // 处理在线通知
-                    if(type=="receive_message"){
-                        receive_message_msg(j);
-                        continue;
-                    }   
-
-                    // 处理离线通知
-                    if(type=="offline_summary"){
-                        offline_summary_msg(j);
-                        continue;
-                    }   
-
-                    if(type=="get_file_list"){
-                        get_file_list_msg(j);
-                        sem_post(&this->sem);
-                        continue;
-                    }                 
-                    
-
-
-                    if(type=="error"){
-                        ;
-                    // 处理错误信息
-                    }
-                    else {
-                        std::cout << "收到未知消息类型: " << type << std::endl;
-                    }
-                }
-            } else {
-                perror("未知fd事件");
+            json j;
+            try {
+                j = json::parse(json_str);
+            } catch (...) {
+                std::cout << "JSON解析失败\n";
                 running = false;
                 return;
             }
+
+            std::string type = j.value("type", "");
+
+            // 超时登录处理
+            if(j["msg"]=="Invalid or expired token"){
+                cout <<"登录超时请重新登录。"<<endl;
+                login_success.store(false);  // 判断登录
+                token.clear();
+                state=main_menu;
+                //waiting();
+                sem_post(&sem);  
+                continue;
+            }
+            
+            if(type=="sign_up"){
+                sign_up_msg(j);
+                sem_post(&this->sem);  // 通过 this 访问成员变量
+                continue;
+            }
+
+            if(type=="log_in"){
+                bool success_if = log_in_msg(j,this->token);
+                this->login_success.store(success_if);
+                sem_post(&this->sem);
+                continue;
+            }
+
+            if(type=="destory_account"){
+                destory_account_msg(j);
+                state=main_menu;
+                login_success.store(false);
+                token.clear();
+                sem_post(&this->sem);
+                continue;
+            }
+
+            if(type=="quit_account"){
+                quit_account_msg(j);
+                state=main_menu;
+                login_success.store(false);
+                token.clear();
+                sem_post(&this->sem);
+                continue;
+            }
+
+            if(type=="username_view"){
+                username_view_msg(j);
+                sem_post(&this->sem);        
+                continue;
+            }
+
+            if(type=="username_change"){
+                username_change_msg(j);
+                sem_post(&this->sem);
+                continue;
+            }
+
+            if(type=="password_change"){
+                password_change_msg(j);
+                sem_post(&this->sem);
+                continue;
+            }
+
+            if(type=="show_friend_list"){
+                show_friend_list_msg(j);
+                sem_post(&this->sem);
+                continue;
+            }    
+            
+            if(type=="add_friend"){
+                add_friend_msg(j);
+                sem_post(&this->sem);
+                continue;
+            } 
+
+            if(type=="remove_friend"){
+                remove_friend_msg(j);
+                sem_post(&this->sem);
+                continue;
+            } 
+
+            if(type=="mute_friend"){
+                mute_friend_msg(j);
+                sem_post(&this->sem);
+                continue;
+            } 
+
+            if(type=="unmute_friend"){
+                unmute_friend_msg(j);
+                sem_post(&this->sem);
+                continue;
+            }
+
+            if(type=="get_friend_requests"){
+                get_friend_requests_msg(j);
+                sem_post(&this->sem);
+                continue;
+            }
+
+            if(type=="handle_friend_request"){
+                handle_friend_request_msg(j);
+                sem_post(&this->sem);
+                continue;
+            }
+
+            if(type=="get_friend_info"){
+                get_friend_info_msg(j);
+                sem_post(&this->sem);
+                continue;
+            }
+
+            if(type=="get_private_history"){                        
+                get_private_history_msg(j);
+                sem_post(&this->sem);
+                continue;
+            }
+
+            if(type=="send_private_message"){
+                send_private_message_msg(j);
+                continue;
+            }   
+
+            if(type=="receive_private_message"){
+                receive_private_message_msg(j);
+                continue;
+            }
+
+            if(type=="get_unread_private_messages"){        
+                get_unread_private_messages_msg(j);
+                sem_post(&this->sem);
+                continue;
+            }
+
+            if(type=="show_group_list"){
+                show_group_list_msg(j);
+                sem_post(&this->sem);
+                continue;
+            }
+
+            if(type=="join_group"){
+                join_group_msg(j);
+                sem_post(&this->sem);
+                continue;
+            }
+
+            if(type=="quit_group"){
+                quit_group_msg(j);
+                sem_post(&this->sem);
+                continue;
+            }
+
+            if(type=="show_group_members"){
+                show_group_members_msg(j);
+                sem_post(&this->sem);
+                continue;
+            }
+
+            if(type=="create_group"){
+                create_group_msg(j);
+                sem_post(&this->sem);
+                continue;
+            }
+
+            if(type=="set_group_admin"){
+                set_group_admin_msg(j);
+                sem_post(&this->sem);
+                continue;
+            }
+
+            if(type=="remove_group_admin"){
+                remove_group_admin_msg(j);
+                sem_post(&this->sem);
+                continue;
+            }
+
+            if(type=="remove_group_member"){
+                remove_group_member_msg(j);
+                sem_post(&this->sem);
+                continue;
+            }
+
+            if(type=="add_group_member"){
+                add_group_member_msg(j);
+                sem_post(&this->sem);
+                continue;
+            }
+
+            if(type=="dismiss_group"){
+                dismiss_group_msg(j);
+                sem_post(&this->sem);
+                continue;
+            }
+
+            if(type=="get_group_requests"){
+                get_group_requests_msg(j);
+                sem_post(&this->sem);
+                continue;
+            }
+
+            if(type=="handle_group_request"){
+                handle_group_request_msg(j);
+                sem_post(&this->sem);
+                continue;
+            }
+
+            if(type=="get_unread_group_messages"){
+                get_unread_group_messages_msg(j);
+                sem_post(&this->sem);
+                continue;
+            }
+            if(type=="receive_group_messages"){
+                receive_group_messages_msg(j);
+                continue;
+            }
+            if(type=="get_group_history"){
+                get_group_history_msg(j);
+                sem_post(&this->sem);
+                continue;
+            }
+
+            if(type=="send_group_message"){
+                send_group_message_msg(j);
+                //sem_post(&this->sem);
+                continue;
+            }   
+
+            // 处理在线通知
+            if(type=="receive_message"){
+                receive_message_msg(j);
+                continue;
+            }   
+
+            // 处理离线通知
+            if(type=="offline_summary"){
+                offline_summary_msg(j);
+                continue;
+            }   
+
+            if(type=="get_file_list"){
+                get_file_list_msg(j);
+                sem_post(&this->sem);
+                continue;
+            }            
         }
     }
 }
+
 
 void Client::user_thread_func() {
 
@@ -624,6 +579,23 @@ void Client::user_thread_func() {
         } // switch处理
     } // while循环
 } // 线程
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
