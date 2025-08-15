@@ -25,7 +25,6 @@ Client::Client(std::string ip, int port)
         exit(1);
     }
 
-
     int flags=fcntl(sock, F_GETFL) ;
     if (flags == -1) {
         perror("fcntl F_GETFL failed");
@@ -35,8 +34,6 @@ Client::Client(std::string ip, int port)
         perror("fcntl F_SETFL failed");
         exit(1);
     }
-
-
 
     start();
 
