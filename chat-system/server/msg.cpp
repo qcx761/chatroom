@@ -14,8 +14,6 @@ std::unordered_map<std::string, std::string> account_name_map;
 std::mutex mtx;
 std::condition_variable cv;
 std::mutex fd_mutex;
-AsyncMessageInserter asyncMessageInserter(mysql_pool);
-AsyncGroupMessageInserter asyncGroupInserter(mysql_pool);
 
 // 获取当前时间字符串，格式：YYYY-MM-DD HH:MM:SS
 std::string getCurrentTimeString() {
@@ -67,13 +65,6 @@ int get_fd_by_account(const std::string& account) {
     return -1;
 }
 
-// 获取 MySQL 连接
-std::shared_ptr<sql::Connection> get_mysql_connection() {
-    sql::mysql::MySQL_Driver* driver = sql::mysql::get_mysql_driver_instance();
-    auto conn = std::shared_ptr<sql::Connection>(driver->connect("tcp://127.0.0.1:3306", "qcx", "qcx761"));
-    conn->setSchema("chatroom");
-    return conn;
-}
 
 // 生成32位随机Token字符串
 std::string generate_token() {
@@ -1706,32 +1697,6 @@ void send_private_message_msg(int fd, const json& request) {
         bool is_friend = false;
         bool target_muted_user = false;
 
-        // {
-        //     std::unique_ptr<sql::PreparedStatement> stmt(
-        //         conn->prepareStatement(
-        //             "SELECT "
-        //             "JSON_CONTAINS(friends, JSON_OBJECT('account', ?), '$') AS is_friend, "
-        //             "JSON_EXTRACT(friends, REPLACE(JSON_UNQUOTE(JSON_SEARCH(friends, 'one', ?, NULL, '$[*].account')), '.account', '.muted')) AS muted "
-        //             "FROM friends "
-        //             "WHERE account = ?"
-        //         )
-        //     );
-
-        //     // 参数顺序
-        //     stmt->setString(1, user_account);    // 检查自己是否在对方好友列表里
-        //     stmt->setString(2, user_account);    // JSON_SEARCH 查自己的路径
-        //     stmt->setString(3, target_account);  // 查询目标好友记录
-
-
-        //     std::unique_ptr<sql::ResultSet> res(stmt->executeQuery());
-
-        //     if (res->next()) {
-        //         is_friend = res->getBoolean("is_friend");
-        //         if (!res->isNull("muted")) {
-        //             target_muted_user = res->getBoolean("muted");
-        //         }
-        //     }
-        // }
 
         // 判断自己是否为对方好友
         {
@@ -1767,19 +1732,17 @@ void send_private_message_msg(int fd, const json& request) {
             return;
         }
 
-        // // 储存消息到mysql
-        // {
-        //     std::unique_ptr<sql::PreparedStatement> stmt(
-        //         conn->prepareStatement(
-        //             "INSERT INTO messages (sender, receiver, content, is_online, is_read) VALUES (?, ?, ?, ?, FALSE)"));
-        //     stmt->setString(1, user_account);
-        //     stmt->setString(2, target_account);
-        //     stmt->setString(3, message);
-        //     stmt->setBoolean(4, is_online);
-        //     stmt->execute();
-        // }
-
-        asyncMessageInserter.enqueueMessage(user_account, target_account, message, is_online);
+        // 储存消息到mysql
+        {
+            std::unique_ptr<sql::PreparedStatement> stmt(
+                conn->prepareStatement(
+                    "INSERT INTO messages (sender, receiver, content, is_online, is_read) VALUES (?, ?, ?, ?, FALSE)"));
+            stmt->setString(1, user_account);
+            stmt->setString(2, target_account);
+            stmt->setString(3, message);
+            stmt->setBoolean(4, is_online);
+            stmt->execute();
+        }
 
 
         // 在线则推送消息
@@ -3486,18 +3449,17 @@ void send_group_message_msg(int fd, const json& request) {
             return;
         }
 
-        // // 插入消息到 group_messages 表
-        // {
-        //     std::unique_ptr<sql::PreparedStatement> stmt(
-        //         conn->prepareStatement(
-        //             "INSERT INTO group_messages (group_id, sender, content) VALUES (?, ?, ?)"));
-        //     stmt->setInt(1, group_id);
-        //     stmt->setString(2, user_account);
-        //     stmt->setString(3, message);
-        //     stmt->executeUpdate();
-        // }
+        // 插入消息到 group_messages 表
+        {
+            std::unique_ptr<sql::PreparedStatement> stmt(
+                conn->prepareStatement(
+                    "INSERT INTO group_messages (group_id, sender, content) VALUES (?, ?, ?)"));
+            stmt->setInt(1, group_id);
+            stmt->setString(2, user_account);
+            stmt->setString(3, message);
+            stmt->executeUpdate();
+        }
 
-        asyncGroupInserter.enqueueMessage(group_id, user_account, message);
 
 
         // //帐号查询名字
