@@ -22,9 +22,6 @@ int main(int argc, char* argv[]) {
     int port = std::stoi(port_str);
     Client client(ip, port);
 
-    while (true) {
-        sleep(1);
-    }
     return 0;
 }
 
