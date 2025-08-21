@@ -24,7 +24,6 @@
 #include <thread>
 #include "MySQLPool.hpp"
 
-
 using json = nlohmann::json;
 using namespace sw::redis;
 
