@@ -89,3 +89,6 @@ cmake ..
 make
 ./client ip地址 端口号
 ```
+
+
+[总结](https://blog.csdn.net/2401_87565642/article/details/150553605?spm=1011.2124.3001.6209)
