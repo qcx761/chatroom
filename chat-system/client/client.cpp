@@ -62,7 +62,7 @@ void Client::start() {
 }
 
 void Client::stop() {
-    running = false;
+//    running = false;
 
     if (net_thread.joinable()) net_thread.join();
     if (input_thread.joinable()) input_thread.join();
